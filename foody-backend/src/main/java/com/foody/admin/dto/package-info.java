@@ -1,2 +1,2 @@
-/** Skeleton package for the Foody admin module. Implemented in a later phase. */
+/** DTOs for the Foody admin module: business moderation and dashboard summary. */
 package com.foody.admin.dto;

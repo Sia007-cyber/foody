@@ -144,4 +144,10 @@ class ReservationServiceImpl implements ReservationService {
         return businessService.findByOwnerUserId(ownerUserId)
                 .orElseThrow(() -> new ResourceNotFoundException("No business found for this owner"));
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public long countAll() {
+        return reservationRepository.count();
+    }
 }

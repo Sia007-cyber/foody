@@ -171,4 +171,10 @@ class OrderServiceImpl implements OrderService {
         return businessService.findByOwnerUserId(ownerUserId)
                 .orElseThrow(() -> new ResourceNotFoundException("No business found for this owner"));
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public long countAll() {
+        return orderRepository.count();
+    }
 }

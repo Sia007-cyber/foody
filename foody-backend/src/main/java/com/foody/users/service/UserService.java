@@ -19,4 +19,7 @@ public interface UserService {
     User create(User user);
 
     User save(User user);
+
+    // Admin dashboard summary.
+    long count();
 }

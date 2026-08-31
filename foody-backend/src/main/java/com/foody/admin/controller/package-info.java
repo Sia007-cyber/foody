@@ -1,2 +1,3 @@
-/** Skeleton package for the Foody admin module. Implemented in a later phase. */
+/** REST controllers for the Foody admin module (business moderation + dashboard),
+ * all guarded by {@code hasRole('ADMIN')}. */
 package com.foody.admin.controller;

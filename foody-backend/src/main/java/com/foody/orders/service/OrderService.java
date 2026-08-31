@@ -23,4 +23,7 @@ public interface OrderService {
     List<OrderResponse> getBusinessOrders(Long ownerUserId, OrderStatus statusFilter);
 
     OrderResponse updateOrderStatus(Long ownerUserId, Long orderId, OrderStatus newStatus);
+
+    // Admin dashboard summary.
+    long countAll();
 }

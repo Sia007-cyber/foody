@@ -28,4 +28,7 @@ public interface ReservationService {
     List<ReservationResponse> getBusinessReservations(Long ownerUserId, LocalDate dateFilter);
 
     ReservationResponse updateReservationStatus(Long ownerUserId, Long reservationId, ReservationStatus newStatus);
+
+    // Admin dashboard summary.
+    long countAll();
 }

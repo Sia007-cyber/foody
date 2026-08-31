@@ -4,13 +4,26 @@ import com.foody.businesses.dto.UpdateBusinessProfileRequest;
 import com.foody.businesses.entity.Business;
 import com.foody.businesses.entity.BusinessStatus;
 import com.foody.businesses.repository.BusinessRepository;
+import com.foody.common.exception.InvalidStateTransitionException;
 import com.foody.common.exception.ResourceNotFoundException;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 class BusinessServiceImpl implements BusinessService {
+
+    // Admin-driven approval transitions:
+    // PENDING -> APPROVED -> SUSPENDED
+    // PENDING -> REJECTED
+    private static final Map<BusinessStatus, Set<BusinessStatus>> VALID_ADMIN_TRANSITIONS = Map.of(
+            BusinessStatus.PENDING, Set.of(BusinessStatus.APPROVED, BusinessStatus.REJECTED),
+            BusinessStatus.APPROVED, Set.of(BusinessStatus.SUSPENDED)
+    );
 
     private final BusinessRepository businessRepository;
 
@@ -51,5 +64,35 @@ class BusinessServiceImpl implements BusinessService {
         if (request.coverImageUrl() != null) business.setCoverImageUrl(request.coverImageUrl());
 
         return businessRepository.save(business);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Business> findAll(BusinessStatus statusFilter) {
+        if (statusFilter != null) {
+            return businessRepository.findByStatusOrderByCreatedAtDesc(statusFilter);
+        }
+        return businessRepository.findAll(Sort.by(Sort.Direction.DESC, "createdAt"));
+    }
+
+    @Override
+    @Transactional
+    public Business updateStatus(Long businessId, BusinessStatus newStatus) {
+        Business business = businessRepository.findById(businessId)
+                .orElseThrow(() -> new ResourceNotFoundException("Business not found: " + businessId));
+
+        Set<BusinessStatus> allowedNext = VALID_ADMIN_TRANSITIONS.getOrDefault(business.getStatus(), Set.of());
+        if (!allowedNext.contains(newStatus)) {
+            throw new InvalidStateTransitionException(
+                    "Cannot move business " + businessId + " from " + business.getStatus() + " to " + newStatus);
+        }
+        business.setStatus(newStatus);
+        return businessRepository.save(business);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public long countByStatus(BusinessStatus status) {
+        return businessRepository.countByStatus(status);
     }
 }
