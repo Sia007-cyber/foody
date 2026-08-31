@@ -36,6 +36,7 @@ public class WebSecurityConfig {
             "/api/businesses/*/menus",  // Phase 0: browse a business's menus, no login required
             "/api/menus/*/products",    // Phase 0: browse a menu's products, no login required
             "/api/products/*",          // Phase 0: single product lookup, no login required
+            "/api/businesses/*/reservation-availability", // Phase 1: browse reservation slots, no login required
             "/actuator/health",
             "/swagger-ui/**", "/v3/api-docs/**"
     };
