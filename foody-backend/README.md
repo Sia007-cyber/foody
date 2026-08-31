@@ -61,6 +61,7 @@ mvn spring-boot:run -Dspring-boot.run.profiles=local \
 | POST | /api/auth/logout | any | 200 (client discards tokens) |
 | GET  | /api/users/me | Bearer | current user profile |
 | PATCH| /api/users/me | Bearer | update fullName/phone/password |
+| GET  | /api/businesses?type=&search= | public | Discover: list APPROVED businesses, optional type filter + name search (Phase 1) |
 | GET  | /api/businesses/{id} | public | view an APPROVED business (seeded demo) |
 
 Consistent error envelope (JSON):

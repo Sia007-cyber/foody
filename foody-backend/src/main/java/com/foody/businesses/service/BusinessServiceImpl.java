@@ -50,6 +50,18 @@ class BusinessServiceImpl implements BusinessService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public List<Business> search(String type, String search) {
+        String normalizedType = blankToNull(type);
+        String normalizedSearch = blankToNull(search);
+        return businessRepository.search(BusinessStatus.APPROVED, normalizedType, normalizedSearch);
+    }
+
+    private static String blankToNull(String value) {
+        return (value == null || value.isBlank()) ? null : value.trim();
+    }
+
+    @Override
     @Transactional
     public Business updateProfile(Long ownerUserId, UpdateBusinessProfileRequest request) {
         Business business = businessRepository.findByOwnerUserId(ownerUserId)

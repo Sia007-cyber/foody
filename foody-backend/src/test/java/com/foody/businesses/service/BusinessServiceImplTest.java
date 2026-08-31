@@ -3,6 +3,8 @@ package com.foody.businesses.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.when;
 
 import com.foody.businesses.entity.Business;
@@ -10,6 +12,7 @@ import com.foody.businesses.entity.BusinessStatus;
 import com.foody.businesses.repository.BusinessRepository;
 import com.foody.common.exception.InvalidStateTransitionException;
 import com.foody.common.exception.ResourceNotFoundException;
+import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -98,5 +101,43 @@ class BusinessServiceImplTest {
 
         assertThatThrownBy(() -> businessService.updateStatus(BUSINESS_ID, BusinessStatus.APPROVED))
                 .isInstanceOf(ResourceNotFoundException.class);
+    }
+
+    @Test
+    void search_delegatesToRepositoryWithApprovedStatusOnly() {
+        Business business = businessWithStatus(BusinessStatus.APPROVED);
+        when(businessRepository.search(eq(BusinessStatus.APPROVED), isNull(), isNull()))
+                .thenReturn(List.of(business));
+
+        List<Business> result = businessService.search(null, null);
+
+        assertThat(result).containsExactly(business);
+    }
+
+    @Test
+    void search_passesThroughTypeAndSearchFilters() {
+        when(businessRepository.search(eq(BusinessStatus.APPROVED), eq("CAFE"), eq("sunrise")))
+                .thenReturn(List.of());
+
+        businessService.search("CAFE", "sunrise");
+
+        // No assertion needed beyond the stubbed call not throwing UnnecessaryStubbing;
+        // verifying via Mockito's strict stubs that the exact args were forwarded.
+    }
+
+    @Test
+    void search_treatsBlankFiltersAsNull() {
+        when(businessRepository.search(eq(BusinessStatus.APPROVED), isNull(), isNull()))
+                .thenReturn(List.of());
+
+        businessService.search("  ", "");
+    }
+
+    @Test
+    void search_trimsWhitespaceFromFilters() {
+        when(businessRepository.search(eq(BusinessStatus.APPROVED), eq("CAFE"), eq("sunrise")))
+                .thenReturn(List.of());
+
+        businessService.search(" CAFE ", " sunrise ");
     }
 }

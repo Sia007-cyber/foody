@@ -32,6 +32,7 @@ public class WebSecurityConfig {
 
     private static final String[] PUBLIC_MATCHERS = {
             "/api/auth/**",
+            "/api/businesses",          // Phase 1: Discover listing (GET ?type=&search=), no login required
             "/api/businesses/*",        // Phase 0: read-only approved business lookup
             "/api/businesses/*/menus",  // Phase 0: browse a business's menus, no login required
             "/api/menus/*/products",    // Phase 0: browse a menu's products, no login required

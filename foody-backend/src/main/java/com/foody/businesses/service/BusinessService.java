@@ -17,6 +17,11 @@ public interface BusinessService {
 
     Optional<Business> findByOwnerUserId(Long ownerUserId);
 
+    // Phase 1 Discover (GET /api/businesses?type=&search=): only APPROVED businesses,
+    // optionally filtered by business type code and/or a case-insensitive name search.
+    // Pass null/blank for either param to skip that filter.
+    List<Business> search(String type, String search);
+
     Business updateProfile(Long ownerUserId, UpdateBusinessProfileRequest request);
 
     // Admin panel: list businesses by approval status. Pass null for all statuses.
