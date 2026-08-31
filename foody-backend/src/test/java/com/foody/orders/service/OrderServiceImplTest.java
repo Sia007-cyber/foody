@@ -196,4 +196,46 @@ class OrderServiceImplTest {
         assertThatThrownBy(() -> orderService.getOrderForCustomer(100L, CUSTOMER_ID))
                 .isInstanceOf(ResourceNotFoundException.class);
     }
+
+    @Test
+    void updateOrderStatus_allowsPendingToAccepted() {
+        Order order = new Order();
+        order.setId(100L);
+        order.setBusinessId(BUSINESS_ID);
+        order.setStatus(OrderStatus.PENDING);
+        order.setTotalAmount(new BigDecimal("9.00"));
+
+        when(businessService.findByOwnerUserId(5L)).thenReturn(Optional.of(approvedBusiness()));
+        when(orderRepository.findByIdAndBusinessId(100L, BUSINESS_ID)).thenReturn(Optional.of(order));
+        when(orderRepository.save(any(Order.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        OrderResponse response = orderService.updateOrderStatus(5L, 100L, OrderStatus.ACCEPTED);
+
+        assertThat(response.status()).isEqualTo(OrderStatus.ACCEPTED);
+    }
+
+    @Test
+    void updateOrderStatus_rejectsSkippingStages() {
+        Order order = new Order();
+        order.setId(100L);
+        order.setBusinessId(BUSINESS_ID);
+        order.setStatus(OrderStatus.PENDING);
+        order.setTotalAmount(new BigDecimal("9.00"));
+
+        when(businessService.findByOwnerUserId(5L)).thenReturn(Optional.of(approvedBusiness()));
+        when(orderRepository.findByIdAndBusinessId(100L, BUSINESS_ID)).thenReturn(Optional.of(order));
+
+        assertThatThrownBy(() -> orderService.updateOrderStatus(5L, 100L, OrderStatus.READY))
+                .isInstanceOf(InvalidStateTransitionException.class);
+    }
+
+    @Test
+    void getBusinessOrders_filtersOwnerBusinessOnly() {
+        when(businessService.findByOwnerUserId(5L)).thenReturn(Optional.of(approvedBusiness()));
+        when(orderRepository.findByBusinessIdOrderByCreatedAtDesc(BUSINESS_ID)).thenReturn(List.of());
+
+        List<OrderResponse> result = orderService.getBusinessOrders(5L, null);
+
+        assertThat(result).isEmpty();
+    }
 }

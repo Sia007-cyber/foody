@@ -13,6 +13,7 @@ import com.foody.reservations.entity.ReservationStatus;
 import com.foody.reservations.repository.ReservationRepository;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,6 +24,15 @@ class ReservationServiceImpl implements ReservationService {
     // Cancellable only from these states, per the Phase 1 state machine.
     private static final Set<ReservationStatus> CANCELLABLE_STATUSES =
             Set.of(ReservationStatus.PENDING, ReservationStatus.CONFIRMED);
+
+    // Business-owner-driven transitions, per the Phase 1 state machine:
+    // PENDING -> CONFIRMED -> COMPLETED
+    //         -> REJECTED
+    // (CANCELLED is customer-only, handled separately in cancelReservation.)
+    private static final Map<ReservationStatus, Set<ReservationStatus>> VALID_BUSINESS_TRANSITIONS = Map.of(
+            ReservationStatus.PENDING, Set.of(ReservationStatus.CONFIRMED, ReservationStatus.REJECTED),
+            ReservationStatus.CONFIRMED, Set.of(ReservationStatus.COMPLETED)
+    );
 
     private final ReservationRepository reservationRepository;
     private final BusinessService businessService;
@@ -97,5 +107,41 @@ class ReservationServiceImpl implements ReservationService {
         // Not-found-or-not-owned collapse to the same 404, same pattern as orders.
         return reservationRepository.findByIdAndCustomerUserId(reservationId, customerUserId)
                 .orElseThrow(() -> new ResourceNotFoundException("Reservation not found: " + reservationId));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ReservationResponse> getBusinessReservations(Long ownerUserId, LocalDate dateFilter) {
+        Business business = requireOwnedBusiness(ownerUserId);
+        List<Reservation> reservations = dateFilter != null
+                ? reservationRepository.findByBusinessIdAndReservationDateOrderByReservationTimeAsc(
+                        business.getId(), dateFilter)
+                : reservationRepository.findByBusinessIdOrderByReservationDateDescReservationTimeDesc(
+                        business.getId());
+        return reservations.stream().map(ReservationResponse::from).toList();
+    }
+
+    @Override
+    @Transactional
+    public ReservationResponse updateReservationStatus(Long ownerUserId, Long reservationId,
+                                                        ReservationStatus newStatus) {
+        Business business = requireOwnedBusiness(ownerUserId);
+        Reservation reservation = reservationRepository.findByIdAndBusinessId(reservationId, business.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Reservation not found: " + reservationId));
+
+        Set<ReservationStatus> allowedNext =
+                VALID_BUSINESS_TRANSITIONS.getOrDefault(reservation.getStatus(), Set.of());
+        if (!allowedNext.contains(newStatus)) {
+            throw new InvalidStateTransitionException(
+                    "Cannot move reservation " + reservationId + " from " + reservation.getStatus()
+                            + " to " + newStatus);
+        }
+        reservation.setStatus(newStatus);
+        return ReservationResponse.from(reservationRepository.save(reservation));
+    }
+
+    private Business requireOwnedBusiness(Long ownerUserId) {
+        return businessService.findByOwnerUserId(ownerUserId)
+                .orElseThrow(() -> new ResourceNotFoundException("No business found for this owner"));
     }
 }

@@ -175,4 +175,44 @@ class ReservationServiceImplTest {
         assertThatThrownBy(() -> reservationService.getReservationForCustomer(100L, CUSTOMER_ID))
                 .isInstanceOf(ResourceNotFoundException.class);
     }
+
+    @Test
+    void updateReservationStatus_allowsPendingToConfirmed() {
+        Reservation reservation = new Reservation();
+        reservation.setId(100L);
+        reservation.setBusinessId(BUSINESS_ID);
+        reservation.setCustomerUserId(CUSTOMER_ID);
+        reservation.setReservationDate(LocalDate.now().plusDays(1));
+        reservation.setReservationTime(LocalTime.of(19, 0));
+        reservation.setGuestCount(2);
+        reservation.setStatus(ReservationStatus.PENDING);
+
+        when(businessService.findByOwnerUserId(5L)).thenReturn(Optional.of(approvedBusiness()));
+        when(reservationRepository.findByIdAndBusinessId(100L, BUSINESS_ID)).thenReturn(Optional.of(reservation));
+        when(reservationRepository.save(any(Reservation.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        ReservationResponse response = reservationService.updateReservationStatus(
+                5L, 100L, ReservationStatus.CONFIRMED);
+
+        assertThat(response.status()).isEqualTo(ReservationStatus.CONFIRMED);
+    }
+
+    @Test
+    void updateReservationStatus_rejectsCompletingWithoutConfirmation() {
+        Reservation reservation = new Reservation();
+        reservation.setId(100L);
+        reservation.setBusinessId(BUSINESS_ID);
+        reservation.setCustomerUserId(CUSTOMER_ID);
+        reservation.setReservationDate(LocalDate.now().plusDays(1));
+        reservation.setReservationTime(LocalTime.of(19, 0));
+        reservation.setGuestCount(2);
+        reservation.setStatus(ReservationStatus.PENDING);
+
+        when(businessService.findByOwnerUserId(5L)).thenReturn(Optional.of(approvedBusiness()));
+        when(reservationRepository.findByIdAndBusinessId(100L, BUSINESS_ID)).thenReturn(Optional.of(reservation));
+
+        assertThatThrownBy(() ->
+                reservationService.updateReservationStatus(5L, 100L, ReservationStatus.COMPLETED))
+                .isInstanceOf(InvalidStateTransitionException.class);
+    }
 }

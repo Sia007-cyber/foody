@@ -3,6 +3,9 @@ package com.foody.menus.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
+import com.foody.businesses.entity.Business;
+import com.foody.businesses.service.BusinessService;
+import com.foody.menus.dto.CreateMenuRequest;
 import com.foody.menus.entity.Menu;
 import com.foody.menus.repository.MenuRepository;
 import java.util.List;
@@ -17,12 +20,29 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class MenuServiceImplTest {
 
     @Mock MenuRepository menuRepository;
+    @Mock BusinessService businessService;
 
     MenuServiceImpl menuService;
 
     @BeforeEach
     void setUp() {
-        menuService = new MenuServiceImpl(menuRepository);
+        menuService = new MenuServiceImpl(menuRepository, businessService);
+    }
+
+    @Test
+    void createMenu_savesUnderOwnersBusiness() {
+        Business business = new Business();
+        business.setId(10L);
+
+        when(businessService.findByOwnerUserId(1L)).thenReturn(Optional.of(business));
+        when(menuRepository.save(org.mockito.ArgumentMatchers.any(Menu.class)))
+                .thenAnswer(inv -> inv.getArgument(0));
+
+        Menu result = menuService.createMenu(1L, new CreateMenuRequest("Drinks", null));
+
+        assertThat(result.getBusinessId()).isEqualTo(10L);
+        assertThat(result.getName()).isEqualTo("Drinks");
+        assertThat(result.getDisplayOrder()).isEqualTo(0);
     }
 
     @Test

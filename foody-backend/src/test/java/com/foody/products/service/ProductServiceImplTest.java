@@ -1,8 +1,16 @@
 package com.foody.products.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.when;
 
+import com.foody.businesses.entity.Business;
+import com.foody.businesses.service.BusinessService;
+import com.foody.common.exception.InvalidRequestException;
+import com.foody.menus.entity.Menu;
+import com.foody.menus.service.MenuService;
+import com.foody.products.dto.CreateProductRequest;
+import com.foody.products.dto.UpdateProductRequest;
 import com.foody.products.entity.Product;
 import com.foody.products.repository.ProductRepository;
 import java.math.BigDecimal;
@@ -18,12 +26,85 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class ProductServiceImplTest {
 
     @Mock ProductRepository productRepository;
+    @Mock MenuService menuService;
+    @Mock BusinessService businessService;
 
     ProductServiceImpl productService;
 
+    static final Long OWNER_ID = 1L;
+    static final Long BUSINESS_ID = 10L;
+    static final Long MENU_ID = 20L;
+
     @BeforeEach
     void setUp() {
-        productService = new ProductServiceImpl(productRepository);
+        productService = new ProductServiceImpl(productRepository, menuService, businessService);
+    }
+
+    private Business ownedBusiness() {
+        Business business = new Business();
+        business.setId(BUSINESS_ID);
+        return business;
+    }
+
+    private Menu ownedMenu() {
+        Menu menu = new Menu();
+        menu.setId(MENU_ID);
+        menu.setBusinessId(BUSINESS_ID);
+        return menu;
+    }
+
+    @Test
+    void createProduct_savesUnderOwnedMenu() {
+        when(businessService.findByOwnerUserId(OWNER_ID)).thenReturn(Optional.of(ownedBusiness()));
+        when(menuService.findById(MENU_ID)).thenReturn(Optional.of(ownedMenu()));
+        when(productRepository.save(org.mockito.ArgumentMatchers.any(Product.class)))
+                .thenAnswer(inv -> inv.getArgument(0));
+
+        CreateProductRequest request = new CreateProductRequest(
+                MENU_ID, "Latte", "Hot milk coffee", new BigDecimal("4.50"), null, null);
+
+        Product result = productService.createProduct(OWNER_ID, request);
+
+        assertThat(result.getMenuId()).isEqualTo(MENU_ID);
+        assertThat(result.getIsAvailable()).isTrue();
+    }
+
+    @Test
+    void createProduct_rejectsMenuFromAnotherBusiness() {
+        Menu foreignMenu = new Menu();
+        foreignMenu.setId(MENU_ID);
+        foreignMenu.setBusinessId(999L);
+
+        when(businessService.findByOwnerUserId(OWNER_ID)).thenReturn(Optional.of(ownedBusiness()));
+        when(menuService.findById(MENU_ID)).thenReturn(Optional.of(foreignMenu));
+
+        CreateProductRequest request = new CreateProductRequest(
+                MENU_ID, "Latte", null, new BigDecimal("4.50"), null, null);
+
+        assertThatThrownBy(() -> productService.createProduct(OWNER_ID, request))
+                .isInstanceOf(InvalidRequestException.class);
+    }
+
+    @Test
+    void updateProduct_appliesOnlyNonNullFields() {
+        Product existing = new Product();
+        existing.setId(30L);
+        existing.setMenuId(MENU_ID);
+        existing.setName("Latte");
+        existing.setPrice(new BigDecimal("4.50"));
+        existing.setIsAvailable(true);
+
+        when(productRepository.findById(30L)).thenReturn(Optional.of(existing));
+        when(businessService.findByOwnerUserId(OWNER_ID)).thenReturn(Optional.of(ownedBusiness()));
+        when(menuService.findById(MENU_ID)).thenReturn(Optional.of(ownedMenu()));
+        when(productRepository.save(org.mockito.ArgumentMatchers.any(Product.class)))
+                .thenAnswer(inv -> inv.getArgument(0));
+
+        UpdateProductRequest request = new UpdateProductRequest(null, null, null, null, false, null);
+        Product result = productService.updateProduct(OWNER_ID, 30L, request);
+
+        assertThat(result.getName()).isEqualTo("Latte");
+        assertThat(result.getIsAvailable()).isFalse();
     }
 
     @Test

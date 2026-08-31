@@ -20,11 +20,24 @@ import com.foody.products.entity.Product;
 import com.foody.products.service.ProductService;
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 class OrderServiceImpl implements OrderService {
+
+    // Business-owner-driven transitions, per the Phase 1 state machine:
+    // PENDING -> ACCEPTED -> PREPARING -> READY -> COMPLETED
+    //         -> REJECTED
+    // (CANCELLED is customer-only, handled separately in cancelOrder.)
+    private static final Map<OrderStatus, Set<OrderStatus>> VALID_BUSINESS_TRANSITIONS = Map.of(
+            OrderStatus.PENDING, Set.of(OrderStatus.ACCEPTED, OrderStatus.REJECTED),
+            OrderStatus.ACCEPTED, Set.of(OrderStatus.PREPARING),
+            OrderStatus.PREPARING, Set.of(OrderStatus.READY),
+            OrderStatus.READY, Set.of(OrderStatus.COMPLETED)
+    );
 
     private final OrderRepository orderRepository;
     private final BusinessService businessService;
@@ -126,5 +139,36 @@ class OrderServiceImpl implements OrderService {
         // order ID exists at all to a customer who doesn't own it.
         return orderRepository.findByIdAndCustomerUserId(orderId, customerUserId)
                 .orElseThrow(() -> new ResourceNotFoundException("Order not found: " + orderId));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<OrderResponse> getBusinessOrders(Long ownerUserId, OrderStatus statusFilter) {
+        Business business = requireOwnedBusiness(ownerUserId);
+        List<Order> orders = statusFilter != null
+                ? orderRepository.findByBusinessIdAndStatusOrderByCreatedAtDesc(business.getId(), statusFilter)
+                : orderRepository.findByBusinessIdOrderByCreatedAtDesc(business.getId());
+        return orders.stream().map(OrderResponse::from).toList();
+    }
+
+    @Override
+    @Transactional
+    public OrderResponse updateOrderStatus(Long ownerUserId, Long orderId, OrderStatus newStatus) {
+        Business business = requireOwnedBusiness(ownerUserId);
+        Order order = orderRepository.findByIdAndBusinessId(orderId, business.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found: " + orderId));
+
+        Set<OrderStatus> allowedNext = VALID_BUSINESS_TRANSITIONS.getOrDefault(order.getStatus(), Set.of());
+        if (!allowedNext.contains(newStatus)) {
+            throw new InvalidStateTransitionException(
+                    "Cannot move order " + orderId + " from " + order.getStatus() + " to " + newStatus);
+        }
+        order.setStatus(newStatus);
+        return OrderResponse.from(orderRepository.save(order));
+    }
+
+    private Business requireOwnedBusiness(Long ownerUserId) {
+        return businessService.findByOwnerUserId(ownerUserId)
+                .orElseThrow(() -> new ResourceNotFoundException("No business found for this owner"));
     }
 }
