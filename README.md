@@ -92,8 +92,7 @@
 - [x] `GET /api/admin/dashboard/summary`
 
 ### 🧪 تست‌ها (تا این مرحله)
-- [x] Unit test (Mockito) برای سرویس‌های Business, Menu, Product, Order, Reservation, Admin
-- [ ] Unit test (Mockito) برای سرویس‌های `Auth` و `Users` — هنوز نوشته نشده
+- [x] Unit test (Mockito) برای سرویس‌های Auth, Users, Business, Menu, Product, Order, Reservation, Admin
 - [x] Controller test (MockMvc) برای همه‌ی endpoint های مشتری: Business, Menu, Product, Order, Reservation, Users
 - [x] Controller test (MockMvc) برای همه‌ی endpoint های پنل کسب‌وکار (Owner controllers): Business, Menu, Product, Order, Reservation
 - [x] Controller test (MockMvc) برای Admin
@@ -105,7 +104,6 @@
 
 ## ⏳ باقی‌مانده‌های فاز ۱
 
-- [ ] Unit test برای `AuthServiceImpl` و `UserServiceImpl`
 - [ ] پیاده‌سازی فرانت‌اند (React + Vite + TS) برای هر سه پنل
 - [ ] اتصال فرانت‌اند به API‌های بک‌اند
 - [ ] تست End-to-End روی سناریوی کامل دمو
