@@ -92,8 +92,11 @@
 - [x] `GET /api/admin/dashboard/summary`
 
 ### 🧪 تست‌ها (تا این مرحله)
-- [x] Unit test برای Auth, Users نمایان نیست ولی Business/Menu/Product/Order/Reservation Service
-- [x] Controller test (MockMvc) برای Admin, Auth(Integration), Business, Menu, Product, Order, Reservation
+- [x] Unit test (Mockito) برای سرویس‌های Business, Menu, Product, Order, Reservation, Admin
+- [ ] Unit test (Mockito) برای سرویس‌های `Auth` و `Users` — هنوز نوشته نشده
+- [x] Controller test (MockMvc) برای همه‌ی endpoint های مشتری: Business, Menu, Product, Order, Reservation, Users
+- [x] Controller test (MockMvc) برای همه‌ی endpoint های پنل کسب‌وکار (Owner controllers): Business, Menu, Product, Order, Reservation
+- [x] Controller test (MockMvc) برای Admin
 - [x] Integration test کامل با Testcontainers برای Auth flow
 
 > ✅ معیار دمو فاز ۱ طبق سند اسپک (ثبت‌نام → پیدا کردن کسب‌وکار → سفارش → تغییر وضعیت توسط کسب‌وکار → پیگیری مشتری → رزرو میز → تایید ادمین) از نظر **بک‌اند** تکمیل شده است. باقی‌مانده‌ی اصلی، **فرانت‌اند** است.
@@ -102,6 +105,7 @@
 
 ## ⏳ باقی‌مانده‌های فاز ۱
 
+- [ ] Unit test برای `AuthServiceImpl` و `UserServiceImpl`
 - [ ] پیاده‌سازی فرانت‌اند (React + Vite + TS) برای هر سه پنل
 - [ ] اتصال فرانت‌اند به API‌های بک‌اند
 - [ ] تست End-to-End روی سناریوی کامل دمو
@@ -150,6 +154,8 @@ foody/
 ## 🚀 اجرا (Backend)
 
 ```bash
+cd foody-backend
+
 # با Testcontainers (نیاز به Docker، ساده‌ترین راه)
 mvn test
 mvn spring-boot:run
