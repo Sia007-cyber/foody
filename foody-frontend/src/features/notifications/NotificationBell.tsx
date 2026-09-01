@@ -46,7 +46,12 @@ export function NotificationBell() {
     refetchInterval: 30_000,
   });
 
-  const { data: notifications, isLoading } = useQuery({
+  const {
+    data: notifications,
+    isLoading,
+    isError,
+    refetch,
+  } = useQuery({
     queryKey: ["notifications", "my"],
     queryFn: notificationApi.my,
     enabled: Boolean(user) && open,
@@ -123,6 +128,12 @@ export function NotificationBell() {
             {isLoading ? (
               <div className="notif-dropdown-loading">
                 <Spinner />
+              </div>
+            ) : isError ? (
+              <div className="notif-dropdown-loading">
+                <button type="button" className="notif-mark-all" onClick={() => refetch()}>
+                  اعلان‌ها لود نشد — تلاش دوباره
+                </button>
               </div>
             ) : !notifications || notifications.length === 0 ? (
               <EmptyState title="فعلاً اعلانی نداری" />

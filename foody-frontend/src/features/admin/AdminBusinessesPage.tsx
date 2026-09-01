@@ -5,7 +5,7 @@ import { DashboardShell } from "../../components/DashboardShell";
 import { Select } from "../../components/Field";
 import { Button } from "../../components/Button";
 import { BusinessStatusBadge } from "../../components/Badge";
-import { PageSpinner, EmptyState } from "../../components/Controls";
+import { PageSpinner, EmptyState, ErrorState } from "../../components/Controls";
 import { useToast, errorMessage } from "../../components/Feedback";
 import { adminNavItems } from "./adminNav";
 import type { BusinessStatus } from "../../types/api";
@@ -25,7 +25,13 @@ export function AdminBusinessesPage() {
   const queryClient = useQueryClient();
   const { notify } = useToast();
 
-  const { data: businesses, isLoading } = useQuery({
+  const {
+    data: businesses,
+    isLoading,
+    isError,
+    error,
+    refetch,
+  } = useQuery({
     queryKey: ["admin", "businesses", status],
     queryFn: () => adminApi.businesses(status || undefined),
   });
@@ -58,6 +64,8 @@ export function AdminBusinessesPage() {
     >
       {isLoading ? (
         <PageSpinner />
+      ) : isError ? (
+        <ErrorState error={error} onRetry={() => refetch()} title="کسب‌وکارها لود نشدن" />
       ) : !businesses || businesses.length === 0 ? (
         <EmptyState title="کسب‌وکاری پیدا نشد" />
       ) : (

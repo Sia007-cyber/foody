@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { businessApi } from "../businesses/businessApi";
 import { BusinessCard } from "./BusinessCard";
 import { Segmented } from "../../components/Controls";
-import { EmptyState, PageSpinner } from "../../components/Controls";
+import { EmptyState, ErrorState, PageSpinner } from "../../components/Controls";
 import "./discover.css";
 
 type TypeFilter = "" | "CAFE" | "FAST_FOOD";
@@ -18,7 +18,13 @@ export function DiscoverPage() {
     return () => clearTimeout(t);
   }, [search]);
 
-  const { data: businesses, isLoading } = useQuery({
+  const {
+    data: businesses,
+    isLoading,
+    isError,
+    error,
+    refetch,
+  } = useQuery({
     queryKey: ["businesses", "discover", type, debouncedSearch],
     queryFn: () => businessApi.discover({ type: type || undefined, search: debouncedSearch || undefined }),
   });
@@ -52,6 +58,8 @@ export function DiscoverPage() {
       <section className="container discover-section">
         {isLoading ? (
           <PageSpinner />
+        ) : isError ? (
+          <ErrorState error={error} onRetry={() => refetch()} title="کسب‌وکارها لود نشدن" />
         ) : businesses && businesses.length > 0 ? (
           <div className="business-grid">
             {businesses.map((b) => (

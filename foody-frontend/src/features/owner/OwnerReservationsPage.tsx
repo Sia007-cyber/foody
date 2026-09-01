@@ -5,7 +5,7 @@ import { DashboardShell } from "../../components/DashboardShell";
 import { Input } from "../../components/Field";
 import { Button } from "../../components/Button";
 import { ReservationStatusBadge } from "../../components/Badge";
-import { PageSpinner, EmptyState } from "../../components/Controls";
+import { PageSpinner, EmptyState, ErrorState } from "../../components/Controls";
 import { useToast, errorMessage } from "../../components/Feedback";
 import { formatDate, formatTime } from "../../lib/format";
 import { ownerNavItems } from "./ownerNav";
@@ -25,7 +25,13 @@ export function OwnerReservationsPage() {
   const queryClient = useQueryClient();
   const { notify } = useToast();
 
-  const { data: reservations, isLoading } = useQuery({
+  const {
+    data: reservations,
+    isLoading,
+    isError,
+    error,
+    refetch,
+  } = useQuery({
     queryKey: ["business", "reservations", date],
     queryFn: () => reservationApi.businessReservations(date || undefined),
   });
@@ -48,6 +54,8 @@ export function OwnerReservationsPage() {
     >
       {isLoading ? (
         <PageSpinner />
+      ) : isError ? (
+        <ErrorState error={error} onRetry={() => refetch()} title="رزروها لود نشدن" />
       ) : !reservations || reservations.length === 0 ? (
         <EmptyState title="رزروی پیدا نشد" />
       ) : (

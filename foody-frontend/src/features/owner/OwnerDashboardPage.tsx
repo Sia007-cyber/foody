@@ -5,7 +5,7 @@ import { businessApi } from "../businesses/businessApi";
 import { orderApi } from "../orders/orderApi";
 import { reservationApi } from "../reservations/reservationApi";
 import { DashboardShell } from "../../components/DashboardShell";
-import { Panel, PageSpinner, EmptyState } from "../../components/Controls";
+import { Panel, PageSpinner, EmptyState, ErrorState } from "../../components/Controls";
 import { BusinessStatusBadge, OrderStatusBadge, ReservationStatusBadge } from "../../components/Badge";
 import { formatDateTime, formatTime, formatToman } from "../../lib/format";
 import { ownerNavItems } from "./ownerNav";
@@ -19,20 +19,45 @@ function todayIso(): string {
 }
 
 export function OwnerDashboardPage() {
-  const { data: business, isLoading: loadingBusiness } = useQuery({
+  const {
+    data: business,
+    isLoading: loadingBusiness,
+    isError: businessErrored,
+    error: businessError,
+    refetch: refetchBusiness,
+  } = useQuery({
     queryKey: ["business", "profile"],
     queryFn: businessApi.myProfile,
   });
-  const { data: orders, isLoading: loadingOrders } = useQuery({
+  const {
+    data: orders,
+    isLoading: loadingOrders,
+    isError: ordersErrored,
+    error: ordersError,
+    refetch: refetchOrders,
+  } = useQuery({
     queryKey: ["business", "orders", ""],
     queryFn: () => orderApi.businessOrders(),
   });
-  const { data: reservations, isLoading: loadingReservations } = useQuery({
+  const {
+    data: reservations,
+    isLoading: loadingReservations,
+    isError: reservationsErrored,
+    error: reservationsError,
+    refetch: refetchReservations,
+  } = useQuery({
     queryKey: ["business", "reservations", ""],
     queryFn: () => reservationApi.businessReservations(),
   });
 
   const isLoading = loadingBusiness || loadingOrders || loadingReservations;
+  const isError = businessErrored || ordersErrored || reservationsErrored;
+  const firstError = businessError ?? ordersError ?? reservationsError;
+  const refetchAll = () => {
+    refetchBusiness();
+    refetchOrders();
+    refetchReservations();
+  };
 
   const pendingOrders = (orders ?? []).filter((o) => o.status === "PENDING");
   const activeOrders = (orders ?? []).filter((o) => ACTIVE_ORDER_STATUSES.has(o.status));
@@ -56,6 +81,8 @@ export function OwnerDashboardPage() {
     >
       {isLoading ? (
         <PageSpinner />
+      ) : isError ? (
+        <ErrorState error={firstError} onRetry={refetchAll} title="داشبورد لود نشد" />
       ) : (
         <>
           <div className="stat-grid">

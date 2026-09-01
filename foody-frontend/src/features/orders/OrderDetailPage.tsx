@@ -3,7 +3,7 @@ import { useParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { orderApi } from "./orderApi";
 import { OrderStatusBadge } from "../../components/Badge";
-import { PageSpinner, EmptyState } from "../../components/Controls";
+import { PageSpinner, EmptyState, ErrorState } from "../../components/Controls";
 import { Button } from "../../components/Button";
 import { ConfirmDialog, useToast, errorMessage } from "../../components/Feedback";
 import { formatDateTime, formatToman } from "../../lib/format";
@@ -21,7 +21,13 @@ export function OrderDetailPage() {
   const { notify } = useToast();
   const [confirmingCancel, setConfirmingCancel] = useState(false);
 
-  const { data: order, isLoading } = useQuery({
+  const {
+    data: order,
+    isLoading,
+    isError,
+    error,
+    refetch,
+  } = useQuery({
     queryKey: ["orders", orderId],
     queryFn: () => orderApi.getById(orderId),
     enabled: Number.isFinite(orderId),
@@ -41,6 +47,7 @@ export function OrderDetailPage() {
   });
 
   if (isLoading) return <PageSpinner />;
+  if (isError) return <ErrorState error={error} onRetry={() => refetch()} title="سفارش لود نشد" />;
   if (!order) return <EmptyState title="سفارش پیدا نشد" />;
 
   return (

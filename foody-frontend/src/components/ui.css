@@ -233,6 +233,9 @@
   font-weight: 600;
   color: var(--ink);
 }
+.error-state .empty-state-title {
+  color: var(--danger);
+}
 
 /* ---------- Spinner ---------- */
 .spinner {

@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { adminApi } from "./adminApi";
 import { DashboardShell } from "../../components/DashboardShell";
-import { PageSpinner, Panel } from "../../components/Controls";
+import { PageSpinner, Panel, ErrorState } from "../../components/Controls";
 import { useAuth } from "../auth/AuthContext";
 import { adminNavItems } from "./adminNav";
 import {
@@ -57,7 +57,13 @@ const OPEN_VIOLATIONS: { biz: string; issue: string; time: string; tone: "danger
 
 export function AdminDashboardPage() {
   const { user } = useAuth();
-  const { data: summary, isLoading } = useQuery({
+  const {
+    data: summary,
+    isLoading,
+    isError,
+    error,
+    refetch,
+  } = useQuery({
     queryKey: ["admin", "dashboard", "summary"],
     queryFn: adminApi.dashboardSummary,
   });
@@ -81,8 +87,10 @@ export function AdminDashboardPage() {
         </div>
       }
     >
-      {isLoading || !summary ? (
+      {isLoading ? (
         <PageSpinner />
+      ) : isError || !summary ? (
+        <ErrorState error={error} onRetry={() => refetch()} title="داشبورد لود نشد" />
       ) : (
         <>
           <div className="stat-grid">

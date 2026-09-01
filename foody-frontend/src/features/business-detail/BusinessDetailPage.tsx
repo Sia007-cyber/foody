@@ -5,7 +5,7 @@ import { menuApi } from "../catalog/catalogApi";
 import { MenuSection } from "./MenuSection";
 import { CartPanel } from "./CartPanel";
 import { useCart } from "../cart/CartContext";
-import { PageSpinner, EmptyState } from "../../components/Controls";
+import { PageSpinner, EmptyState, ErrorState } from "../../components/Controls";
 import { Button } from "../../components/Button";
 import "./business-detail.css";
 
@@ -17,7 +17,13 @@ export function BusinessDetailPage() {
   const navigate = useNavigate();
   const { totalItems, totalAmount } = useCart();
 
-  const { data: business, isLoading: businessLoading } = useQuery({
+  const {
+    data: business,
+    isLoading: businessLoading,
+    isError: businessIsError,
+    error: businessError,
+    refetch: refetchBusiness,
+  } = useQuery({
     queryKey: ["businesses", businessId],
     queryFn: () => businessApi.getById(businessId),
     enabled: Number.isFinite(businessId),
@@ -30,6 +36,8 @@ export function BusinessDetailPage() {
   });
 
   if (businessLoading) return <PageSpinner />;
+  if (businessIsError)
+    return <ErrorState error={businessError} onRetry={() => refetchBusiness()} title="کسب‌وکار لود نشد" />;
   if (!business) return <EmptyState title="کسب‌وکار پیدا نشد" />;
 
   return (

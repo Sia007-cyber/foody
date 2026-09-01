@@ -4,7 +4,7 @@ import { businessApi } from "../businesses/businessApi";
 import { DashboardShell } from "../../components/DashboardShell";
 import { Input, Textarea } from "../../components/Field";
 import { Button } from "../../components/Button";
-import { PageSpinner } from "../../components/Controls";
+import { PageSpinner, ErrorState } from "../../components/Controls";
 import { BusinessStatusBadge } from "../../components/Badge";
 import { useToast, errorMessage } from "../../components/Feedback";
 import { ownerNavItems } from "./ownerNav";
@@ -12,7 +12,13 @@ import { ownerNavItems } from "./ownerNav";
 export function OwnerProfilePage() {
   const queryClient = useQueryClient();
   const { notify } = useToast();
-  const { data: business, isLoading } = useQuery({
+  const {
+    data: business,
+    isLoading,
+    isError,
+    error,
+    refetch,
+  } = useQuery({
     queryKey: ["business", "profile"],
     queryFn: businessApi.myProfile,
   });
@@ -46,8 +52,10 @@ export function OwnerProfilePage() {
 
   return (
     <DashboardShell navItems={ownerNavItems} title="پروفایل کسب‌وکار">
-      {isLoading || !business ? (
+      {isLoading ? (
         <PageSpinner />
+      ) : isError || !business ? (
+        <ErrorState error={error} onRetry={() => refetch()} title="پروفایل لود نشد" />
       ) : (
         <div style={{ maxWidth: 480 }}>
           <div style={{ marginBottom: 20 }}>

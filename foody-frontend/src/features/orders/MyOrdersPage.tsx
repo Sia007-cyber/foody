@@ -2,11 +2,17 @@ import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { orderApi } from "./orderApi";
 import { OrderStatusBadge } from "../../components/Badge";
-import { PageSpinner, EmptyState } from "../../components/Controls";
+import { PageSpinner, EmptyState, ErrorState } from "../../components/Controls";
 import { formatDateTime, formatToman } from "../../lib/format";
 
 export function MyOrdersPage() {
-  const { data: orders, isLoading } = useQuery({
+  const {
+    data: orders,
+    isLoading,
+    isError,
+    error,
+    refetch,
+  } = useQuery({
     queryKey: ["orders", "my"],
     queryFn: orderApi.myOrders,
   });
@@ -17,7 +23,9 @@ export function MyOrdersPage() {
     <div className="container" style={{ paddingBlock: 40 }}>
       <h1 style={{ fontSize: 24, fontWeight: 800, marginBottom: 24 }}>سفارش‌های من</h1>
 
-      {!orders || orders.length === 0 ? (
+      {isError ? (
+        <ErrorState error={error} onRetry={() => refetch()} title="سفارش‌ها لود نشدن" />
+      ) : !orders || orders.length === 0 ? (
         <EmptyState title="هنوز سفارشی ثبت نکردی" />
       ) : (
         <div className="list-group">

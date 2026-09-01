@@ -5,7 +5,7 @@ import { DashboardShell } from "../../components/DashboardShell";
 import { Select } from "../../components/Field";
 import { Button } from "../../components/Button";
 import { OrderStatusBadge } from "../../components/Badge";
-import { PageSpinner, EmptyState } from "../../components/Controls";
+import { PageSpinner, EmptyState, ErrorState } from "../../components/Controls";
 import { useToast, errorMessage } from "../../components/Feedback";
 import { formatDateTime, formatToman } from "../../lib/format";
 import { ownerNavItems } from "./ownerNav";
@@ -38,7 +38,13 @@ export function OwnerOrdersPage() {
   const queryClient = useQueryClient();
   const { notify } = useToast();
 
-  const { data: orders, isLoading } = useQuery({
+  const {
+    data: orders,
+    isLoading,
+    isError,
+    error,
+    refetch,
+  } = useQuery({
     queryKey: ["business", "orders", status],
     queryFn: () => orderApi.businessOrders(status || undefined),
   });
@@ -69,6 +75,8 @@ export function OwnerOrdersPage() {
     >
       {isLoading ? (
         <PageSpinner />
+      ) : isError ? (
+        <ErrorState error={error} onRetry={() => refetch()} title="سفارش‌ها لود نشدن" />
       ) : !orders || orders.length === 0 ? (
         <EmptyState title="سفارشی پیدا نشد" />
       ) : (

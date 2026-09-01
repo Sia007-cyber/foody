@@ -5,7 +5,7 @@ import { businessApi } from "../businesses/businessApi";
 import { reservationApi } from "./reservationApi";
 import { Input } from "../../components/Field";
 import { Button } from "../../components/Button";
-import { PageSpinner, EmptyState } from "../../components/Controls";
+import { PageSpinner, EmptyState, ErrorState } from "../../components/Controls";
 import { useToast, errorMessage } from "../../components/Feedback";
 
 export function NewReservationPage() {
@@ -14,7 +14,13 @@ export function NewReservationPage() {
   const navigate = useNavigate();
   const { notify } = useToast();
 
-  const { data: business, isLoading } = useQuery({
+  const {
+    data: business,
+    isLoading,
+    isError: isBusinessError,
+    error: businessError,
+    refetch: refetchBusiness,
+  } = useQuery({
     queryKey: ["businesses", businessId],
     queryFn: () => businessApi.getById(businessId),
     enabled: Number.isFinite(businessId),
@@ -27,6 +33,8 @@ export function NewReservationPage() {
   const [error, setError] = useState<string | null>(null);
 
   if (isLoading) return <PageSpinner />;
+  if (isBusinessError)
+    return <ErrorState error={businessError} onRetry={() => refetchBusiness()} title="اطلاعات کسب‌وکار لود نشد" />;
   if (!business) return <EmptyState title="کسب‌وکار پیدا نشد" />;
 
   async function handleSubmit(e: FormEvent) {

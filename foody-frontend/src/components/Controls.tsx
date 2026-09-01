@@ -1,4 +1,6 @@
 import type { ReactNode } from "react";
+import { Button } from "./Button";
+import { errorMessage } from "./Feedback";
 
 interface SegmentedOption<T extends string> {
   value: T;
@@ -47,6 +49,33 @@ export function EmptyState({ title, description }: { title: string; description?
     <div className="empty-state">
       <p className="empty-state-title">{title}</p>
       {description && <p>{description}</p>}
+    </div>
+  );
+}
+
+/**
+ * Shown when a data fetch (useQuery) fails. Pass the thrown error so the real message
+ * (from ApiError) surfaces instead of a generic one, and `onRetry` (usually `refetch`)
+ * so the person isn't stuck — never leave a failed fetch as a silent blank/spinner.
+ */
+export function ErrorState({
+  error,
+  onRetry,
+  title = "مشکلی پیش اومد",
+}: {
+  error?: unknown;
+  onRetry?: () => void;
+  title?: string;
+}) {
+  return (
+    <div className="empty-state error-state">
+      <p className="empty-state-title">{title}</p>
+      <p>{error ? errorMessage(error) : "لطفاً دوباره تلاش کن."}</p>
+      {onRetry && (
+        <Button variant="secondary" size="sm" onClick={onRetry}>
+          تلاش دوباره
+        </Button>
+      )}
     </div>
   );
 }
