@@ -16,6 +16,7 @@ import { MyOrdersPage } from "./features/orders/MyOrdersPage";
 import { OrderDetailPage } from "./features/orders/OrderDetailPage";
 import { MyReservationsPage } from "./features/reservations/MyReservationsPage";
 import { NewReservationPage } from "./features/reservations/NewReservationPage";
+import { OwnerDashboardPage } from "./features/owner/OwnerDashboardPage";
 import { OwnerProfilePage } from "./features/owner/OwnerProfilePage";
 import { OwnerMenusPage } from "./features/owner/OwnerMenusPage";
 import { OwnerOrdersPage } from "./features/owner/OwnerOrdersPage";
@@ -60,7 +61,8 @@ export default function App() {
                 </Route>
 
                 <Route element={<RequireAuth roles={["BUSINESS_OWNER"]} />}>
-                  <Route path="/business" element={<OwnerProfilePage />} />
+                  <Route path="/business" element={<OwnerDashboardPage />} />
+                  <Route path="/business/profile" element={<OwnerProfilePage />} />
                   <Route path="/business/menus" element={<OwnerMenusPage />} />
                   <Route path="/business/orders" element={<OwnerOrdersPage />} />
                   <Route path="/business/reservations" element={<OwnerReservationsPage />} />

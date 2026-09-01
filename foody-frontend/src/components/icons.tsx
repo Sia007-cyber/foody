@@ -221,3 +221,17 @@ export function CheckCircleIcon(props: IconProps) {
   );
 }
 
+export function MenuBookIcon(props: IconProps) {
+  return (
+    <svg {...base(props)}>
+      <path
+        d="M4 5.2c2.3-1 5-1 7 0v14c-2-1-4.7-1-7 0V5.2ZM20 5.2c-2.3-1-5-1-7 0v14c2-1 4.7-1 7 0V5.2Z"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+

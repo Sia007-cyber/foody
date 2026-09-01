@@ -185,6 +185,9 @@
   font-weight: 800;
   letter-spacing: -0.02em;
 }
+.stat-value-text {
+  font-size: 22px;
+}
 .stat-label {
   font-size: 13px;
   color: var(--ink-soft);
