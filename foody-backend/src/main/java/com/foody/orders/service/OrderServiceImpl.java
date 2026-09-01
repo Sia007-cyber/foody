@@ -8,6 +8,8 @@ import com.foody.common.exception.InvalidStateTransitionException;
 import com.foody.common.exception.ResourceNotFoundException;
 import com.foody.menus.entity.Menu;
 import com.foody.menus.service.MenuService;
+import com.foody.notifications.entity.NotificationType;
+import com.foody.notifications.service.NotificationService;
 import com.foody.orders.dto.CreateOrderRequest;
 import com.foody.orders.dto.OrderItemRequest;
 import com.foody.orders.dto.OrderResponse;
@@ -43,13 +45,16 @@ class OrderServiceImpl implements OrderService {
     private final BusinessService businessService;
     private final MenuService menuService;
     private final ProductService productService;
+    private final NotificationService notificationService;
 
     OrderServiceImpl(OrderRepository orderRepository, BusinessService businessService,
-                     MenuService menuService, ProductService productService) {
+                     MenuService menuService, ProductService productService,
+                     NotificationService notificationService) {
         this.orderRepository = orderRepository;
         this.businessService = businessService;
         this.menuService = menuService;
         this.productService = productService;
+        this.notificationService = notificationService;
     }
 
     @Override
@@ -81,6 +86,12 @@ class OrderServiceImpl implements OrderService {
         order.setTotalAmount(total);
 
         Order saved = orderRepository.save(order);
+
+        notificationService.notify(business.getOwnerUserId(), NotificationType.NEW_ORDER,
+                "سفارش جدید",
+                "یک سفارش جدید به شماره #" + saved.getId() + " برای کسب‌وکار شما ثبت شد.",
+                "ORDER", saved.getId());
+
         return OrderResponse.from(saved);
     }
 
@@ -131,7 +142,15 @@ class OrderServiceImpl implements OrderService {
                     "Order " + orderId + " can no longer be cancelled (status: " + order.getStatus() + ")");
         }
         order.setStatus(OrderStatus.CANCELLED);
-        return OrderResponse.from(orderRepository.save(order));
+        Order saved = orderRepository.save(order);
+
+        businessService.findById(saved.getBusinessId()).ifPresent(business ->
+                notificationService.notify(business.getOwnerUserId(), NotificationType.ORDER_STATUS_CHANGED,
+                        "لغو سفارش",
+                        "سفارش #" + saved.getId() + " توسط مشتری لغو شد.",
+                        "ORDER", saved.getId()));
+
+        return OrderResponse.from(saved);
     }
 
     private Order findOwnedOrder(Long orderId, Long customerUserId) {
@@ -164,7 +183,26 @@ class OrderServiceImpl implements OrderService {
                     "Cannot move order " + orderId + " from " + order.getStatus() + " to " + newStatus);
         }
         order.setStatus(newStatus);
-        return OrderResponse.from(orderRepository.save(order));
+        Order saved = orderRepository.save(order);
+
+        notificationService.notify(saved.getCustomerUserId(), NotificationType.ORDER_STATUS_CHANGED,
+                "به‌روزرسانی سفارش",
+                "وضعیت سفارش #" + saved.getId() + " به " + statusLabel(newStatus) + " تغییر کرد.",
+                "ORDER", saved.getId());
+
+        return OrderResponse.from(saved);
+    }
+
+    private String statusLabel(OrderStatus status) {
+        return switch (status) {
+            case PENDING -> "در انتظار تایید";
+            case ACCEPTED -> "تایید شده";
+            case PREPARING -> "در حال آماده‌سازی";
+            case READY -> "آماده تحویل";
+            case COMPLETED -> "تکمیل شده";
+            case REJECTED -> "رد شده";
+            case CANCELLED -> "لغو شده";
+        };
     }
 
     private Business requireOwnedBusiness(Long ownerUserId) {

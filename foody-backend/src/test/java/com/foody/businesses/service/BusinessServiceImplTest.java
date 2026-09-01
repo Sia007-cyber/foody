@@ -12,6 +12,7 @@ import com.foody.businesses.entity.BusinessStatus;
 import com.foody.businesses.repository.BusinessRepository;
 import com.foody.common.exception.InvalidStateTransitionException;
 import com.foody.common.exception.ResourceNotFoundException;
+import com.foody.notifications.service.NotificationService;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -24,6 +25,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class BusinessServiceImplTest {
 
     @Mock BusinessRepository businessRepository;
+    @Mock NotificationService notificationService;
 
     BusinessServiceImpl businessService;
 
@@ -31,7 +33,7 @@ class BusinessServiceImplTest {
 
     @BeforeEach
     void setUp() {
-        businessService = new BusinessServiceImpl(businessRepository);
+        businessService = new BusinessServiceImpl(businessRepository, notificationService);
     }
 
     private Business businessWithStatus(BusinessStatus status) {

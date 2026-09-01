@@ -13,6 +13,7 @@ import com.foody.common.exception.InvalidStateTransitionException;
 import com.foody.common.exception.ResourceNotFoundException;
 import com.foody.menus.entity.Menu;
 import com.foody.menus.service.MenuService;
+import com.foody.notifications.service.NotificationService;
 import com.foody.orders.dto.CreateOrderRequest;
 import com.foody.orders.dto.OrderItemRequest;
 import com.foody.orders.dto.OrderResponse;
@@ -38,6 +39,7 @@ class OrderServiceImplTest {
     @Mock BusinessService businessService;
     @Mock MenuService menuService;
     @Mock ProductService productService;
+    @Mock NotificationService notificationService;
 
     OrderServiceImpl orderService;
 
@@ -48,7 +50,8 @@ class OrderServiceImplTest {
 
     @BeforeEach
     void setUp() {
-        orderService = new OrderServiceImpl(orderRepository, businessService, menuService, productService);
+        orderService = new OrderServiceImpl(
+                orderRepository, businessService, menuService, productService, notificationService);
     }
 
     private Business approvedBusiness() {

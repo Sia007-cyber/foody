@@ -6,6 +6,8 @@ import com.foody.businesses.service.BusinessService;
 import com.foody.common.exception.InvalidRequestException;
 import com.foody.common.exception.InvalidStateTransitionException;
 import com.foody.common.exception.ResourceNotFoundException;
+import com.foody.notifications.entity.NotificationType;
+import com.foody.notifications.service.NotificationService;
 import com.foody.reservations.dto.CreateReservationRequest;
 import com.foody.reservations.dto.ReservationResponse;
 import com.foody.reservations.entity.Reservation;
@@ -36,10 +38,13 @@ class ReservationServiceImpl implements ReservationService {
 
     private final ReservationRepository reservationRepository;
     private final BusinessService businessService;
+    private final NotificationService notificationService;
 
-    ReservationServiceImpl(ReservationRepository reservationRepository, BusinessService businessService) {
+    ReservationServiceImpl(ReservationRepository reservationRepository, BusinessService businessService,
+                           NotificationService notificationService) {
         this.reservationRepository = reservationRepository;
         this.businessService = businessService;
+        this.notificationService = notificationService;
     }
 
     @Override
@@ -60,7 +65,14 @@ class ReservationServiceImpl implements ReservationService {
         reservation.setGuestCount(request.guestCount());
         reservation.setStatus(ReservationStatus.PENDING);
 
-        return ReservationResponse.from(reservationRepository.save(reservation));
+        Reservation saved = reservationRepository.save(reservation);
+
+        notificationService.notify(business.getOwnerUserId(), NotificationType.NEW_RESERVATION,
+                "رزرو جدید",
+                "یک رزرو جدید به شماره #" + saved.getId() + " برای کسب‌وکار شما ثبت شد.",
+                "RESERVATION", saved.getId());
+
+        return ReservationResponse.from(saved);
     }
 
     @Override
@@ -88,7 +100,15 @@ class ReservationServiceImpl implements ReservationService {
                             + reservation.getStatus() + ")");
         }
         reservation.setStatus(ReservationStatus.CANCELLED);
-        return ReservationResponse.from(reservationRepository.save(reservation));
+        Reservation saved = reservationRepository.save(reservation);
+
+        businessService.findById(saved.getBusinessId()).ifPresent(business ->
+                notificationService.notify(business.getOwnerUserId(), NotificationType.RESERVATION_STATUS_CHANGED,
+                        "لغو رزرو",
+                        "رزرو #" + saved.getId() + " توسط مشتری لغو شد.",
+                        "RESERVATION", saved.getId()));
+
+        return ReservationResponse.from(saved);
     }
 
     @Override
@@ -137,7 +157,24 @@ class ReservationServiceImpl implements ReservationService {
                             + " to " + newStatus);
         }
         reservation.setStatus(newStatus);
-        return ReservationResponse.from(reservationRepository.save(reservation));
+        Reservation saved = reservationRepository.save(reservation);
+
+        notificationService.notify(saved.getCustomerUserId(), NotificationType.RESERVATION_STATUS_CHANGED,
+                "به‌روزرسانی رزرو",
+                "وضعیت رزرو #" + saved.getId() + " به " + statusLabel(newStatus) + " تغییر کرد.",
+                "RESERVATION", saved.getId());
+
+        return ReservationResponse.from(saved);
+    }
+
+    private String statusLabel(ReservationStatus status) {
+        return switch (status) {
+            case PENDING -> "در انتظار تایید";
+            case CONFIRMED -> "تایید شده";
+            case COMPLETED -> "تکمیل شده";
+            case REJECTED -> "رد شده";
+            case CANCELLED -> "لغو شده";
+        };
     }
 
     private Business requireOwnedBusiness(Long ownerUserId) {

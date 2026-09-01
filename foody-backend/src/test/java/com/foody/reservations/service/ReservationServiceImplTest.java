@@ -11,6 +11,7 @@ import com.foody.businesses.service.BusinessService;
 import com.foody.common.exception.InvalidRequestException;
 import com.foody.common.exception.InvalidStateTransitionException;
 import com.foody.common.exception.ResourceNotFoundException;
+import com.foody.notifications.service.NotificationService;
 import com.foody.reservations.dto.CreateReservationRequest;
 import com.foody.reservations.dto.ReservationResponse;
 import com.foody.reservations.entity.Reservation;
@@ -31,6 +32,7 @@ class ReservationServiceImplTest {
 
     @Mock ReservationRepository reservationRepository;
     @Mock BusinessService businessService;
+    @Mock NotificationService notificationService;
 
     ReservationServiceImpl reservationService;
 
@@ -39,7 +41,7 @@ class ReservationServiceImplTest {
 
     @BeforeEach
     void setUp() {
-        reservationService = new ReservationServiceImpl(reservationRepository, businessService);
+        reservationService = new ReservationServiceImpl(reservationRepository, businessService, notificationService);
     }
 
     private Business approvedBusiness() {

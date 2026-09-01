@@ -6,6 +6,8 @@ import com.foody.businesses.entity.BusinessStatus;
 import com.foody.businesses.repository.BusinessRepository;
 import com.foody.common.exception.InvalidStateTransitionException;
 import com.foody.common.exception.ResourceNotFoundException;
+import com.foody.notifications.entity.NotificationType;
+import com.foody.notifications.service.NotificationService;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -26,9 +28,11 @@ class BusinessServiceImpl implements BusinessService {
     );
 
     private final BusinessRepository businessRepository;
+    private final NotificationService notificationService;
 
-    BusinessServiceImpl(BusinessRepository businessRepository) {
+    BusinessServiceImpl(BusinessRepository businessRepository, NotificationService notificationService) {
         this.businessRepository = businessRepository;
+        this.notificationService = notificationService;
     }
 
     @Override
@@ -99,7 +103,23 @@ class BusinessServiceImpl implements BusinessService {
                     "Cannot move business " + businessId + " from " + business.getStatus() + " to " + newStatus);
         }
         business.setStatus(newStatus);
-        return businessRepository.save(business);
+        Business saved = businessRepository.save(business);
+
+        notificationService.notify(saved.getOwnerUserId(), NotificationType.BUSINESS_STATUS_CHANGED,
+                "به‌روزرسانی وضعیت کسب‌وکار",
+                "وضعیت کسب‌وکار «" + saved.getName() + "» به " + statusLabel(newStatus) + " تغییر کرد.",
+                "BUSINESS", saved.getId());
+
+        return saved;
+    }
+
+    private String statusLabel(BusinessStatus status) {
+        return switch (status) {
+            case PENDING -> "در انتظار تایید";
+            case APPROVED -> "تایید شده";
+            case REJECTED -> "رد شده";
+            case SUSPENDED -> "معلق شده";
+        };
     }
 
     @Override
