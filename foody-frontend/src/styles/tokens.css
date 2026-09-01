@@ -1,0 +1,39 @@
+:root {
+  /* Color */
+  --paper: #ffffff;
+  --mist: #f5f5f7;
+  --mist-deep: #e8e8ed;
+  --ink: #1d1d1f;
+  --ink-soft: #6e6e73;
+  --ink-faint: #a1a1a6;
+  --line: rgba(0, 0, 0, 0.08);
+
+  --ember: #ff5a36;
+  --ember-deep: #e2431f;
+  --ember-wash: #fff1ed;
+
+  --ok: #1a8a4a;
+  --ok-wash: #e9f7ef;
+  --danger: #d92d20;
+  --danger-wash: #fdeeed;
+  --pending: #5b6472;
+  --pending-wash: #eef0f2;
+  --suspended: #8a3a1a;
+  --suspended-wash: #fbeee7;
+
+  /* Type */
+  --font: "Vazirmatn Variable", "Vazirmatn", -apple-system, sans-serif;
+
+  /* Radius */
+  --r-sm: 10px;
+  --r-md: 16px;
+  --r-lg: 22px;
+  --r-pill: 999px;
+
+  /* Shadow — used sparingly, only for floating/overlay elements */
+  --shadow-float: 0 12px 32px rgba(0, 0, 0, 0.12);
+
+  /* Layout */
+  --content-max: 1120px;
+  --nav-h: 64px;
+}

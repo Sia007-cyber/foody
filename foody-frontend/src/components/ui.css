@@ -1,0 +1,285 @@
+/* ---------- Buttons ---------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: none;
+  border-radius: var(--r-pill);
+  padding: 12px 22px;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1;
+  transition: transform 0.15s ease, background-color 0.15s ease, opacity 0.15s ease;
+  white-space: nowrap;
+}
+.btn:active {
+  transform: scale(0.97);
+}
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+.btn-primary {
+  background: var(--ember);
+  color: #fff;
+}
+.btn-primary:hover:not(:disabled) {
+  background: var(--ember-deep);
+}
+.btn-secondary {
+  background: var(--mist);
+  color: var(--ink);
+}
+.btn-secondary:hover:not(:disabled) {
+  background: var(--mist-deep);
+}
+.btn-ghost {
+  background: transparent;
+  color: var(--ink);
+  padding-inline: 10px;
+}
+.btn-ghost:hover:not(:disabled) {
+  color: var(--ember);
+}
+.btn-danger {
+  background: var(--danger-wash);
+  color: var(--danger);
+}
+.btn-danger:hover:not(:disabled) {
+  background: var(--danger);
+  color: #fff;
+}
+.btn-sm {
+  padding: 8px 16px;
+  font-size: 13px;
+}
+.btn-block {
+  width: 100%;
+}
+
+/* ---------- Form fields ---------- */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.field-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--ink-soft);
+}
+.input,
+.textarea,
+.select {
+  width: 100%;
+  border: 1px solid var(--line);
+  background: var(--paper);
+  border-radius: var(--r-sm);
+  padding: 12px 14px;
+  font-size: 15px;
+  color: var(--ink);
+  transition: border-color 0.15s ease;
+}
+.input:focus,
+.textarea:focus,
+.select:focus {
+  outline: none;
+  border-color: var(--ember);
+}
+.textarea {
+  resize: vertical;
+  min-height: 90px;
+}
+.field-error {
+  font-size: 13px;
+  color: var(--danger);
+}
+
+/* ---------- Badge / status pill ---------- */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: var(--r-pill);
+  padding: 5px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.badge-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+.badge-ok { background: var(--ok-wash); color: var(--ok); }
+.badge-danger { background: var(--danger-wash); color: var(--danger); }
+.badge-pending { background: var(--pending-wash); color: var(--pending); }
+.badge-suspended { background: var(--suspended-wash); color: var(--suspended); }
+.badge-ember { background: var(--ember-wash); color: var(--ember-deep); }
+
+/* ---------- Segmented control ---------- */
+.segmented {
+  display: inline-flex;
+  background: var(--mist);
+  border-radius: var(--r-pill);
+  padding: 4px;
+  gap: 2px;
+}
+.segmented-option {
+  border: none;
+  background: transparent;
+  border-radius: var(--r-pill);
+  padding: 8px 18px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--ink-soft);
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+.segmented-option[aria-pressed="true"] {
+  background: var(--paper);
+  color: var(--ink);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+/* ---------- Card (used sparingly — see DESIGN.md) ---------- */
+.card {
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  background: var(--paper);
+  overflow: hidden;
+}
+
+/* ---------- List group (dashboard rows) ---------- */
+.list-group {
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  overflow: hidden;
+  background: var(--paper);
+}
+.list-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--line);
+}
+.list-row:last-child {
+  border-bottom: none;
+}
+.list-row-main {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.list-row-title {
+  font-weight: 600;
+  font-size: 15px;
+}
+.list-row-sub {
+  font-size: 13px;
+  color: var(--ink-soft);
+}
+.list-row-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+/* ---------- Empty state ---------- */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 8px;
+  padding: 64px 24px;
+  color: var(--ink-soft);
+}
+.empty-state-title {
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+/* ---------- Spinner ---------- */
+.spinner {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2.5px solid var(--mist-deep);
+  border-top-color: var(--ember);
+  animation: spin 0.7s linear infinite;
+}
+.spinner-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 96px 0;
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ---------- Modal ---------- */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(29, 29, 31, 0.4);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 100;
+}
+.modal-panel {
+  background: var(--paper);
+  border-radius: var(--r-lg);
+  padding: 28px;
+  max-width: 420px;
+  width: 100%;
+  box-shadow: var(--shadow-float);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.modal-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+/* ---------- Toast ---------- */
+.toast-stack {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 200;
+  width: min(420px, calc(100vw - 32px));
+}
+.toast {
+  border-radius: var(--r-md);
+  padding: 14px 18px;
+  font-size: 14px;
+  font-weight: 500;
+  box-shadow: var(--shadow-float);
+  background: var(--ink);
+  color: #fff;
+}
+.toast-danger {
+  background: var(--danger);
+}
+.toast-ok {
+  background: var(--ok);
+}

@@ -50,6 +50,9 @@ mvn spring-boot:run -Dspring-boot.run.profiles=local \
 ### Config
 `foody.jwt.secret` (base64, 256-bit) — override via env `FOODY_JWT_SECRET` in real deployments.
 `foody.jwt.access-token-ttl-minutes` (default 15), `foody.jwt.refresh-token-ttl-days` (default 7).
+`foody.cors.allowed-origins` — comma-separated origins allowed to call the API
+(default `http://localhost:5173`, the frontend dev server). Override via env
+`FOODY_CORS_ALLOWED_ORIGINS` for other deployments.
 
 ## API (Phase 0)
 
@@ -77,7 +80,9 @@ Consistent error envelope (JSON):
 constant — **no ALTER TABLE on businesses**.
 
 Migrations are version-controlled and incremental: `V1__init.sql`,
-`V2__seed_demo_business.sql`. Never change the schema outside a migration.
+`V2__seed_demo_business.sql`, ..., `V5__seed_admin_user.sql` (seeds an ADMIN
+test account — `admin@foody.test` / `password123` — since the register endpoint
+only ever creates CUSTOMER accounts). Never change the schema outside a migration.
 
 ## Tests
 - `AuthServiceImplTest` — unit tests for register/login/refresh branches (mocked).

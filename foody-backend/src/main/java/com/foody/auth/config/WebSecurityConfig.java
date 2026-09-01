@@ -3,6 +3,8 @@ package com.foody.auth.config;
 import com.foody.auth.security.FoodyUserDetailsService;
 import com.foody.auth.security.JwtAuthenticationFilter;
 import com.foody.auth.security.JwtService;
+import java.util.List;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -15,6 +17,9 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -24,6 +29,11 @@ public class WebSecurityConfig {
 
     private final JwtService jwtService;
     private final FoodyUserDetailsService userDetailsService;
+
+    // @Value binds List<String> from a comma-separated property only via this SpEL split;
+    // plain "${foody.cors.allowed-origins}" would bind as a single-element list instead.
+    @Value("#{'${foody.cors.allowed-origins}'.split(',')}")
+    private List<String> allowedOrigins;
 
     public WebSecurityConfig(JwtService jwtService, FoodyUserDetailsService userDetailsService) {
         this.jwtService = jwtService;
@@ -46,6 +56,7 @@ public class WebSecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
             .csrf(AbstractHttpConfigurer::disable)
+            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(PUBLIC_MATCHERS).permitAll()
@@ -55,6 +66,23 @@ public class WebSecurityConfig {
             .addFilterBefore(new JwtAuthenticationFilter(jwtService, userDetailsService),
                     UsernamePasswordAuthenticationFilter.class);
         return http.build();
+    }
+
+    /** Allows the frontend (a different origin in dev: Vite on :5173 vs the API on :8080) to
+     * call the API with an Authorization header. Origins are configured, never wildcarded,
+     * since credentials/auth headers are involved. */
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration config = new CorsConfiguration();
+        config.setAllowedOrigins(allowedOrigins);
+        config.setAllowedMethods(List.of("GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"));
+        config.setAllowedHeaders(List.of("Authorization", "Content-Type"));
+        config.setAllowCredentials(true);
+        config.setMaxAge(3600L);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
+        return source;
     }
 
     @Bean
