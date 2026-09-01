@@ -1,3 +1,5 @@
+import type { ReactNode } from "react";
+
 interface SegmentedOption<T extends string> {
   value: T;
   label: string;
@@ -46,5 +48,58 @@ export function EmptyState({ title, description }: { title: string; description?
       <p className="empty-state-title">{title}</p>
       {description && <p>{description}</p>}
     </div>
+  );
+}
+
+/** Generic white card used to group dashboard content, with an optional header + link-out. */
+export function Panel({
+  title,
+  icon,
+  action,
+  className,
+  children,
+}: {
+  title?: string;
+  icon?: ReactNode;
+  action?: ReactNode;
+  className?: string;
+  children: ReactNode;
+}) {
+  return (
+    <section className={`panel ${className ?? ""}`}>
+      {title && (
+        <div className="panel-header">
+          <h2 className="panel-title">
+            {icon}
+            {title}
+          </h2>
+          {action}
+        </div>
+      )}
+      {children}
+    </section>
+  );
+}
+
+/**
+ * Placeholder for a feature that isn't built yet. Keeps the intended layout/UX visible
+ * to stakeholders while making it unambiguous that the section isn't wired to real data.
+ */
+export function ComingSoonPanel({
+  title,
+  icon,
+  note = "این بخش به‌زودی اضافه خواهد شد",
+}: {
+  title?: string;
+  icon?: ReactNode;
+  note?: string;
+}) {
+  return (
+    <Panel title={title} icon={icon}>
+      <div className="coming-soon">
+        <span className="coming-soon-badge">به‌زودی</span>
+        <p>{note}</p>
+      </div>
+    </Panel>
   );
 }

@@ -7,8 +7,10 @@ import com.foody.auth.dto.TokenResponse;
 import com.foody.auth.security.JwtService;
 import com.foody.common.exception.DuplicateResourceException;
 import com.foody.common.exception.InvalidCredentialsException;
+import com.foody.common.exception.InvalidRequestException;
 import com.foody.common.exception.ResourceNotFoundException;
 import com.foody.users.entity.User;
+import com.foody.users.entity.UserRole;
 import com.foody.users.entity.UserStatus;
 import com.foody.users.service.UserService;
 import io.jsonwebtoken.Claims;
@@ -36,6 +38,9 @@ class AuthServiceImpl implements AuthService {
     @Override
     @Transactional
     public TokenResponse register(RegisterRequest request) {
+        if (request.role() == UserRole.ADMIN) {
+            throw new InvalidRequestException("Cannot self-register as ADMIN");
+        }
         if (userService.existsByEmail(request.email())) {
             throw new DuplicateResourceException("Email already registered: " + request.email());
         }

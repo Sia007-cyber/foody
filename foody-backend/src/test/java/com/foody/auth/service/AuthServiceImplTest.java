@@ -3,6 +3,7 @@ package com.foody.auth.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -14,6 +15,7 @@ import com.foody.auth.dto.TokenResponse;
 import com.foody.auth.security.JwtService;
 import com.foody.common.exception.DuplicateResourceException;
 import com.foody.common.exception.InvalidCredentialsException;
+import com.foody.common.exception.InvalidRequestException;
 import com.foody.users.entity.User;
 import com.foody.users.entity.UserRole;
 import com.foody.users.entity.UserStatus;
@@ -50,7 +52,7 @@ class AuthServiceImplTest {
 
     @Test
     void register_createsCustomerAndReturnsTokens() {
-        RegisterRequest req = new RegisterRequest("a@b.com", "password123", "Alice", "123");
+        RegisterRequest req = new RegisterRequest("a@b.com", "password123", "Alice", "123", UserRole.CUSTOMER);
 
         when(userService.existsByEmail("a@b.com")).thenReturn(false);
         when(passwordEncoder.encode("password123")).thenReturn("hashed");
@@ -65,8 +67,31 @@ class AuthServiceImplTest {
     }
 
     @Test
+    void register_createsBusinessOwnerAndReturnsTokens() {
+        RegisterRequest req =
+                new RegisterRequest("owner@b.com", "password123", "Bob", null, UserRole.BUSINESS_OWNER);
+
+        when(userService.existsByEmail("owner@b.com")).thenReturn(false);
+        when(passwordEncoder.encode("password123")).thenReturn("hashed");
+        when(userService.create(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        authService.register(req);
+
+        verify(userService).create(argThat(u -> u.getRole() == UserRole.BUSINESS_OWNER));
+    }
+
+    @Test
+    void register_adminRole_throws() {
+        RegisterRequest req = new RegisterRequest("a@b.com", "password123", "Alice", null, UserRole.ADMIN);
+
+        assertThatThrownBy(() -> authService.register(req))
+                .isInstanceOf(InvalidRequestException.class);
+        verify(userService, never()).create(any());
+    }
+
+    @Test
     void register_duplicateEmail_throws() {
-        RegisterRequest req = new RegisterRequest("a@b.com", "password123", "Alice", null);
+        RegisterRequest req = new RegisterRequest("a@b.com", "password123", "Alice", null, UserRole.CUSTOMER);
         when(userService.existsByEmail("a@b.com")).thenReturn(true);
 
         assertThatThrownBy(() -> authService.register(req))

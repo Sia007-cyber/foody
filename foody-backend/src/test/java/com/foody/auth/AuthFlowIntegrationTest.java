@@ -22,7 +22,8 @@ class AuthFlowIntegrationTest extends AbstractContainerBaseTest {
 
     private String registerAndGetAccessToken(String email, String password) throws Exception {
         String body = objectMapper.writeValueAsString(java.util.Map.of(
-                "email", email, "password", password, "fullName", "Test User", "phone", "123"));
+                "email", email, "password", password, "fullName", "Test User", "phone", "123",
+                "role", "CUSTOMER"));
         String response = mockMvc.perform(post("/api/auth/register")
                         .contentType(MediaType.APPLICATION_JSON).content(body))
                 .andExpect(status().isOk())
@@ -53,7 +54,8 @@ class AuthFlowIntegrationTest extends AbstractContainerBaseTest {
         // Refresh: capture refresh token then use it
         String regResp = mockMvc.perform(post("/api/auth/register")
                         .contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(
-                                java.util.Map.of("email", email + "_2", "password", password, "fullName", "U2"))))
+                                java.util.Map.of("email", email + "_2", "password", password, "fullName", "U2",
+                                        "role", "CUSTOMER"))))
                 .andReturn().getResponse().getContentAsString();
         String refresh = objectMapper.readTree(regResp).get("refreshToken").asText();
         mockMvc.perform(post("/api/auth/refresh").contentType(MediaType.APPLICATION_JSON)
@@ -78,10 +80,35 @@ class AuthFlowIntegrationTest extends AbstractContainerBaseTest {
         registerAndGetAccessToken(email, "password123");
 
         String body = objectMapper.writeValueAsString(
-                java.util.Map.of("email", email, "password", "password123", "fullName", "Dup"));
+                java.util.Map.of("email", email, "password", "password123", "fullName", "Dup", "role", "CUSTOMER"));
         mockMvc.perform(post("/api/auth/register").contentType(MediaType.APPLICATION_JSON).content(body))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.code").value("RESOURCE_ALREADY_EXISTS"));
+    }
+
+    @Test
+    void register_businessOwner_createsBusinessOwnerAccount() throws Exception {
+        String email = "owner_" + System.nanoTime() + "@foody.test";
+        String body = objectMapper.writeValueAsString(java.util.Map.of(
+                "email", email, "password", "password123", "fullName", "Owner", "role", "BUSINESS_OWNER"));
+        String response = mockMvc.perform(post("/api/auth/register")
+                        .contentType(MediaType.APPLICATION_JSON).content(body))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+        String access = objectMapper.readTree(response).get("accessToken").asText();
+
+        mockMvc.perform(get("/api/users/me").header("Authorization", "Bearer " + access))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.role").value("BUSINESS_OWNER"));
+    }
+
+    @Test
+    void register_adminRole_isRejected() throws Exception {
+        String email = "admin_" + System.nanoTime() + "@foody.test";
+        String body = objectMapper.writeValueAsString(java.util.Map.of(
+                "email", email, "password", "password123", "fullName", "Admin", "role", "ADMIN"));
+        mockMvc.perform(post("/api/auth/register").contentType(MediaType.APPLICATION_JSON).content(body))
+                .andExpect(status().isBadRequest());
     }
 
     @Test

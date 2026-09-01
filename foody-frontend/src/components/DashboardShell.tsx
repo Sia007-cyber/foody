@@ -6,17 +6,21 @@ import { Button } from "./Button";
 export interface DashboardNavItem {
   to: string;
   label: string;
+  icon?: ReactNode;
 }
 
 export function DashboardShell({
   navItems,
   title,
   actions,
+  topBar,
   children,
 }: {
   navItems: DashboardNavItem[];
   title: string;
   actions?: ReactNode;
+  /** Optional rich header row (notifications, date range, avatar) shown above the title. */
+  topBar?: ReactNode;
   children: ReactNode;
 }) {
   const { logout } = useAuth();
@@ -36,6 +40,7 @@ export function DashboardShell({
               end
               className={({ isActive }) => `dashboard-nav-link ${isActive ? "active" : ""}`}
             >
+              {item.icon}
               {item.label}
             </NavLink>
           ))}
@@ -47,6 +52,7 @@ export function DashboardShell({
         </div>
       </aside>
       <main className="dashboard-main">
+        {topBar}
         <div className="dashboard-header">
           <h1 className="dashboard-title">{title}</h1>
           {actions}

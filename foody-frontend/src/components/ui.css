@@ -96,6 +96,32 @@
   font-size: 13px;
   color: var(--danger);
 }
+.password-field {
+  position: relative;
+  display: flex;
+}
+.password-field .input {
+  padding-inline-end: 42px;
+}
+.password-toggle {
+  position: absolute;
+  inset-inline-end: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  color: var(--ink-soft);
+  cursor: pointer;
+  border-radius: var(--r-sm);
+}
+.password-toggle:hover {
+  color: var(--ink);
+}
 
 /* ---------- Badge / status pill ---------- */
 .badge {

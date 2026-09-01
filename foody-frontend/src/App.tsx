@@ -22,6 +22,18 @@ import { OwnerOrdersPage } from "./features/owner/OwnerOrdersPage";
 import { OwnerReservationsPage } from "./features/owner/OwnerReservationsPage";
 import { AdminDashboardPage } from "./features/admin/AdminDashboardPage";
 import { AdminBusinessesPage } from "./features/admin/AdminBusinessesPage";
+import { ComingSoonFeaturePage } from "./pages/ComingSoonFeaturePage";
+import { adminNavItems } from "./features/admin/adminNav";
+import {
+  UsersIcon,
+  ReceiptIcon,
+  WalletIcon,
+  MegaphoneIcon,
+  ChatIcon,
+  ShieldIcon,
+  ChartIcon,
+  SettingsIcon,
+} from "./components/icons";
 import { NotFoundPage } from "./pages/NotFoundPage";
 
 export default function App() {
@@ -57,6 +69,94 @@ export default function App() {
                 <Route element={<RequireAuth roles={["ADMIN"]} />}>
                   <Route path="/admin" element={<AdminDashboardPage />} />
                   <Route path="/admin/businesses" element={<AdminBusinessesPage />} />
+                  <Route
+                    path="/admin/users"
+                    element={
+                      <ComingSoonFeaturePage
+                        navItems={adminNavItems}
+                        title="کاربران"
+                        icon={<UsersIcon size={40} />}
+                        description="فهرست کاربران، جزئیات پروفایل و امکان تعلیق/فعال‌سازی حساب از این بخش به‌زودی اضافه خواهد شد."
+                      />
+                    }
+                  />
+                  <Route
+                    path="/admin/orders"
+                    element={
+                      <ComingSoonFeaturePage
+                        navItems={adminNavItems}
+                        title="سفارش‌ها"
+                        icon={<ReceiptIcon size={40} />}
+                        description="نمای کلی سفارش‌های همه‌ی کافه‌ها برای ادمین به‌زودی اضافه خواهد شد."
+                      />
+                    }
+                  />
+                  <Route
+                    path="/admin/transactions"
+                    element={
+                      <ComingSoonFeaturePage
+                        navItems={adminNavItems}
+                        title="تراکنش‌ها"
+                        icon={<WalletIcon size={40} />}
+                        description="پرداخت آنلاین در فاز فعلی پیاده‌سازی نشده؛ این بخش با اضافه‌شدن پرداخت آنلاین فعال می‌شود."
+                      />
+                    }
+                  />
+                  <Route
+                    path="/admin/ads"
+                    element={
+                      <ComingSoonFeaturePage
+                        navItems={adminNavItems}
+                        title="تبلیغات"
+                        icon={<MegaphoneIcon size={40} />}
+                        description="ابزارهای تبلیغاتی برای کافه‌ها (تبلیغ در صفحه اصلی، پوش نوتیفیکیشن و غیره) به‌زودی اضافه خواهد شد."
+                      />
+                    }
+                  />
+                  <Route
+                    path="/admin/reviews"
+                    element={
+                      <ComingSoonFeaturePage
+                        navItems={adminNavItems}
+                        title="نظرات و بازخوردها"
+                        icon={<ChatIcon size={40} />}
+                        description="مدیریت و پاسخ‌دهی به نظرات کاربران به‌زودی اضافه خواهد شد."
+                      />
+                    }
+                  />
+                  <Route
+                    path="/admin/violations"
+                    element={
+                      <ComingSoonFeaturePage
+                        navItems={adminNavItems}
+                        title="گزارشات تخلف"
+                        icon={<ShieldIcon size={40} />}
+                        description="بررسی گزارش‌های تخلف ثبت‌شده توسط کاربران به‌زودی اضافه خواهد شد."
+                      />
+                    }
+                  />
+                  <Route
+                    path="/admin/reports"
+                    element={
+                      <ComingSoonFeaturePage
+                        navItems={adminNavItems}
+                        title="گزارش‌ها"
+                        icon={<ChartIcon size={40} />}
+                        description="گزارش‌های تحلیلی و آماری پلتفرم به‌زودی اضافه خواهد شد."
+                      />
+                    }
+                  />
+                  <Route
+                    path="/admin/settings"
+                    element={
+                      <ComingSoonFeaturePage
+                        navItems={adminNavItems}
+                        title="تنظیمات"
+                        icon={<SettingsIcon size={40} />}
+                        description="تنظیمات عمومی پلتفرم به‌زودی اضافه خواهد شد."
+                      />
+                    }
+                  />
                 </Route>
 
                 <Route path="*" element={<NotFoundPage />} />

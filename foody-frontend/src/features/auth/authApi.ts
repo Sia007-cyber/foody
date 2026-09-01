@@ -6,11 +6,15 @@ export interface LoginPayload {
   password: string;
 }
 
+/** Roles a person can self-register as. ADMIN accounts are created separately. */
+export type RegistrableRole = "CUSTOMER" | "BUSINESS_OWNER";
+
 export interface RegisterPayload {
   email: string;
   password: string;
   fullName: string;
   phone?: string;
+  role: RegistrableRole;
 }
 
 export const authApi = {

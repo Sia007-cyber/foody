@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "./AuthContext";
-import { Input } from "../../components/Field";
+import { Input, PasswordInput } from "../../components/Field";
 import { Button } from "../../components/Button";
 import { errorMessage } from "../../components/Feedback";
 import "./auth.css";
@@ -58,9 +58,8 @@ export function LoginPage() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
           />
-          <Input
+          <PasswordInput
             label="رمز عبور"
-            type="password"
             dir="ltr"
             required
             autoComplete="current-password"
