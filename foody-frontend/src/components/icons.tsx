@@ -198,3 +198,26 @@ export function ChevronStartIcon(props: IconProps) {
     </svg>
   );
 }
+
+export function StarIcon(props: IconProps) {
+  return (
+    <svg {...base(props)}>
+      <path
+        d="m12 4 2.2 4.9 5.3.6-4 3.7 1.1 5.3L12 15.8 7.4 18.5l1.1-5.3-4-3.7 5.3-.6L12 4Z"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+export function CheckCircleIcon(props: IconProps) {
+  return (
+    <svg {...base(props)}>
+      <circle cx="12" cy="12" r="8.5" stroke="currentColor" strokeWidth="1.6" />
+      <path d="M8.5 12.2 10.8 14.5l4.7-5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
