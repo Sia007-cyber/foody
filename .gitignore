@@ -1,0 +1,17 @@
+# OS / desktop metadata
+.directory
+.DS_Store
+Thumbs.db
+
+# Editors
+.vscode/
+.idea/
+*.swp
+
+# Frontend (also has its own foody-frontend/.gitignore, kept here as a safety net)
+node_modules/
+dist/
+*.local
+
+# Backend (also has its own foody-backend/.gitignore, kept here as a safety net)
+target/
