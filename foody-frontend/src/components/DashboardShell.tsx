@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../features/auth/AuthContext";
+import { NotificationBell } from "../features/notifications/NotificationBell";
 import { Button } from "./Button";
 
 export interface DashboardNavItem {
@@ -55,7 +56,10 @@ export function DashboardShell({
         {topBar}
         <div className="dashboard-header">
           <h1 className="dashboard-title">{title}</h1>
-          {actions}
+          <div className="dashboard-header-actions">
+            {actions}
+            <NotificationBell />
+          </div>
         </div>
         {children}
       </main>

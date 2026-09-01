@@ -1,6 +1,7 @@
 import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../features/auth/AuthContext";
 import { useCart } from "../features/cart/CartContext";
+import { NotificationBell } from "../features/notifications/NotificationBell";
 import { Button } from "./Button";
 
 export function PublicNav() {
@@ -45,6 +46,7 @@ export function PublicNav() {
         </nav>
 
         <div className="nav-actions">
+          {user && <NotificationBell />}
           {user?.role === "CUSTOMER" && totalItems > 0 && (
             <Button variant="secondary" size="sm" onClick={() => navigate("/checkout")}>
               سبد خرید

@@ -111,6 +111,28 @@ export interface DashboardSummary {
   totalReservations: number;
 }
 
+export type NotificationType =
+  | "ORDER_STATUS_CHANGED"
+  | "NEW_ORDER"
+  | "RESERVATION_STATUS_CHANGED"
+  | "NEW_RESERVATION"
+  | "BUSINESS_STATUS_CHANGED";
+
+export interface Notification {
+  id: number;
+  type: NotificationType;
+  title: string;
+  message: string;
+  referenceType: string | null;
+  referenceId: number | null;
+  read: boolean;
+  createdAt: string;
+}
+
+export interface UnreadCountResponse {
+  unreadCount: number;
+}
+
 export interface ApiErrorBody {
   timestamp: string;
   status: number;

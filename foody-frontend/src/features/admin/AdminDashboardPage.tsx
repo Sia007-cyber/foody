@@ -70,9 +70,6 @@ export function AdminDashboardPage() {
         <div className="admin-topbar">
           <span className="admin-topbar-period">۳۰ روز گذشته</span>
           <div className="admin-topbar-right">
-            <button type="button" className="admin-bell" aria-label="اعلان‌ها (به‌زودی)" title="اعلان‌ها — به‌زودی">
-              <BellIcon size={19} />
-            </button>
             <div className="admin-user">
               <span className="admin-user-avatar">{(user?.fullName ?? "؟").slice(0, 1)}</span>
               <div className="admin-user-meta">
