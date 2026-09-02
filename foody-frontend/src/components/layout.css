@@ -837,15 +837,23 @@
   color: var(--ink-faint);
   margin-inline-start: 4px;
 }
+.stat-tile-icon-violet {
+  background: var(--violet-wash);
+  color: var(--violet);
+}
+.stat-tile-icon-pistachio {
+  background: var(--pistachio-wash);
+  color: var(--pistachio);
+}
 
 /* ---------- Owner dashboard: quick actions ---------- */
-.quick-actions {
+.owner-quick-actions {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   gap: 12px;
   margin-bottom: 20px;
 }
-.quick-action-btn {
+.owner-quick-action-btn {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -861,11 +869,11 @@
   text-align: center;
   transition: border-color 0.15s ease, transform 0.15s ease;
 }
-.quick-action-btn:hover {
+.owner-quick-action-btn:hover {
   border-color: var(--ember);
   transform: translateY(-1px);
 }
-.quick-action-icon {
+.owner-quick-action-icon {
   width: 40px;
   height: 40px;
   border-radius: var(--r-pill);
@@ -874,6 +882,14 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+}
+.owner-quick-action-icon-violet {
+  background: var(--violet-wash);
+  color: var(--violet);
+}
+.owner-quick-action-icon-pistachio {
+  background: var(--pistachio-wash);
+  color: var(--pistachio);
 }
 
 /* ---------- Owner dashboard: reviewer avatar ---------- */
@@ -916,6 +932,18 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+}
+.impact-icon-violet {
+  background: var(--violet-wash);
+  color: var(--violet);
+}
+.impact-icon-pistachio {
+  background: var(--pistachio-wash);
+  color: var(--pistachio);
+}
+.impact-icon-ember {
+  background: var(--ember-wash);
+  color: var(--ember-deep);
 }
 .impact-value {
   font-size: 18px;

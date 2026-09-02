@@ -65,19 +65,21 @@ const MOCK_REVIEWS: Review[] = [
   { name: "مهسا کریمی", rating: 5, time: "۳ ساعت پیش", text: "سرویس‌دهی سریع و برخورد پرسنل عالی بود." },
 ];
 
-const IMPACT_STATS: { icon: ReactNode; value: string; label: string }[] = [
-  { icon: <TrendUpIcon size={18} />, value: "۱۸٪", label: "افزایش فروش نسبت به قبل از فودی" },
-  { icon: <UserPlusIcon size={18} />, value: "۶۴", label: "مشتری جدید از طریق فودی" },
-  { icon: <ClockIcon size={18} />, value: "۲۳٪", label: "کاهش زمان خالی میزها" },
-  { icon: <StarIcon size={18} />, value: "۴.۷", label: "میانگین امتیاز شما" },
+type Accent = "ember" | "violet" | "pistachio";
+
+const IMPACT_STATS: { icon: ReactNode; value: string; label: string; accent: Accent }[] = [
+  { icon: <TrendUpIcon size={18} />, value: "۱۸٪", label: "افزایش فروش نسبت به قبل از فودی", accent: "pistachio" },
+  { icon: <UserPlusIcon size={18} />, value: "۶۴", label: "مشتری جدید از طریق فودی", accent: "violet" },
+  { icon: <ClockIcon size={18} />, value: "۲۳٪", label: "کاهش زمان خالی میزها", accent: "ember" },
+  { icon: <StarIcon size={18} />, value: "۴.۷", label: "میانگین امتیاز شما", accent: "violet" },
 ];
 
-const QUICK_ACTIONS: { to: string; label: string; icon: ReactNode }[] = [
-  { to: "/business/discounts", label: "ایجاد تخفیف", icon: <MegaphoneIcon size={20} /> },
-  { to: "/business/messages", label: "ارسال پیام", icon: <ChatIcon size={20} /> },
-  { to: "/business/menus", label: "مدیریت منو", icon: <MenuBookIcon size={20} /> },
-  { to: "/business/reports", label: "گزارش فروش", icon: <ChartIcon size={20} /> },
-  { to: "/business/manual-order", label: "ثبت سفارش دستی", icon: <ReceiptIcon size={20} /> },
+const QUICK_ACTIONS: { to: string; label: string; icon: ReactNode; accent: Accent }[] = [
+  { to: "/business/discounts", label: "ایجاد تخفیف", icon: <MegaphoneIcon size={20} />, accent: "violet" },
+  { to: "/business/messages", label: "ارسال پیام", icon: <ChatIcon size={20} />, accent: "ember" },
+  { to: "/business/menus", label: "مدیریت منو", icon: <MenuBookIcon size={20} />, accent: "pistachio" },
+  { to: "/business/reports", label: "گزارش فروش", icon: <ChartIcon size={20} />, accent: "violet" },
+  { to: "/business/manual-order", label: "ثبت سفارش دستی", icon: <ReceiptIcon size={20} />, accent: "pistachio" },
 ];
 
 export function OwnerDashboardPage() {
@@ -184,26 +186,37 @@ export function OwnerDashboardPage() {
               label="رزروها"
               value={(reservations ?? []).length}
               trend={MOCK_TRENDS.reservations}
+              accent="ember"
             />
-            <KpiTile icon={<EyeOpenIcon size={20} />} label="بازدیدکنندگان" value={MOCK_VISITORS} trend={MOCK_TRENDS.visitors} />
+            <KpiTile
+              icon={<EyeOpenIcon size={20} />}
+              label="بازدیدکنندگان"
+              value={MOCK_VISITORS}
+              trend={MOCK_TRENDS.visitors}
+              accent="violet"
+            />
             <KpiTile
               icon={<ReceiptIcon size={20} />}
               label="تعداد سفارش"
               value={(orders ?? []).length}
               trend={MOCK_TRENDS.orders}
+              accent="pistachio"
             />
             <KpiTile
               icon={<WalletIcon size={20} />}
               label="میزان فروش"
               value={formatToman(completedRevenue)}
               trend={MOCK_TRENDS.sales}
+              accent="violet"
             />
           </div>
 
-          <div className="quick-actions">
+          <div className="owner-quick-actions">
             {QUICK_ACTIONS.map((action) => (
-              <Link key={action.to} to={action.to} className="quick-action-btn">
-                <span className="quick-action-icon">{action.icon}</span>
+              <Link key={action.to} to={action.to} className="owner-quick-action-btn">
+                <span className={`owner-quick-action-icon ${action.accent !== "ember" ? `owner-quick-action-icon-${action.accent}` : ""}`}>
+                  {action.icon}
+                </span>
                 {action.label}
               </Link>
             ))}
@@ -300,7 +313,7 @@ export function OwnerDashboardPage() {
                 <div className="impact-grid" style={{ gridTemplateColumns: "1fr" }}>
                   {IMPACT_STATS.map((s) => (
                     <div key={s.label} className="impact-tile">
-                      <span className="impact-icon">{s.icon}</span>
+                      <span className={`impact-icon impact-icon-${s.accent}`}>{s.icon}</span>
                       <div>
                         <div className="impact-value">{s.value}</div>
                         <div className="impact-label">{s.label}</div>
@@ -345,11 +358,13 @@ function KpiTile({
   label,
   value,
   trend,
+  accent,
 }: {
   icon: ReactNode;
   label: string;
   value: number | string;
   trend: number;
+  accent: Accent;
 }) {
   const isNumber = typeof value === "number";
   const isUp = trend >= 0;
@@ -359,7 +374,7 @@ function KpiTile({
         {isUp ? <TrendUpIcon size={12} /> : <TrendDownIcon size={12} />}
         {new Intl.NumberFormat("fa-IR", { signDisplay: "never" }).format(Math.abs(trend))}٪
       </span>
-      <span className="stat-tile-icon">{icon}</span>
+      <span className={`stat-tile-icon ${accent !== "ember" ? `stat-tile-icon-${accent}` : ""}`}>{icon}</span>
       <span className={`stat-value${isNumber ? "" : " stat-value-text"}`}>
         {isNumber ? new Intl.NumberFormat("fa-IR").format(value) : value}
       </span>
