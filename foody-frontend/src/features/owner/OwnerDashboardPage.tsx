@@ -5,6 +5,7 @@ import { businessApi } from "../businesses/businessApi";
 import { orderApi } from "../orders/orderApi";
 import { reservationApi } from "../reservations/reservationApi";
 import { DashboardShell } from "../../components/DashboardShell";
+import { useToast } from "../../components/Feedback";
 import { Panel, PageSpinner, EmptyState, ErrorState } from "../../components/Controls";
 import { BusinessStatusBadge, OrderStatusBadge, ReservationStatusBadge } from "../../components/Badge";
 import { formatDateTime, formatTime, formatToman } from "../../lib/format";
@@ -80,6 +81,7 @@ const QUICK_ACTIONS: { to: string; label: string; icon: ReactNode }[] = [
 ];
 
 export function OwnerDashboardPage() {
+  const { notify } = useToast();
   const {
     data: business,
     isLoading: loadingBusiness,
@@ -207,14 +209,18 @@ export function OwnerDashboardPage() {
             ))}
           </div>
 
-          <div className="promo-banner">
-            <div className="promo-banner-text">
+          <div className="owner-promo-banner">
+            <div className="owner-promo-banner-text">
               <h3>با تبلیغات بیشتر دیده شوید</h3>
               <p>با کمپین‌های هدفمند، مشتری‌های جدید جذب کنید</p>
             </div>
-            <Link to="/business/discounts" className="promo-banner-cta">
+            <button
+              type="button"
+              className="owner-promo-banner-cta"
+              onClick={() => notify("ابزارهای تبلیغاتی — این قابلیت بعد از نسخه‌های اولیه اضافه می‌شه.")}
+            >
               مشاهده ابزارهای تبلیغاتی
-            </Link>
+            </button>
           </div>
 
           <div className="admin-grid">

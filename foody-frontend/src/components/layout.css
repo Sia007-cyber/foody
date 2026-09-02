@@ -929,7 +929,7 @@
 }
 
 /* ---------- Owner dashboard: ad banner ---------- */
-.promo-banner {
+.owner-promo-banner {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -941,17 +941,21 @@
   margin: 20px 0;
   color: #fff;
 }
-.promo-banner-text h3 {
+.owner-promo-banner-text h3 {
   font-size: 17px;
   font-weight: 800;
+  color: #fff;
 }
-.promo-banner-text p {
+.owner-promo-banner-text p {
   font-size: 13px;
+  color: #fff;
   opacity: 0.9;
   margin-top: 4px;
 }
-.promo-banner-cta {
+.owner-promo-banner-cta {
   flex-shrink: 0;
+  border: none;
+  cursor: pointer;
   background: #fff;
   color: var(--ember-deep);
   font-weight: 700;
@@ -989,7 +993,7 @@
   .branch-card {
     flex-wrap: wrap;
   }
-  .promo-banner {
+  .owner-promo-banner {
     text-align: center;
     justify-content: center;
   }
