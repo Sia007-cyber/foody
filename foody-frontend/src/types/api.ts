@@ -133,6 +133,29 @@ export interface UnreadCountResponse {
   unreadCount: number;
 }
 
+export type WalletTransactionType =
+  | "TOPUP"
+  | "ORDER_PAYMENT"
+  | "REFUND"
+  | "CREDIT_REWARD"
+  | "ADMIN_ADJUSTMENT";
+
+export interface Wallet {
+  balance: string;
+}
+
+export interface WalletTransaction {
+  id: number;
+  type: WalletTransactionType;
+  credit: boolean;
+  amount: string;
+  balanceAfter: string;
+  description: string | null;
+  referenceType: string | null;
+  referenceId: number | null;
+  createdAt: string;
+}
+
 export interface ApiErrorBody {
   timestamp: string;
   status: number;

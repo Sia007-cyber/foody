@@ -160,6 +160,25 @@
   font-size: 12px;
   opacity: 0.85;
 }
+.wallet-card-amount-loading {
+  font-size: 15px;
+  font-weight: 600;
+  opacity: 0.85;
+}
+.wallet-card-retry {
+  border: none;
+  background: none;
+  padding: 0;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: #fff;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+  text-align: right;
+  width: fit-content;
+}
 
 .discount-card {
   display: flex;

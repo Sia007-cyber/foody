@@ -1,16 +1,18 @@
 import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import type { Business } from "../../types/api";
 import { useToast } from "../../components/Feedback";
 import { WalletIcon, CalendarCheckIcon, MegaphoneIcon, StarIcon } from "../../components/icons";
 import { NearbyBusinessCard } from "./NearbyBusinessCard";
+import { walletApi } from "../wallet/walletApi";
+import { formatToman } from "../../lib/format";
 
 // ---------------------------------------------------------------------------
-// همه‌ی داده‌های این فایل (موجودی کیف پول، سقف اعتبار، درصد تخفیف اپ،
-// ماموریت‌ها) فعلاً MOCK/ثابت هستن — چون بک‌اند فاز ۲ (wallet/rewards/qr)
-// هنوز ساخته نشده. هدف این نسخه فقط هماهنگی UI با موکاپ کارفراست برای دمو.
-// وقتی endpoint های واقعی آماده شدن، جای این مقادیر ثابت با useQuery به
-// /api/wallet و /api/rewards/missions عوض می‌شه (به‌جز ساختار و استایل).
+// موجودی کیف پول از /api/wallet واقعیه (useQuery پایین). سقف اعتبار، درصد
+// تخفیف اپ و ماموریت‌ها هنوز MOCK/ثابت هستن — این بخش‌ها هنوز توی بک‌اند
+// ساخته نشدن (credit limit / app discount / missions). وقتی endpoint های
+// واقعی‌شون آماده شد، همین‌جا با useQuery جایگزین می‌شن.
 // ---------------------------------------------------------------------------
 
 interface QuickAction {
@@ -29,7 +31,6 @@ interface Mission {
   accent?: "ember" | "violet" | "pistachio";
 }
 
-const MOCK_WALLET_BALANCE = 500000;
 const MOCK_CREDIT_LIMIT = 625000;
 const MOCK_APP_DISCOUNT_PERCENT = 20;
 
@@ -39,13 +40,19 @@ const MOCK_MISSIONS: Mission[] = [
   { key: "first-order", title: "اولین خریدت رو انجام بده", reward: "+۵۰,۰۰۰ اعتبار", icon: <StarIcon size={20} />, accent: "ember" },
 ];
 
-function formatToman(amount: number): string {
-  return `${amount.toLocaleString("en-US")} تومان`;
-}
-
 export function CustomerHome({ nearbyBusinesses }: { nearbyBusinesses: Business[] }) {
   const { notify } = useToast();
   const comingSoon = (label: string) => notify(`${label} — این قابلیت به‌زودی فعال می‌شه.`);
+
+  const {
+    data: wallet,
+    isLoading: isWalletLoading,
+    isError: isWalletError,
+    refetch: refetchWallet,
+  } = useQuery({
+    queryKey: ["wallet", "balance"],
+    queryFn: walletApi.getBalance,
+  });
 
   const quickActions: QuickAction[] = [
     {
@@ -87,7 +94,15 @@ export function CustomerHome({ nearbyBusinesses }: { nearbyBusinesses: Business[
           </div>
           <div className="wallet-card-body">
             <span className="wallet-card-label">موجودی کیف پول شما</span>
-            <span className="wallet-card-amount">{formatToman(MOCK_WALLET_BALANCE)}</span>
+            {isWalletLoading ? (
+              <span className="wallet-card-amount wallet-card-amount-loading">در حال بارگذاری...</span>
+            ) : isWalletError ? (
+              <button type="button" className="wallet-card-retry" onClick={() => refetchWallet()}>
+                خطا در دریافت موجودی — تلاش دوباره
+              </button>
+            ) : (
+              <span className="wallet-card-amount">{formatToman(wallet?.balance ?? "0")}</span>
+            )}
             <span className="wallet-card-hint">
               با این موجودی تا {formatToman(MOCK_CREDIT_LIMIT)} می‌تونید خرید کنید
             </span>
