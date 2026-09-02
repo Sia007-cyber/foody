@@ -1,9 +1,13 @@
 package com.foody.businesses.service;
 
+import com.foody.businesses.dto.CreateBusinessRequest;
 import com.foody.businesses.dto.UpdateBusinessProfileRequest;
 import com.foody.businesses.entity.Business;
 import com.foody.businesses.entity.BusinessStatus;
+import com.foody.businesses.entity.BusinessTypeCode;
 import com.foody.businesses.repository.BusinessRepository;
+import com.foody.common.exception.DuplicateResourceException;
+import com.foody.common.exception.InvalidRequestException;
 import com.foody.common.exception.InvalidStateTransitionException;
 import com.foody.common.exception.ResourceNotFoundException;
 import com.foody.notifications.entity.NotificationType;
@@ -63,6 +67,29 @@ class BusinessServiceImpl implements BusinessService {
 
     private static String blankToNull(String value) {
         return (value == null || value.isBlank()) ? null : value.trim();
+    }
+
+    @Override
+    @Transactional
+    public Business createForOwner(Long ownerUserId, CreateBusinessRequest request) {
+        if (businessRepository.findByOwnerUserId(ownerUserId).isPresent()) {
+            throw new DuplicateResourceException("This owner already has a business");
+        }
+        try {
+            BusinessTypeCode.fromCode(request.businessType());
+        } catch (IllegalArgumentException e) {
+            throw new InvalidRequestException("Unknown business type: " + request.businessType());
+        }
+
+        Business business = new Business();
+        business.setOwnerUserId(ownerUserId);
+        business.setName(request.name());
+        business.setBusinessType(request.businessType());
+        business.setDescription(request.description());
+        business.setAddress(request.address());
+        business.setPhone(request.phone());
+        business.setStatus(BusinessStatus.PENDING);
+        return businessRepository.save(business);
     }
 
     @Override

@@ -11,6 +11,14 @@ export interface UpdateBusinessProfilePayload {
   coverImageUrl?: string;
 }
 
+export interface CreateBusinessPayload {
+  name: string;
+  businessType: string;
+  description?: string;
+  address?: string;
+  phone?: string;
+}
+
 export const businessApi = {
   discover: (params: { type?: string; search?: string }) =>
     apiRequest<Business[]>("/api/businesses", { auth: false, query: params }),
@@ -21,4 +29,10 @@ export const businessApi = {
 
   updateMyProfile: (payload: UpdateBusinessProfilePayload) =>
     apiRequest<Business>("/api/business/profile", { method: "PATCH", body: payload }),
+
+  // Owner onboarding — one-time self-registration (see backend
+  // BusinessOwnerController#create). Throws ApiError with status 409 if the owner
+  // already has a business.
+  createMyBusiness: (payload: CreateBusinessPayload) =>
+    apiRequest<Business>("/api/business", { method: "POST", body: payload }),
 };

@@ -17,10 +17,13 @@ import { OrderDetailPage } from "./features/orders/OrderDetailPage";
 import { MyReservationsPage } from "./features/reservations/MyReservationsPage";
 import { NewReservationPage } from "./features/reservations/NewReservationPage";
 import { OwnerDashboardPage } from "./features/owner/OwnerDashboardPage";
+import { OwnerRegisterBusinessPage } from "./features/owner/OwnerRegisterBusinessPage";
 import { OwnerProfilePage } from "./features/owner/OwnerProfilePage";
 import { OwnerMenusPage } from "./features/owner/OwnerMenusPage";
 import { OwnerOrdersPage } from "./features/owner/OwnerOrdersPage";
 import { OwnerReservationsPage } from "./features/owner/OwnerReservationsPage";
+import { RequireOwnerBusiness } from "./components/RequireOwnerBusiness";
+import { ownerNavItems } from "./features/owner/ownerNav";
 import { AdminDashboardPage } from "./features/admin/AdminDashboardPage";
 import { AdminBusinessesPage } from "./features/admin/AdminBusinessesPage";
 import { ComingSoonFeaturePage } from "./pages/ComingSoonFeaturePage";
@@ -61,11 +64,59 @@ export default function App() {
                 </Route>
 
                 <Route element={<RequireAuth roles={["BUSINESS_OWNER"]} />}>
-                  <Route path="/business" element={<OwnerDashboardPage />} />
-                  <Route path="/business/profile" element={<OwnerProfilePage />} />
-                  <Route path="/business/menus" element={<OwnerMenusPage />} />
-                  <Route path="/business/orders" element={<OwnerOrdersPage />} />
-                  <Route path="/business/reservations" element={<OwnerReservationsPage />} />
+                  <Route path="/business/register" element={<OwnerRegisterBusinessPage />} />
+
+                  <Route element={<RequireOwnerBusiness />}>
+                    <Route path="/business" element={<OwnerDashboardPage />} />
+                    <Route path="/business/profile" element={<OwnerProfilePage />} />
+                    <Route path="/business/menus" element={<OwnerMenusPage />} />
+                    <Route path="/business/orders" element={<OwnerOrdersPage />} />
+                    <Route path="/business/reservations" element={<OwnerReservationsPage />} />
+                    <Route
+                      path="/business/discounts"
+                      element={
+                        <ComingSoonFeaturePage
+                          navItems={ownerNavItems}
+                          title="تخفیف‌ها"
+                          icon={<MegaphoneIcon size={40} />}
+                          description="ایجاد و مدیریت کدهای تخفیف برای مشتری‌های کافه‌ات به‌زودی اضافه خواهد شد."
+                        />
+                      }
+                    />
+                    <Route
+                      path="/business/messages"
+                      element={
+                        <ComingSoonFeaturePage
+                          navItems={ownerNavItems}
+                          title="پیام‌ها"
+                          icon={<ChatIcon size={40} />}
+                          description="ارسال پیام به مشتری‌ها و مشاهده‌ی گفتگوها به‌زودی اضافه خواهد شد."
+                        />
+                      }
+                    />
+                    <Route
+                      path="/business/reports"
+                      element={
+                        <ComingSoonFeaturePage
+                          navItems={ownerNavItems}
+                          title="گزارش فروش"
+                          icon={<ChartIcon size={40} />}
+                          description="گزارش‌های تحلیلی فروش و عملکرد کسب‌وکارت به‌زودی اضافه خواهد شد."
+                        />
+                      }
+                    />
+                    <Route
+                      path="/business/manual-order"
+                      element={
+                        <ComingSoonFeaturePage
+                          navItems={ownerNavItems}
+                          title="ثبت سفارش دستی"
+                          icon={<ReceiptIcon size={40} />}
+                          description="ثبت سفارش حضوری برای مشتری‌ها به‌زودی اضافه خواهد شد."
+                        />
+                      }
+                    />
+                  </Route>
                 </Route>
 
                 <Route element={<RequireAuth roles={["ADMIN"]} />}>

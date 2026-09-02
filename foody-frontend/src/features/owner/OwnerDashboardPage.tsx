@@ -9,7 +9,23 @@ import { Panel, PageSpinner, EmptyState, ErrorState } from "../../components/Con
 import { BusinessStatusBadge, OrderStatusBadge, ReservationStatusBadge } from "../../components/Badge";
 import { formatDateTime, formatTime, formatToman } from "../../lib/format";
 import { ownerNavItems } from "./ownerNav";
-import { ClockIcon, ReceiptIcon, CalendarCheckIcon, WalletIcon } from "../../components/icons";
+import {
+  ClockIcon,
+  ReceiptIcon,
+  CalendarCheckIcon,
+  WalletIcon,
+  StoreIcon,
+  EyeOpenIcon,
+  TrendUpIcon,
+  TrendDownIcon,
+  MegaphoneIcon,
+  ChatIcon,
+  MenuBookIcon,
+  ChartIcon,
+  StarIcon,
+  UserPlusIcon,
+  CheckCircleIcon,
+} from "../../components/icons";
 import type { Order, Reservation } from "../../types/api";
 
 const ACTIVE_ORDER_STATUSES = new Set(["ACCEPTED", "PREPARING", "READY"]);
@@ -17,6 +33,51 @@ const ACTIVE_ORDER_STATUSES = new Set(["ACCEPTED", "PREPARING", "READY"]);
 function todayIso(): string {
   return new Date().toISOString().slice(0, 10);
 }
+
+// ---------------------------------------------------------------------------
+// بخش‌های زیر (بازدیدکنندگان، درصد تغییرات نسبت به دوره قبل، نظرات مشتریان،
+// «آمار تأثیر اپلیکیشن» و بخش‌هایی از خلاصه ۳۰ روزه) هنوز به بک‌اند وصل
+// نیستن — چون هیچ endpoint ای برای visit-tracking، نظرات (reviews) یا
+// مقایسه‌ی دوره‌ای فعلاً وجود نداره (ماژول reviews فقط یک اسکلت خالیه).
+// عدد رزروها/سفارش‌ها/فروش از orderApi و reservationApi واقعیه. وقتی
+// endpoint های واقعی آماده شدن، فقط همین چند ثابت زیر باید با useQuery
+// جایگزین بشن؛ ساختار و استایل صفحه ثابت می‌مونه.
+// ---------------------------------------------------------------------------
+const MOCK_VISITORS = 1284;
+const MOCK_TRENDS = {
+  reservations: 12,
+  visitors: 8,
+  orders: 5,
+  sales: -3,
+};
+
+interface Review {
+  name: string;
+  rating: number;
+  time: string;
+  text: string;
+}
+
+const MOCK_REVIEWS: Review[] = [
+  { name: "سارا احمدی", rating: 5, time: "۱۰ دقیقه پیش", text: "غذا خیلی عالی بود، همیشه دوباره سفارش می‌دم." },
+  { name: "علی رضایی", rating: 4, time: "۱ ساعت پیش", text: "کیفیت قهوه خیلی خوب بود، فضا هم دنج بود." },
+  { name: "مهسا کریمی", rating: 5, time: "۳ ساعت پیش", text: "سرویس‌دهی سریع و برخورد پرسنل عالی بود." },
+];
+
+const IMPACT_STATS: { icon: ReactNode; value: string; label: string }[] = [
+  { icon: <TrendUpIcon size={18} />, value: "۱۸٪", label: "افزایش فروش نسبت به قبل از فودی" },
+  { icon: <UserPlusIcon size={18} />, value: "۶۴", label: "مشتری جدید از طریق فودی" },
+  { icon: <ClockIcon size={18} />, value: "۲۳٪", label: "کاهش زمان خالی میزها" },
+  { icon: <StarIcon size={18} />, value: "۴.۷", label: "میانگین امتیاز شما" },
+];
+
+const QUICK_ACTIONS: { to: string; label: string; icon: ReactNode }[] = [
+  { to: "/business/discounts", label: "ایجاد تخفیف", icon: <MegaphoneIcon size={20} /> },
+  { to: "/business/messages", label: "ارسال پیام", icon: <ChatIcon size={20} /> },
+  { to: "/business/menus", label: "مدیریت منو", icon: <MenuBookIcon size={20} /> },
+  { to: "/business/reports", label: "گزارش فروش", icon: <ChartIcon size={20} /> },
+  { to: "/business/manual-order", label: "ثبت سفارش دستی", icon: <ReceiptIcon size={20} /> },
+];
 
 export function OwnerDashboardPage() {
   const {
@@ -61,9 +122,9 @@ export function OwnerDashboardPage() {
 
   const pendingOrders = (orders ?? []).filter((o) => o.status === "PENDING");
   const activeOrders = (orders ?? []).filter((o) => ACTIVE_ORDER_STATUSES.has(o.status));
-  const completedRevenue = (orders ?? [])
-    .filter((o) => o.status === "COMPLETED")
-    .reduce((sum, o) => sum + Number(o.totalAmount), 0);
+  const completedOrders = (orders ?? []).filter((o) => o.status === "COMPLETED");
+  const completedRevenue = completedOrders.reduce((sum, o) => sum + Number(o.totalAmount), 0);
+  const avgOrderValue = completedOrders.length > 0 ? completedRevenue / completedOrders.length : 0;
   const today = todayIso();
   const todayReservations = (reservations ?? [])
     .filter((r) => r.date === today && (r.status === "PENDING" || r.status === "CONFIRMED"))
@@ -78,6 +139,20 @@ export function OwnerDashboardPage() {
       navItems={ownerNavItems}
       title="داشبورد"
       actions={business && <BusinessStatusBadge status={business.status} />}
+      topBar={
+        <div className="owner-topbar">
+          <div className="owner-greeting">
+            <h2>سلام کافه‌دار عزیز 👋</h2>
+            <p>خوش آمدید، امروز چه برنامه‌ای دارید؟</p>
+          </div>
+          <div className="owner-topbar-right">
+            <span className="admin-topbar-period">۳۰ روز گذشته</span>
+            <Link to="/business/messages" className="notif-bell" aria-label="پیام‌ها">
+              <ChatIcon size={18} />
+            </Link>
+          </div>
+        </div>
+      }
     >
       {isLoading ? (
         <PageSpinner />
@@ -85,19 +160,61 @@ export function OwnerDashboardPage() {
         <ErrorState error={firstError} onRetry={refetchAll} title="داشبورد لود نشد" />
       ) : (
         <>
+          {business && (
+            <div className="branch-card">
+              {business.coverImageUrl ? (
+                <img src={business.coverImageUrl} alt={business.name} className="branch-card-image" />
+              ) : (
+                <span className="branch-card-icon">
+                  <StoreIcon size={24} />
+                </span>
+              )}
+              <div className="branch-card-meta">
+                <span className="branch-card-name">{business.name}</span>
+                <span className="branch-card-address">{business.address ?? "آدرسی ثبت نشده"}</span>
+              </div>
+            </div>
+          )}
+
           <div className="stat-grid">
-            <StatTile icon={<ClockIcon size={20} />} label="سفارش‌های در انتظار" value={pendingOrders.length} />
-            <StatTile icon={<ReceiptIcon size={20} />} label="سفارش‌های در حال انجام" value={activeOrders.length} />
-            <StatTile
+            <KpiTile
               icon={<CalendarCheckIcon size={20} />}
-              label="رزروهای امروز"
-              value={todayReservations.length}
+              label="رزروها"
+              value={(reservations ?? []).length}
+              trend={MOCK_TRENDS.reservations}
             />
-            <StatTile
+            <KpiTile icon={<EyeOpenIcon size={20} />} label="بازدیدکنندگان" value={MOCK_VISITORS} trend={MOCK_TRENDS.visitors} />
+            <KpiTile
+              icon={<ReceiptIcon size={20} />}
+              label="تعداد سفارش"
+              value={(orders ?? []).length}
+              trend={MOCK_TRENDS.orders}
+            />
+            <KpiTile
               icon={<WalletIcon size={20} />}
-              label="درآمد سفارش‌های تکمیل‌شده"
+              label="میزان فروش"
               value={formatToman(completedRevenue)}
+              trend={MOCK_TRENDS.sales}
             />
+          </div>
+
+          <div className="quick-actions">
+            {QUICK_ACTIONS.map((action) => (
+              <Link key={action.to} to={action.to} className="quick-action-btn">
+                <span className="quick-action-icon">{action.icon}</span>
+                {action.label}
+              </Link>
+            ))}
+          </div>
+
+          <div className="promo-banner">
+            <div className="promo-banner-text">
+              <h3>با تبلیغات بیشتر دیده شوید</h3>
+              <p>با کمپین‌های هدفمند، مشتری‌های جدید جذب کنید</p>
+            </div>
+            <Link to="/business/discounts" className="promo-banner-cta">
+              مشاهده ابزارهای تبلیغاتی
+            </Link>
           </div>
 
           <div className="admin-grid">
@@ -125,6 +242,29 @@ export function OwnerDashboardPage() {
                   </div>
                 )}
               </Panel>
+
+              <Panel title="نظرات مشتریان" icon={<ChatIcon size={17} />} action={<Link to="/business/reports">مشاهده همه</Link>}>
+                <ul className="review-list">
+                  {MOCK_REVIEWS.map((r) => (
+                    <li key={r.name + r.time} className="review-row">
+                      <div className="review-row-owner">
+                        <span className="review-avatar">{r.name.slice(0, 1)}</span>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div className="review-row-head">
+                            <span>{r.name}</span>
+                            <span className="review-rating">
+                              <StarIcon size={13} />
+                              {new Intl.NumberFormat("fa-IR").format(r.rating)}
+                            </span>
+                          </div>
+                          <p className="review-row-sub">{r.time}</p>
+                          <p className="review-row-text">{r.text}</p>
+                        </div>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </Panel>
             </div>
 
             <div className="admin-grid-col">
@@ -149,7 +289,44 @@ export function OwnerDashboardPage() {
                   </div>
                 )}
               </Panel>
+
+              <Panel title="آمار تأثیر اپلیکیشن برای شما" icon={<CheckCircleIcon size={17} />}>
+                <div className="impact-grid" style={{ gridTemplateColumns: "1fr" }}>
+                  {IMPACT_STATS.map((s) => (
+                    <div key={s.label} className="impact-tile">
+                      <span className="impact-icon">{s.icon}</span>
+                      <div>
+                        <div className="impact-value">{s.value}</div>
+                        <div className="impact-label">{s.label}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </Panel>
             </div>
+          </div>
+
+          <div style={{ marginTop: 20 }}>
+            <Panel title="خلاصه عملکرد ۳۰ روزه" icon={<ChartIcon size={17} />}>
+              <div className="summary-grid" style={{ marginTop: 4 }}>
+                <div className="summary-tile">
+                  <div className="summary-value">۴۲٪</div>
+                  <div className="summary-label">نرخ بازگشت مشتری</div>
+                </div>
+                <div className="summary-tile">
+                  <div className="summary-value">{formatToman(Math.round(avgOrderValue))}</div>
+                  <div className="summary-label">میانگین ارزش سفارش</div>
+                </div>
+                <div className="summary-tile">
+                  <div className="summary-value">۶۴</div>
+                  <div className="summary-label">مشتریان جدید</div>
+                </div>
+                <div className="summary-tile">
+                  <div className="summary-value">۴.۷</div>
+                  <div className="summary-label">میانگین امتیاز</div>
+                </div>
+              </div>
+            </Panel>
           </div>
         </>
       )}
@@ -157,10 +334,25 @@ export function OwnerDashboardPage() {
   );
 }
 
-function StatTile({ icon, label, value }: { icon: ReactNode; label: string; value: number | string }) {
+function KpiTile({
+  icon,
+  label,
+  value,
+  trend,
+}: {
+  icon: ReactNode;
+  label: string;
+  value: number | string;
+  trend: number;
+}) {
   const isNumber = typeof value === "number";
+  const isUp = trend >= 0;
   return (
     <div className="stat-tile">
+      <span className={`kpi-trend ${isUp ? "up" : "down"}`}>
+        {isUp ? <TrendUpIcon size={12} /> : <TrendDownIcon size={12} />}
+        {new Intl.NumberFormat("fa-IR", { signDisplay: "never" }).format(Math.abs(trend))}٪
+      </span>
       <span className="stat-tile-icon">{icon}</span>
       <span className={`stat-value${isNumber ? "" : " stat-value-text"}`}>
         {isNumber ? new Intl.NumberFormat("fa-IR").format(value) : value}

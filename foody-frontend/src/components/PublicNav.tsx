@@ -34,9 +34,9 @@ export function PublicNav() {
             </>
           )}
           {user?.role === "BUSINESS_OWNER" && (
-            <NavLink to="/business" className={({ isActive }) => `nav-link ${isActive ? "active" : ""}`}>
+            <a href="/business" target="_blank" rel="noopener noreferrer" className="nav-link">
               پنل کسب‌وکار
-            </NavLink>
+            </a>
           )}
           {user?.role === "ADMIN" && (
             <NavLink to="/admin" className={({ isActive }) => `nav-link ${isActive ? "active" : ""}`}>

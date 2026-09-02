@@ -221,6 +221,49 @@ export function CheckCircleIcon(props: IconProps) {
   );
 }
 
+export function TrendUpIcon(props: IconProps) {
+  return (
+    <svg {...base(props)}>
+      <path d="M3 16 9.5 9.5 14 14l7-7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M15 7h6v6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+export function TrendDownIcon(props: IconProps) {
+  return (
+    <svg {...base(props)}>
+      <path d="M3 8 9.5 14.5 14 10l7 7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M15 17h6v-6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+export function EyeOpenIcon(props: IconProps) {
+  return (
+    <svg {...base(props)}>
+      <path
+        d="M1.5 12S5 5 12 5s10.5 7 10.5 7-3.5 7-10.5 7S1.5 12 1.5 12Z"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.6" />
+    </svg>
+  );
+}
+
+export function UserPlusIcon(props: IconProps) {
+  return (
+    <svg {...base(props)}>
+      <circle cx="9" cy="8" r="3.2" stroke="currentColor" strokeWidth="1.6" />
+      <path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+      <path d="M18 8v6M15 11h6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 export function MenuBookIcon(props: IconProps) {
   return (
     <svg {...base(props)}>

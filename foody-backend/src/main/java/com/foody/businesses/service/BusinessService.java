@@ -1,5 +1,6 @@
 package com.foody.businesses.service;
 
+import com.foody.businesses.dto.CreateBusinessRequest;
 import com.foody.businesses.dto.UpdateBusinessProfileRequest;
 import com.foody.businesses.entity.Business;
 import com.foody.businesses.entity.BusinessStatus;
@@ -16,6 +17,10 @@ public interface BusinessService {
     Optional<Business> findByIdAndStatus(Long id, com.foody.businesses.entity.BusinessStatus status);
 
     Optional<Business> findByOwnerUserId(Long ownerUserId);
+
+    // Owner onboarding (POST /api/business): one-time self-registration. Throws
+    // DuplicateResourceException if this owner already has a business.
+    Business createForOwner(Long ownerUserId, CreateBusinessRequest request);
 
     // Phase 1 Discover (GET /api/businesses?type=&search=): only APPROVED businesses,
     // optionally filtered by business type code and/or a case-insensitive name search.

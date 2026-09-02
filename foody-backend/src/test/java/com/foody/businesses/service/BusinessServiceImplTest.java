@@ -7,9 +7,12 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.when;
 
+import com.foody.businesses.dto.CreateBusinessRequest;
 import com.foody.businesses.entity.Business;
 import com.foody.businesses.entity.BusinessStatus;
 import com.foody.businesses.repository.BusinessRepository;
+import com.foody.common.exception.DuplicateResourceException;
+import com.foody.common.exception.InvalidRequestException;
 import com.foody.common.exception.InvalidStateTransitionException;
 import com.foody.common.exception.ResourceNotFoundException;
 import com.foody.notifications.service.NotificationService;
@@ -141,5 +144,42 @@ class BusinessServiceImplTest {
                 .thenReturn(List.of());
 
         businessService.search(" CAFE ", " sunrise ");
+    }
+
+    static final Long OWNER_ID = 42L;
+
+    @Test
+    void createForOwner_createsPendingBusinessWhenOwnerHasNone() {
+        when(businessRepository.findByOwnerUserId(OWNER_ID)).thenReturn(Optional.empty());
+        when(businessRepository.save(any(Business.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        CreateBusinessRequest request = new CreateBusinessRequest("کافه رها", "CAFE", null, "تهران", "021");
+        Business result = businessService.createForOwner(OWNER_ID, request);
+
+        assertThat(result.getOwnerUserId()).isEqualTo(OWNER_ID);
+        assertThat(result.getName()).isEqualTo("کافه رها");
+        assertThat(result.getBusinessType()).isEqualTo("CAFE");
+        assertThat(result.getStatus()).isEqualTo(BusinessStatus.PENDING);
+    }
+
+    @Test
+    void createForOwner_rejectsWhenOwnerAlreadyHasBusiness() {
+        when(businessRepository.findByOwnerUserId(OWNER_ID))
+                .thenReturn(Optional.of(businessWithStatus(BusinessStatus.APPROVED)));
+
+        CreateBusinessRequest request = new CreateBusinessRequest("کافه رها", "CAFE", null, null, null);
+
+        assertThatThrownBy(() -> businessService.createForOwner(OWNER_ID, request))
+                .isInstanceOf(DuplicateResourceException.class);
+    }
+
+    @Test
+    void createForOwner_rejectsUnknownBusinessType() {
+        when(businessRepository.findByOwnerUserId(OWNER_ID)).thenReturn(Optional.empty());
+
+        CreateBusinessRequest request = new CreateBusinessRequest("کافه رها", "NOT_A_TYPE", null, null, null);
+
+        assertThatThrownBy(() -> businessService.createForOwner(OWNER_ID, request))
+                .isInstanceOf(InvalidRequestException.class);
     }
 }
