@@ -51,7 +51,7 @@ export default function App() {
                   <Route path="/login" element={<LoginPage />} />
                   <Route path="/register" element={<RegisterPage />} />
 
-                  <Route element={<RequireAuth roles={["CUSTOMER"]} />}>
+                  <Route element={<RequireAuth roles={["CUSTOMER", "BUSINESS_OWNER"]} />}>
                     <Route path="/checkout" element={<CheckoutPage />} />
                     <Route path="/orders" element={<MyOrdersPage />} />
                     <Route path="/orders/:id" element={<OrderDetailPage />} />

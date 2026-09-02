@@ -20,7 +20,7 @@ export function PublicNav() {
           <NavLink to="/" end className={({ isActive }) => `nav-link ${isActive ? "active" : ""}`}>
             کشف کسب‌وکارها
           </NavLink>
-          {user?.role === "CUSTOMER" && (
+          {(user?.role === "CUSTOMER" || user?.role === "BUSINESS_OWNER") && (
             <>
               <NavLink to="/orders" className={({ isActive }) => `nav-link ${isActive ? "active" : ""}`}>
                 سفارش‌های من
@@ -47,7 +47,7 @@ export function PublicNav() {
 
         <div className="nav-actions">
           {user && <NotificationBell />}
-          {user?.role === "CUSTOMER" && totalItems > 0 && (
+          {(user?.role === "CUSTOMER" || user?.role === "BUSINESS_OWNER") && totalItems > 0 && (
             <Button variant="secondary" size="sm" onClick={() => navigate("/checkout")}>
               سبد خرید
               <span className="nav-cart-badge">{totalItems}</span>

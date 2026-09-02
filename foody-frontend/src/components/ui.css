@@ -101,11 +101,14 @@
   display: flex;
 }
 .password-field .input {
-  padding-inline-end: 42px;
+  /* رمز عبور معمولاً حاوی ارقام لاتینه که جهت‌شون LTR هست؛ برای اینکه
+     دکمه‌ی چشم همیشه سمت راست فیزیکی باشه (نه بسته به منطق inline-end
+     که توی RTL سمت چپ می‌شه)، از پدینگ/پوزیشن فیزیکی راست استفاده می‌کنیم. */
+  padding-right: 42px;
 }
 .password-toggle {
   position: absolute;
-  inset-inline-end: 6px;
+  right: 6px;
   top: 50%;
   transform: translateY(-50%);
   display: flex;
