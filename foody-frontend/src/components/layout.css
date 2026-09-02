@@ -10,10 +10,19 @@
 }
 .public-nav-inner {
   height: var(--nav-h);
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
   align-items: center;
-  justify-content: space-between;
   gap: 24px;
+}
+.public-nav-inner .brand {
+  justify-self: start;
+}
+.public-nav-inner .nav-links {
+  justify-self: center;
+}
+.public-nav-inner .nav-actions {
+  justify-self: end;
 }
 .brand {
   font-size: 19px;

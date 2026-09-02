@@ -1,17 +1,31 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { businessApi } from "../businesses/businessApi";
 import { BusinessCard } from "./BusinessCard";
 import { Segmented } from "../../components/Controls";
 import { EmptyState, ErrorState, PageSpinner } from "../../components/Controls";
+import { Button } from "../../components/Button";
 import { useAuth } from "../auth/AuthContext";
 import { CustomerHome } from "./CustomerHome";
 import "./discover.css";
 
 type TypeFilter = "" | "CAFE" | "FAST_FOOD";
 
+// استیکرهای تزئینی هیرو — فقط بصری، هیچ متنی رو نمی‌گیرن (pointer-events: none)
+const HERO_STICKERS = [
+  { emoji: "🍔", label: "hero-sticker-1" },
+  { emoji: "☕", label: "hero-sticker-2" },
+  { emoji: "🍕", label: "hero-sticker-3" },
+  { emoji: "🍟", label: "hero-sticker-4" },
+  { emoji: "🥤", label: "hero-sticker-5" },
+  { emoji: "🍩", label: "hero-sticker-6" },
+  { emoji: "🍪", label: "hero-sticker-7" },
+];
+
 export function DiscoverPage() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [type, setType] = useState<TypeFilter>("");
@@ -87,6 +101,13 @@ export function DiscoverPage() {
     <div>
       <section className="hero">
         <div className="hero-blobs" />
+        <div className="hero-stickers" aria-hidden="true">
+          {HERO_STICKERS.map((s) => (
+            <span key={s.label} className={`hero-sticker ${s.label}`}>
+              {s.emoji}
+            </span>
+          ))}
+        </div>
         <h1>هرچی هوس کردی، همین‌جاست</h1>
         <p>کافه و فست‌فودای اطرافت رو پیدا کن، سفارش بده یا میز رزرو کن.</p>
         <div className="hero-search">
@@ -107,6 +128,16 @@ export function DiscoverPage() {
             { value: "FAST_FOOD", label: "فست‌فود" },
           ]}
         />
+        {!user && (
+          <div className="hero-cta">
+            <Button size="md" onClick={() => navigate("/register")}>
+              ثبت‌نام رایگان
+            </Button>
+            <Button variant="secondary" size="md" onClick={() => navigate("/login")}>
+              ورود
+            </Button>
+          </div>
+        )}
       </section>
 
       <section className="container discover-section">{businessResults}</section>

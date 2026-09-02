@@ -24,12 +24,20 @@ const typeLabel: Record<string, string> = {
   FAST_FOOD: "فست‌فود",
 };
 
+const typeEmoji: Record<string, string> = {
+  CAFE: "☕",
+  FAST_FOOD: "🍔",
+};
+
 export function NearbyBusinessCard({ business }: { business: Business }) {
   const coverClass = `business-cover-${business.businessType.toLowerCase()}`;
 
   return (
     <Link to={`/businesses/${business.id}`} className="nearby-card">
       <div className={`nearby-card-cover business-cover ${coverClass}`}>
+        <span className="business-cover-emoji" aria-hidden="true">
+          {typeEmoji[business.businessType] ?? "🍽️"}
+        </span>
         <span className="nearby-card-discount">٪{mockDiscountPercent(business.id)} تخفیف</span>
       </div>
       <div className="nearby-card-body">

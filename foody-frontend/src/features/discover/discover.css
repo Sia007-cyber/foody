@@ -1,11 +1,13 @@
 .hero {
   position: relative;
   overflow: hidden;
-  padding: 88px 16px 56px;
+  padding: 88px 16px 64px;
+  min-height: 560px;
   text-align: center;
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: 28px;
 }
 .hero-blobs {
@@ -14,8 +16,138 @@
   z-index: -1;
   background:
     radial-gradient(480px circle at 18% 20%, rgba(255, 90, 54, 0.14), transparent 60%),
-    radial-gradient(560px circle at 85% 15%, rgba(255, 90, 54, 0.09), transparent 60%),
-    radial-gradient(420px circle at 50% 100%, rgba(0, 0, 0, 0.035), transparent 60%);
+    radial-gradient(560px circle at 85% 15%, rgba(139, 92, 246, 0.08), transparent 60%),
+    radial-gradient(420px circle at 50% 100%, rgba(124, 179, 66, 0.07), transparent 60%);
+}
+
+/* ---------- Hero stickers (decorative — never over the text column) ---------- */
+.hero-stickers {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+.hero-sticker {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  line-height: 1;
+  background: var(--ember-wash);
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.07);
+  animation: hero-sticker-float 6s ease-in-out infinite;
+}
+.hero-sticker-1 {
+  --r: -10deg;
+  top: 10%;
+  inset-inline-start: 6%;
+  width: 68px;
+  height: 68px;
+  font-size: 30px;
+  background: var(--ember-wash);
+  animation-delay: 0s;
+}
+.hero-sticker-2 {
+  --r: 12deg;
+  top: 16%;
+  inset-inline-end: 9%;
+  width: 52px;
+  height: 52px;
+  font-size: 24px;
+  background: var(--violet-wash);
+  animation-delay: 0.6s;
+}
+.hero-sticker-3 {
+  --r: 8deg;
+  top: 58%;
+  inset-inline-start: 4%;
+  width: 60px;
+  height: 60px;
+  font-size: 27px;
+  background: var(--pistachio-wash);
+  animation-delay: 1.2s;
+}
+.hero-sticker-4 {
+  --r: -8deg;
+  top: 66%;
+  inset-inline-end: 6%;
+  width: 44px;
+  height: 44px;
+  font-size: 20px;
+  background: var(--ember-wash);
+  animation-delay: 1.8s;
+}
+.hero-sticker-5 {
+  --r: -6deg;
+  top: 4%;
+  inset-inline-end: 26%;
+  width: 40px;
+  height: 40px;
+  font-size: 18px;
+  background: var(--violet-wash);
+  animation-delay: 2.4s;
+}
+.hero-sticker-6 {
+  --r: 14deg;
+  top: 82%;
+  inset-inline-start: 17%;
+  width: 38px;
+  height: 38px;
+  font-size: 17px;
+  background: var(--pistachio-wash);
+  animation-delay: 3s;
+}
+.hero-sticker-7 {
+  --r: -14deg;
+  top: 30%;
+  inset-inline-start: 15%;
+  width: 32px;
+  height: 32px;
+  font-size: 15px;
+  background: var(--ember-wash);
+  animation-delay: 3.6s;
+}
+@keyframes hero-sticker-float {
+  0%, 100% {
+    transform: translateY(0) rotate(var(--r, 0deg));
+  }
+  50% {
+    transform: translateY(-10px) rotate(var(--r, 0deg));
+  }
+}
+@media (max-width: 720px) {
+  .hero {
+    min-height: 0;
+  }
+  .hero-sticker-3,
+  .hero-sticker-4,
+  .hero-sticker-6,
+  .hero-sticker-7 {
+    display: none;
+  }
+  .hero-sticker-1 {
+    width: 48px;
+    height: 48px;
+    font-size: 22px;
+  }
+  .hero-sticker-2 {
+    width: 40px;
+    height: 40px;
+    font-size: 18px;
+  }
+  .hero-sticker-5 {
+    width: 34px;
+    height: 34px;
+    font-size: 16px;
+  }
+}
+
+.hero-cta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  z-index: 1;
 }
 .hero h1 {
   font-size: clamp(34px, 5.5vw, 58px);
@@ -75,14 +207,24 @@
   box-shadow: var(--shadow-float);
 }
 .business-cover {
+  position: relative;
   height: 130px;
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
 }
 .business-cover-cafe {
   background: linear-gradient(135deg, #ffb199 0%, #ff5a36 100%);
 }
 .business-cover-fast_food {
   background: linear-gradient(135deg, #ffd6a8 0%, #ff8a3d 100%);
+}
+.business-cover-emoji {
+  font-size: 44px;
+  opacity: 0.9;
+  filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.12));
 }
 .business-card-body {
   padding: 16px 18px;

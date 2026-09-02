@@ -53,19 +53,10 @@ export function PublicNav() {
               <span className="nav-cart-badge">{totalItems}</span>
             </Button>
           )}
-          {user ? (
+          {user && (
             <Button variant="ghost" size="sm" onClick={() => logout().then(() => navigate("/"))}>
               خروج
             </Button>
-          ) : (
-            <>
-              <Button variant="ghost" size="sm" onClick={() => navigate("/login")}>
-                ورود
-              </Button>
-              <Button size="sm" onClick={() => navigate("/register")}>
-                ثبت‌نام
-              </Button>
-            </>
           )}
         </div>
       </div>
