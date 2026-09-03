@@ -36,6 +36,35 @@ export function Spinner() {
   return <span className="spinner" role="status" aria-label="در حال بارگذاری" />;
 }
 
+/** Availability-style toggle switch with a trailing label, e.g. "موجود" / "ناموجود". */
+export function Switch({
+  checked,
+  onChange,
+  label,
+  disabled,
+}: {
+  checked: boolean;
+  onChange: () => void;
+  label?: string;
+  disabled?: boolean;
+}) {
+  return (
+    <button
+      type="button"
+      className={`switch-row ${checked ? "on" : "off"}`}
+      role="switch"
+      aria-checked={checked}
+      disabled={disabled}
+      onClick={onChange}
+    >
+      <span className="switch-track">
+        <span className="switch-thumb" />
+      </span>
+      {label && <span className="switch-label">{label}</span>}
+    </button>
+  );
+}
+
 export function PageSpinner() {
   return (
     <div className="spinner-page">

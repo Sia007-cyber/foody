@@ -7,6 +7,11 @@ export const menuApi = {
 
   create: (payload: { name: string; displayOrder?: number }) =>
     apiRequest<Menu>("/api/business/menus", { method: "POST", body: payload }),
+
+  update: (id: number, payload: { name: string }) =>
+    apiRequest<Menu>(`/api/business/menus/${id}`, { method: "PATCH", body: payload }),
+
+  remove: (id: number) => apiRequest<void>(`/api/business/menus/${id}`, { method: "DELETE" }),
 };
 
 export const productApi = {
@@ -35,4 +40,6 @@ export const productApi = {
       displayOrder: number;
     }>
   ) => apiRequest<Product>(`/api/business/products/${id}`, { method: "PATCH", body: payload }),
+
+  remove: (id: number) => apiRequest<void>(`/api/business/products/${id}`, { method: "DELETE" }),
 };
