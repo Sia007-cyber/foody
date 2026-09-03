@@ -13,14 +13,25 @@ import "./discover.css";
 type TypeFilter = "" | "CAFE" | "FAST_FOOD";
 
 // استیکرهای تزئینی هیرو — فقط بصری، هیچ متنی رو نمی‌گیرن (pointer-events: none)
-const HERO_STICKERS = [
-  { emoji: "🍔", label: "hero-sticker-1" },
-  { emoji: "☕", label: "hero-sticker-2" },
-  { emoji: "🍕", label: "hero-sticker-3" },
-  { emoji: "🍟", label: "hero-sticker-4" },
-  { emoji: "🥤", label: "hero-sticker-5" },
-  { emoji: "🍩", label: "hero-sticker-6" },
-  { emoji: "🍪", label: "hero-sticker-7" },
+// tier: near = بزرگ و واضح (جلو) / mid = متوسط / far = کوچیک، محو و بلور (پشت، برای عمق بصری)
+const HERO_STICKERS: { emoji: string; label: string; tier: "near" | "mid" | "far" }[] = [
+  // near — بزرگ، شارپ، جلو
+  { emoji: "🍔", label: "hero-sticker-1", tier: "near" },
+  { emoji: "☕", label: "hero-sticker-2", tier: "near" },
+  { emoji: "🍕", label: "hero-sticker-3", tier: "near" },
+  { emoji: "🍩", label: "hero-sticker-4", tier: "near" },
+  // mid — متوسط
+  { emoji: "🍟", label: "hero-sticker-5", tier: "mid" },
+  { emoji: "🥤", label: "hero-sticker-6", tier: "mid" },
+  { emoji: "🍪", label: "hero-sticker-7", tier: "mid" },
+  { emoji: "🧋", label: "hero-sticker-8", tier: "mid" },
+  // far — کوچیک، محو و بلور، انگار پشت بقیه‌ان
+  { emoji: "🍰", label: "hero-sticker-9", tier: "far" },
+  { emoji: "🧁", label: "hero-sticker-10", tier: "far" },
+  { emoji: "🍫", label: "hero-sticker-11", tier: "far" },
+  { emoji: "🍦", label: "hero-sticker-12", tier: "far" },
+  { emoji: "🥐", label: "hero-sticker-13", tier: "far" },
+  { emoji: "🍬", label: "hero-sticker-14", tier: "far" },
 ];
 
 export function DiscoverPage() {
@@ -103,7 +114,7 @@ export function DiscoverPage() {
         <div className="hero-blobs" />
         <div className="hero-stickers" aria-hidden="true">
           {HERO_STICKERS.map((s) => (
-            <span key={s.label} className={`hero-sticker ${s.label}`}>
+            <span key={s.label} className={`hero-sticker hero-sticker-${s.tier} ${s.label}`}>
               {s.emoji}
             </span>
           ))}

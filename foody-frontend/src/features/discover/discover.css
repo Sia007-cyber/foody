@@ -20,7 +20,8 @@
     radial-gradient(420px circle at 50% 100%, rgba(124, 179, 66, 0.07), transparent 60%);
 }
 
-/* ---------- Hero stickers (decorative — never over the text column) ---------- */
+/* ---------- Hero stickers (decorative — never over the text column) ----------
+   near = بزرگ و شارپ (جلو) / mid = متوسط / far = کوچیک، محو و بلور (پشت — عمق بصری) */
 .hero-stickers {
   position: absolute;
   inset: 0;
@@ -34,80 +35,52 @@
   justify-content: center;
   border-radius: 50%;
   line-height: 1;
-  background: var(--ember-wash);
-  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.07);
   animation: hero-sticker-float 6s ease-in-out infinite;
 }
-.hero-sticker-1 {
-  --r: -10deg;
-  top: 10%;
-  inset-inline-start: 6%;
+
+/* --- depth tiers --- */
+.hero-sticker-near {
   width: 68px;
   height: 68px;
   font-size: 30px;
-  background: var(--ember-wash);
-  animation-delay: 0s;
+  opacity: 1;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.09);
 }
-.hero-sticker-2 {
-  --r: 12deg;
-  top: 16%;
-  inset-inline-end: 9%;
-  width: 52px;
-  height: 52px;
-  font-size: 24px;
-  background: var(--violet-wash);
-  animation-delay: 0.6s;
+.hero-sticker-mid {
+  width: 46px;
+  height: 46px;
+  font-size: 21px;
+  opacity: 0.82;
+  filter: blur(0.4px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
 }
-.hero-sticker-3 {
-  --r: 8deg;
-  top: 58%;
-  inset-inline-start: 4%;
-  width: 60px;
-  height: 60px;
-  font-size: 27px;
-  background: var(--pistachio-wash);
-  animation-delay: 1.2s;
+.hero-sticker-far {
+  width: 28px;
+  height: 28px;
+  font-size: 14px;
+  opacity: 0.5;
+  filter: blur(1.6px);
+  box-shadow: none;
 }
-.hero-sticker-4 {
-  --r: -8deg;
-  top: 66%;
-  inset-inline-end: 6%;
-  width: 44px;
-  height: 44px;
-  font-size: 20px;
-  background: var(--ember-wash);
-  animation-delay: 1.8s;
-}
-.hero-sticker-5 {
-  --r: -6deg;
-  top: 4%;
-  inset-inline-end: 26%;
-  width: 40px;
-  height: 40px;
-  font-size: 18px;
-  background: var(--violet-wash);
-  animation-delay: 2.4s;
-}
-.hero-sticker-6 {
-  --r: 14deg;
-  top: 82%;
-  inset-inline-start: 17%;
-  width: 38px;
-  height: 38px;
-  font-size: 17px;
-  background: var(--pistachio-wash);
-  animation-delay: 3s;
-}
-.hero-sticker-7 {
-  --r: -14deg;
-  top: 30%;
-  inset-inline-start: 15%;
-  width: 32px;
-  height: 32px;
-  font-size: 15px;
-  background: var(--ember-wash);
-  animation-delay: 3.6s;
-}
+
+/* --- positions (14 spots, spread around the edges, text column stays clear) --- */
+.hero-sticker-1 { --r: -10deg; top: 9%; inset-inline-start: 5%; background: var(--ember-wash); animation-delay: 0s; }
+.hero-sticker-2 { --r: 12deg; top: 14%; inset-inline-end: 7%; background: var(--violet-wash); animation-delay: 0.4s; }
+.hero-sticker-3 { --r: 8deg; top: 57%; inset-inline-start: 3%; background: var(--pistachio-wash); animation-delay: 0.8s; }
+.hero-sticker-4 { --r: -12deg; top: 80%; inset-inline-end: 9%; background: var(--ember-wash); animation-delay: 1.2s; }
+
+.hero-sticker-5 { --r: -6deg; top: 4%; inset-inline-end: 25%; background: var(--violet-wash); animation-delay: 1.6s; }
+.hero-sticker-6 { --r: 14deg; top: 85%; inset-inline-start: 19%; background: var(--pistachio-wash); animation-delay: 2s; }
+.hero-sticker-7 { --r: -8deg; top: 63%; inset-inline-end: 3%; background: var(--ember-wash); animation-delay: 2.4s; }
+.hero-sticker-8 { --r: 10deg; top: 30%; inset-inline-start: 12%; background: var(--violet-wash); animation-delay: 2.8s; }
+
+.hero-sticker-9 { --r: -14deg; top: 3%; inset-inline-start: 32%; background: var(--ember-wash); animation-delay: 3.2s; }
+.hero-sticker-10 { --r: 16deg; top: 20%; inset-inline-end: 36%; background: var(--pistachio-wash); animation-delay: 3.6s; }
+.hero-sticker-11 { --r: -10deg; top: 70%; inset-inline-start: 29%; background: var(--violet-wash); animation-delay: 4s; }
+.hero-sticker-12 { --r: 12deg; top: 92%; inset-inline-end: 30%; background: var(--ember-wash); animation-delay: 4.4s; }
+.hero-sticker-13 { --r: -16deg; top: 45%; inset-inline-start: 0.5%; background: var(--pistachio-wash); animation-delay: 4.8s; }
+.hero-sticker-14 { --r: 8deg; top: 8%; inset-inline-end: 45%; background: var(--violet-wash); animation-delay: 5.2s; }
+
 @keyframes hero-sticker-float {
   0%, 100% {
     transform: translateY(0) rotate(var(--r, 0deg));
@@ -116,30 +89,53 @@
     transform: translateY(-10px) rotate(var(--r, 0deg));
   }
 }
+
+/* --- responsive counts: fewer, bigger-relative stickers as the viewport shrinks --- */
+@media (max-width: 1024px) {
+  .hero-sticker-10,
+  .hero-sticker-13,
+  .hero-sticker-14 {
+    display: none;
+  }
+}
 @media (max-width: 720px) {
   .hero {
     min-height: 0;
   }
-  .hero-sticker-3,
-  .hero-sticker-4,
-  .hero-sticker-6,
-  .hero-sticker-7 {
+  .hero-sticker-7,
+  .hero-sticker-8,
+  .hero-sticker-9,
+  .hero-sticker-11,
+  .hero-sticker-12 {
     display: none;
   }
-  .hero-sticker-1 {
-    width: 48px;
-    height: 48px;
+  .hero-sticker-near {
+    width: 50px;
+    height: 50px;
     font-size: 22px;
   }
-  .hero-sticker-2 {
-    width: 40px;
-    height: 40px;
-    font-size: 18px;
-  }
-  .hero-sticker-5 {
-    width: 34px;
-    height: 34px;
+  .hero-sticker-mid {
+    width: 36px;
+    height: 36px;
     font-size: 16px;
+  }
+  .hero-sticker-far {
+    width: 22px;
+    height: 22px;
+    font-size: 11px;
+  }
+}
+@media (max-width: 480px) {
+  .hero-sticker-3,
+  .hero-sticker-4,
+  .hero-sticker-5,
+  .hero-sticker-6 {
+    display: none;
+  }
+  .hero-sticker-near {
+    width: 42px;
+    height: 42px;
+    font-size: 19px;
   }
 }
 
