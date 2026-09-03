@@ -2,6 +2,7 @@ package com.foody.menus.service;
 
 import com.foody.businesses.entity.Business;
 import com.foody.businesses.service.BusinessService;
+import com.foody.common.exception.DuplicateResourceException;
 import com.foody.common.exception.InvalidRequestException;
 import com.foody.common.exception.ResourceNotFoundException;
 import com.foody.menus.dto.CreateMenuRequest;
@@ -37,10 +38,24 @@ class MenuServiceImpl implements MenuService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public List<Menu> findMyMenus(Long ownerUserId) {
+        Business business = businessService.findByOwnerUserId(ownerUserId)
+                .orElseThrow(() -> new ResourceNotFoundException("No business found for this owner"));
+        return menuRepository.findByBusinessIdOrderByDisplayOrderAsc(business.getId());
+    }
+
+    @Override
     @Transactional
     public Menu createMenu(Long ownerUserId, CreateMenuRequest request) {
         Business business = businessService.findByOwnerUserId(ownerUserId)
                 .orElseThrow(() -> new ResourceNotFoundException("No business found for this owner"));
+
+        // Each business is limited to a single menu; once it exists, owners can only add
+        // products to it (enforced here and mirrored by the frontend hiding the "new menu" form).
+        if (!menuRepository.findByBusinessIdOrderByDisplayOrderAsc(business.getId()).isEmpty()) {
+            throw new DuplicateResourceException("This business already has a menu; add products to it instead");
+        }
 
         Menu menu = new Menu();
         menu.setBusinessId(business.getId());

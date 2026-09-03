@@ -32,6 +32,9 @@ export function PublicNav() {
               >
                 رزروهای من
               </NavLink>
+              <NavLink to="/wallet" className={({ isActive }) => `nav-link ${isActive ? "active" : ""}`}>
+                کیف پول من
+              </NavLink>
             </>
           )}
           {user?.role === "BUSINESS_OWNER" && (

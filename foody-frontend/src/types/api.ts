@@ -9,6 +9,8 @@ export interface User {
   email: string;
   phone: string | null;
   address: string | null;
+  latitude: number | null;
+  longitude: number | null;
   profileImageUrl: string | null;
   fullName: string;
   role: UserRole;

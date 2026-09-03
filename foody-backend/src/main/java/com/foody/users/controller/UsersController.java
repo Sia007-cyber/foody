@@ -57,6 +57,12 @@ public class UsersController {
         if (request.address() != null) {
             user.setAddress(request.address());
         }
+        if (request.latitude() != null) {
+            user.setLatitude(request.latitude());
+        }
+        if (request.longitude() != null) {
+            user.setLongitude(request.longitude());
+        }
         if (request.profileImageUrl() != null) {
             user.setProfileImageUrl(request.profileImageUrl());
         }

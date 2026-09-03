@@ -6,6 +6,14 @@ function base({ size = 18, ...rest }: IconProps) {
   return { width: size, height: size, viewBox: "0 0 24 24", fill: "none", ...rest };
 }
 
+export function PlusIcon(props: IconProps) {
+  return (
+    <svg {...base(props)}>
+      <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 export function DashboardIcon(props: IconProps) {
   return (
     <svg {...base(props)}>

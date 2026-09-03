@@ -5,6 +5,7 @@ import { Input, PasswordInput, Textarea } from "../../components/Field";
 import { Button } from "../../components/Button";
 import { useToast, errorMessage } from "../../components/Feedback";
 import { CameraIcon, UserIcon } from "../../components/icons";
+import { LocationPicker } from "../../components/LocationPicker";
 import { resolveMediaUrl } from "../../lib/api";
 import "./profile.css";
 
@@ -23,6 +24,8 @@ export function ProfilePage() {
   const [email, setEmail] = useState(user?.email ?? "");
   const [phone, setPhone] = useState(user?.phone ?? "");
   const [address, setAddress] = useState(user?.address ?? "");
+  const [latitude, setLatitude] = useState<number | null>(user?.latitude ?? null);
+  const [longitude, setLongitude] = useState<number | null>(user?.longitude ?? null);
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
@@ -68,6 +71,8 @@ export function ProfilePage() {
         email,
         phone: phone || undefined,
         address: address || undefined,
+        latitude: latitude ?? undefined,
+        longitude: longitude ?? undefined,
         password: password || undefined,
       });
       updateUser(updated);
@@ -135,6 +140,14 @@ export function ProfilePage() {
           onChange={(e) => setAddress(e.target.value)}
           rows={3}
           placeholder="استان، شهر، خیابان، پلاک، واحد..."
+        />
+        <LocationPicker
+          latitude={latitude}
+          longitude={longitude}
+          onChange={(lat, lng) => {
+            setLatitude(lat);
+            setLongitude(lng);
+          }}
         />
 
         <div className="profile-password-section">

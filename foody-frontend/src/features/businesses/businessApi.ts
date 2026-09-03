@@ -1,4 +1,4 @@
-import { apiRequest } from "../../lib/api";
+import { apiRequest, apiUpload } from "../../lib/api";
 import type { Business } from "../../types/api";
 
 export interface UpdateBusinessProfilePayload {
@@ -29,6 +29,11 @@ export const businessApi = {
 
   updateMyProfile: (payload: UpdateBusinessProfilePayload) =>
     apiRequest<Business>("/api/business/profile", { method: "PATCH", body: payload }),
+
+  /** Uploads a cover photo and returns its public URL; caller still needs to
+   *  PATCH /api/business/profile with coverImageUrl to actually attach it. Reuses the
+   *  same generic image-upload endpoint the personal profile picture uses. */
+  uploadCoverImage: (file: File) => apiUpload<{ url: string }>("/api/uploads/image", file),
 
   // Owner onboarding — one-time self-registration (see backend
   // BusinessOwnerController#create). Throws ApiError with status 409 if the owner

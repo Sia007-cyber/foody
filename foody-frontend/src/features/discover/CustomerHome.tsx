@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import type { Business } from "../../types/api";
 import { useToast } from "../../components/Feedback";
@@ -42,6 +42,7 @@ const MOCK_MISSIONS: Mission[] = [
 
 export function CustomerHome({ nearbyBusinesses }: { nearbyBusinesses: Business[] }) {
   const { notify } = useToast();
+  const navigate = useNavigate();
   const comingSoon = (label: string) => notify(`${label} — این قابلیت به‌زودی فعال می‌شه.`);
 
   const {
@@ -73,7 +74,7 @@ export function CustomerHome({ nearbyBusinesses }: { nearbyBusinesses: Business[
       key: "topup",
       label: "شارژ کیف پول",
       icon: <WalletIcon size={20} />,
-      onClick: () => comingSoon("شارژ کیف پول"),
+      onClick: () => navigate("/wallet"),
       accent: "pistachio",
     },
     {

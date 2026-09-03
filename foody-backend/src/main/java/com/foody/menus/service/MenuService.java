@@ -15,6 +15,10 @@ public interface MenuService {
 
     Optional<Menu> findById(Long id);
 
+    // Business panel: lists menus under the calling owner's own business, regardless
+    // of the business's approval status (unlike findByBusinessId, used by the public API).
+    List<Menu> findMyMenus(Long ownerUserId);
+
     // Business panel: creates a menu under the calling owner's own business.
     Menu createMenu(Long ownerUserId, CreateMenuRequest request);
 

@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { useRef, useState, type ChangeEvent, type FormEvent } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { businessApi } from "../businesses/businessApi";
 import { menuApi, productApi } from "../catalog/catalogApi";
@@ -8,6 +8,7 @@ import { Button } from "../../components/Button";
 import { Switch, PageSpinner, EmptyState } from "../../components/Controls";
 import { ConfirmDialog, useToast, errorMessage } from "../../components/Feedback";
 import { formatToman } from "../../lib/format";
+import { resolveMediaUrl } from "../../lib/api";
 import { ownerNavItems } from "./ownerNav";
 import {
   PencilIcon,
@@ -15,6 +16,8 @@ import {
   CheckIcon,
   CloseIcon,
   ImagePlaceholderIcon,
+  PlusIcon,
+  CameraIcon,
 } from "../../components/icons";
 import type { Menu, Product } from "../../types/api";
 
@@ -27,11 +30,37 @@ export function OwnerMenusPage() {
         <PageSpinner />
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 32 }}>
-          <NewMenuForm businessId={business.id} />
-          <MenuList businessId={business.id} />
+          <MenusSection businessId={business.id} />
         </div>
       )}
     </DashboardShell>
+  );
+}
+
+function MenusSection({ businessId }: { businessId: number }) {
+  // Owner's own menus — works regardless of the business's approval status,
+  // unlike the public listForBusiness endpoint used on the customer-facing pages.
+  const { data: menus, isLoading } = useQuery({
+    queryKey: ["menus", "mine", businessId],
+    queryFn: () => menuApi.listMine(),
+  });
+
+  if (isLoading) return <PageSpinner />;
+
+  const hasMenu = !!menus && menus.length > 0;
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 28 }}>
+      {/* Each business can only ever have one menu; once it exists, owners just add
+          products to it instead of creating another one. */}
+      {!hasMenu && <NewMenuForm businessId={businessId} />}
+
+      {!hasMenu ? (
+        <EmptyState title="هنوز منویی نساختی" />
+      ) : (
+        menus!.map((menu) => <MenuBlock key={menu.id} menu={menu} businessId={businessId} />)
+      )}
+    </div>
   );
 }
 
@@ -43,7 +72,7 @@ function NewMenuForm({ businessId }: { businessId: number }) {
   const mutation = useMutation({
     mutationFn: () => menuApi.create({ name }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["menus", businessId] });
+      queryClient.invalidateQueries({ queryKey: ["menus", "mine", businessId] });
       setName("");
       notify("منو ساخته شد", "ok");
     },
@@ -68,24 +97,6 @@ function NewMenuForm({ businessId }: { businessId: number }) {
   );
 }
 
-function MenuList({ businessId }: { businessId: number }) {
-  const { data: menus, isLoading } = useQuery({
-    queryKey: ["menus", businessId],
-    queryFn: () => menuApi.listForBusiness(businessId),
-  });
-
-  if (isLoading) return <PageSpinner />;
-  if (!menus || menus.length === 0) return <EmptyState title="هنوز منویی نساختی" />;
-
-  return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 28 }}>
-      {menus.map((menu) => (
-        <MenuBlock key={menu.id} menu={menu} businessId={businessId} />
-      ))}
-    </div>
-  );
-}
-
 function MenuBlock({ menu, businessId }: { menu: Menu; businessId: number }) {
   const [showForm, setShowForm] = useState(false);
   const [editingTitle, setEditingTitle] = useState(false);
@@ -104,7 +115,7 @@ function MenuBlock({ menu, businessId }: { menu: Menu; businessId: number }) {
   const renameMenu = useMutation({
     mutationFn: () => menuApi.update(menu.id, { name: titleValue }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["menus", businessId] });
+      queryClient.invalidateQueries({ queryKey: ["menus", "mine", businessId] });
       setEditingTitle(false);
       notify("نام منو به‌روزرسانی شد", "ok");
     },
@@ -114,7 +125,7 @@ function MenuBlock({ menu, businessId }: { menu: Menu; businessId: number }) {
   const deleteMenu = useMutation({
     mutationFn: () => menuApi.remove(menu.id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["menus", businessId] });
+      queryClient.invalidateQueries({ queryKey: ["menus", "mine", businessId] });
       notify("منو حذف شد", "ok");
     },
     onError: (err) => {
@@ -185,8 +196,15 @@ function MenuBlock({ menu, businessId }: { menu: Menu; businessId: number }) {
             </button>
           </div>
         )}
-        <Button variant="secondary" size="sm" onClick={() => setShowForm((s) => !s)}>
-          {showForm ? "بستن" : "افزودن محصول"}
+        <Button variant="ok" size="sm" onClick={() => setShowForm((s) => !s)}>
+          {showForm ? (
+            "بستن"
+          ) : (
+            <>
+              <PlusIcon size={16} />
+              افزودن محصول
+            </>
+          )}
         </Button>
       </div>
 
@@ -201,7 +219,7 @@ function MenuBlock({ menu, businessId }: { menu: Menu; businessId: number }) {
           {products.map((p) => (
             <div key={p.id} className="product-row">
               {p.imageUrl ? (
-                <img src={p.imageUrl} alt={p.name} className="product-thumb" />
+                <img src={resolveMediaUrl(p.imageUrl) ?? undefined} alt={p.name} className="product-thumb" />
               ) : (
                 <span className="product-thumb-placeholder">
                   <ImagePlaceholderIcon size={20} />
@@ -273,6 +291,72 @@ function MenuBlock({ menu, businessId }: { menu: Menu; businessId: number }) {
   );
 }
 
+/** Lets the owner pick a photo from their device; uploads it right away and reports
+ *  back the public URL to store as the product's imageUrl. Mirrors the profile-picture
+ *  upload pattern (ProfilePage.tsx), just with a square/rounded thumbnail instead of
+ *  a circular avatar. */
+function ProductImagePicker({
+  imageUrl,
+  onChange,
+}: {
+  imageUrl: string;
+  onChange: (url: string) => void;
+}) {
+  const { notify } = useToast();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
+  const previewUrl = resolveMediaUrl(imageUrl);
+
+  async function handleFileChange(e: ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = ""; // allow re-selecting the same file later
+    if (!file) return;
+
+    setUploading(true);
+    try {
+      const { url } = await productApi.uploadImage(file);
+      onChange(url);
+    } catch (err) {
+      notify(errorMessage(err), "danger");
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  return (
+    <div className="image-picker-row">
+      <button
+        type="button"
+        className="image-picker"
+        onClick={() => fileInputRef.current?.click()}
+        disabled={uploading}
+        aria-label="آپلود عکس محصول"
+      >
+        {previewUrl ? (
+          <img src={previewUrl} alt="" className="image-picker-img" />
+        ) : (
+          <span className="image-picker-fallback">
+            <ImagePlaceholderIcon size={26} />
+          </span>
+        )}
+        <span className="image-picker-edit">
+          <CameraIcon size={13} />
+        </span>
+      </button>
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
+        hidden
+        onChange={handleFileChange}
+      />
+      <span className={`image-picker-hint${uploading ? " uploading" : ""}`}>
+        {uploading ? "در حال آپلود عکس..." : "برای آپلود عکس از گوشی یا کامپیوتر کلیک کن"}
+      </span>
+    </div>
+  );
+}
+
 function NewProductForm({ menuId, onDone }: { menuId: number; onDone: () => void }) {
   const queryClient = useQueryClient();
   const { notify } = useToast();
@@ -311,13 +395,7 @@ function NewProductForm({ menuId, onDone }: { menuId: number; onDone: () => void
     >
       <Input label="نام محصول" required value={name} onChange={(e) => setName(e.target.value)} />
       <Textarea label="توضیحات (اختیاری)" value={description} onChange={(e) => setDescription(e.target.value)} />
-      <Input
-        label="آدرس عکس (اختیاری)"
-        placeholder="https://..."
-        dir="ltr"
-        value={imageUrl}
-        onChange={(e) => setImageUrl(e.target.value)}
-      />
+      <ProductImagePicker imageUrl={imageUrl} onChange={setImageUrl} />
       <Input
         label="قیمت (تومان)"
         type="number"
@@ -384,13 +462,7 @@ function EditProductModal({
 
         <Input label="نام محصول" required value={name} onChange={(e) => setName(e.target.value)} />
         <Textarea label="توضیحات" value={description} onChange={(e) => setDescription(e.target.value)} />
-        <Input
-          label="آدرس عکس"
-          placeholder="https://..."
-          dir="ltr"
-          value={imageUrl}
-          onChange={(e) => setImageUrl(e.target.value)}
-        />
+        <ProductImagePicker imageUrl={imageUrl} onChange={setImageUrl} />
         <Input
           label="قیمت (تومان)"
           type="number"

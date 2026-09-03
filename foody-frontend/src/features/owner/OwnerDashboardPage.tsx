@@ -9,6 +9,7 @@ import { useToast } from "../../components/Feedback";
 import { Panel, PageSpinner, EmptyState, ErrorState } from "../../components/Controls";
 import { BusinessStatusBadge, OrderStatusBadge, ReservationStatusBadge } from "../../components/Badge";
 import { formatDateTime, formatTime, formatToman } from "../../lib/format";
+import { resolveMediaUrl } from "../../lib/api";
 import { ownerNavItems } from "./ownerNav";
 import {
   ClockIcon,
@@ -167,7 +168,7 @@ export function OwnerDashboardPage() {
           {business && (
             <div className="branch-card">
               {business.coverImageUrl ? (
-                <img src={business.coverImageUrl} alt={business.name} className="branch-card-image" />
+                <img src={resolveMediaUrl(business.coverImageUrl) ?? undefined} alt={business.name} className="branch-card-image" />
               ) : (
                 <span className="branch-card-icon">
                   <StoreIcon size={24} />

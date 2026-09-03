@@ -8,6 +8,7 @@ import static org.mockito.Mockito.when;
 
 import com.foody.businesses.entity.Business;
 import com.foody.businesses.service.BusinessService;
+import com.foody.common.exception.DuplicateResourceException;
 import com.foody.common.exception.InvalidRequestException;
 import com.foody.menus.dto.CreateMenuRequest;
 import com.foody.menus.dto.UpdateMenuRequest;
@@ -48,6 +49,40 @@ class MenuServiceImplTest {
         assertThat(result.getBusinessId()).isEqualTo(10L);
         assertThat(result.getName()).isEqualTo("Drinks");
         assertThat(result.getDisplayOrder()).isEqualTo(0);
+    }
+
+    @Test
+    void createMenu_rejectsSecondMenuForSameBusiness() {
+        Business business = new Business();
+        business.setId(10L);
+        Menu existingMenu = new Menu();
+        existingMenu.setId(1L);
+        existingMenu.setBusinessId(10L);
+
+        when(businessService.findByOwnerUserId(1L)).thenReturn(Optional.of(business));
+        when(menuRepository.findByBusinessIdOrderByDisplayOrderAsc(10L)).thenReturn(List.of(existingMenu));
+
+        assertThatThrownBy(() -> menuService.createMenu(1L, new CreateMenuRequest("Drinks", null)))
+                .isInstanceOf(DuplicateResourceException.class);
+
+        verify(menuRepository, never()).save(org.mockito.ArgumentMatchers.any());
+    }
+
+    @Test
+    void findMyMenus_returnsOwnersMenus() {
+        Business business = new Business();
+        business.setId(10L);
+        Menu menu = new Menu();
+        menu.setId(1L);
+        menu.setBusinessId(10L);
+        menu.setName("Breakfast");
+
+        when(businessService.findByOwnerUserId(1L)).thenReturn(Optional.of(business));
+        when(menuRepository.findByBusinessIdOrderByDisplayOrderAsc(10L)).thenReturn(List.of(menu));
+
+        List<Menu> result = menuService.findMyMenus(1L);
+
+        assertThat(result).containsExactly(menu);
     }
 
     @Test

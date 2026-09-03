@@ -3,6 +3,7 @@ package com.foody.users.dto;
 import com.foody.users.entity.User;
 import com.foody.users.entity.UserRole;
 import com.foody.users.entity.UserStatus;
+import java.math.BigDecimal;
 import java.time.Instant;
 
 /**
@@ -14,6 +15,8 @@ public record UserResponse(
         String email,
         String phone,
         String address,
+        BigDecimal latitude,
+        BigDecimal longitude,
         String profileImageUrl,
         String fullName,
         UserRole role,
@@ -27,6 +30,8 @@ public record UserResponse(
                 u.getEmail(),
                 u.getPhone(),
                 u.getAddress(),
+                u.getLatitude(),
+                u.getLongitude(),
                 u.getProfileImageUrl(),
                 u.getFullName(),
                 u.getRole(),

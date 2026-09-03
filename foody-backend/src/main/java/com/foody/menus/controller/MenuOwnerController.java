@@ -9,7 +9,9 @@ import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import java.util.List;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -27,6 +29,16 @@ public class MenuOwnerController {
 
     public MenuOwnerController(MenuService menuService) {
         this.menuService = menuService;
+    }
+
+    // Business panel: lists the calling owner's own menus, regardless of the business's
+    // approval status. The frontend must use this instead of the public
+    // GET /api/businesses/{id}/menus, which only returns menus for APPROVED businesses.
+    @GetMapping
+    public List<MenuResponse> myMenus(@AuthenticationPrincipal FoodyUserPrincipal principal) {
+        return menuService.findMyMenus(principal.getUserId()).stream()
+                .map(MenuResponse::from)
+                .toList();
     }
 
     @PostMapping

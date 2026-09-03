@@ -23,6 +23,7 @@ import { OwnerMenusPage } from "./features/owner/OwnerMenusPage";
 import { OwnerOrdersPage } from "./features/owner/OwnerOrdersPage";
 import { OwnerReservationsPage } from "./features/owner/OwnerReservationsPage";
 import { ProfilePage } from "./features/profile/ProfilePage";
+import { WalletPage } from "./features/wallet/WalletPage";
 import { RequireOwnerBusiness } from "./components/RequireOwnerBusiness";
 import { ownerNavItems } from "./features/owner/ownerNav";
 import { AdminDashboardPage } from "./features/admin/AdminDashboardPage";
@@ -65,6 +66,7 @@ export default function App() {
 
                   <Route element={<RequireAuth />}>
                     <Route path="/profile" element={<ProfilePage />} />
+                    <Route path="/wallet" element={<WalletPage />} />
                   </Route>
                 </Route>
 

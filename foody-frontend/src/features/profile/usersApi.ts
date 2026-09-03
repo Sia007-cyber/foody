@@ -6,6 +6,8 @@ export interface UpdateProfilePayload {
   email?: string;
   phone?: string;
   address?: string;
+  latitude?: number;
+  longitude?: number;
   profileImageUrl?: string;
   password?: string;
 }

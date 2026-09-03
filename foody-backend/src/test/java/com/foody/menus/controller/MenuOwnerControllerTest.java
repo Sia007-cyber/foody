@@ -4,6 +4,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -11,6 +12,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.foody.auth.security.FoodyUserPrincipal;
+import com.foody.common.exception.DuplicateResourceException;
 import com.foody.common.exception.GlobalExceptionHandler;
 import com.foody.common.exception.ResourceNotFoundException;
 import com.foody.menus.dto.CreateMenuRequest;
@@ -20,6 +22,7 @@ import com.foody.menus.service.MenuService;
 import com.foody.users.entity.User;
 import com.foody.users.entity.UserRole;
 import com.foody.users.entity.UserStatus;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -90,6 +93,16 @@ class MenuOwnerControllerTest {
     }
 
     @Test
+    void myMenus_returnsOwnersMenus() throws Exception {
+        when(menuService.findMyMenus(OWNER_ID)).thenReturn(List.of(sampleMenu()));
+
+        mockMvc.perform(get("/api/business/menus"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].name").value("Breakfast"))
+                .andExpect(jsonPath("$[0].businessId").value(10));
+    }
+
+    @Test
     void createMenu_returnsCreatedMenu() throws Exception {
         when(menuService.createMenu(eq(OWNER_ID), any())).thenReturn(sampleMenu());
 
@@ -124,6 +137,19 @@ class MenuOwnerControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void createMenu_returnsConflictWhenBusinessAlreadyHasAMenu() throws Exception {
+        when(menuService.createMenu(eq(OWNER_ID), any()))
+                .thenThrow(new DuplicateResourceException("This business already has a menu"));
+
+        CreateMenuRequest request = new CreateMenuRequest("Second menu", 0);
+
+        mockMvc.perform(post("/api/business/menus")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isConflict());
     }
 
     @Test
