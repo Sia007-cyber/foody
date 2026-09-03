@@ -22,6 +22,7 @@ import { OwnerProfilePage } from "./features/owner/OwnerProfilePage";
 import { OwnerMenusPage } from "./features/owner/OwnerMenusPage";
 import { OwnerOrdersPage } from "./features/owner/OwnerOrdersPage";
 import { OwnerReservationsPage } from "./features/owner/OwnerReservationsPage";
+import { ProfilePage } from "./features/profile/ProfilePage";
 import { RequireOwnerBusiness } from "./components/RequireOwnerBusiness";
 import { ownerNavItems } from "./features/owner/ownerNav";
 import { AdminDashboardPage } from "./features/admin/AdminDashboardPage";
@@ -60,6 +61,10 @@ export default function App() {
                     <Route path="/orders/:id" element={<OrderDetailPage />} />
                     <Route path="/reservations" element={<MyReservationsPage />} />
                     <Route path="/businesses/:id/reserve" element={<NewReservationPage />} />
+                  </Route>
+
+                  <Route element={<RequireAuth />}>
+                    <Route path="/profile" element={<ProfilePage />} />
                   </Route>
                 </Route>
 

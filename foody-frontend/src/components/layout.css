@@ -244,6 +244,40 @@
   font-weight: 700;
   border: 2px solid var(--paper);
 }
+
+/* ---------- Avatar button (public nav + dashboard header) — opens /profile ---------- */
+.avatar-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: var(--r-pill);
+  border: 1px solid var(--line);
+  background: var(--paper);
+  padding: 0;
+  cursor: pointer;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.avatar-btn:hover {
+  border-color: var(--ember);
+}
+.avatar-btn-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.avatar-btn-fallback {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  color: var(--ink-soft);
+  background: var(--mist);
+}
+
 .notif-dropdown {
   position: absolute;
   top: calc(100% + 10px);

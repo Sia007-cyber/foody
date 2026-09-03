@@ -15,6 +15,7 @@ import com.foody.common.exception.GlobalExceptionHandler;
 import com.foody.users.entity.User;
 import com.foody.users.entity.UserRole;
 import com.foody.users.entity.UserStatus;
+import com.foody.users.repository.UserRepository;
 import com.foody.users.service.UserService;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -38,6 +39,7 @@ class UsersControllerTest {
     static final Long USER_ID = 1L;
 
     @Mock UserService userService;
+    @Mock UserRepository userRepository;
     @Mock PasswordEncoder passwordEncoder;
 
     MockMvc mockMvc;
@@ -46,7 +48,7 @@ class UsersControllerTest {
 
     @BeforeEach
     void setUp() {
-        UsersController controller = new UsersController(userService, passwordEncoder);
+        UsersController controller = new UsersController(userService, userRepository, passwordEncoder);
 
         principalUser = new User();
         principalUser.setId(USER_ID);
@@ -101,6 +103,51 @@ class UsersControllerTest {
                 .andExpect(jsonPath("$.phone").value("0912xxxxxxx"));
 
         verify(passwordEncoder, never()).encode(any());
+    }
+
+    @Test
+    void updateMe_updatesAddressAndProfileImage() throws Exception {
+        when(userService.findById(USER_ID)).thenReturn(Optional.of(principalUser));
+        when(userService.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        String body = "{\"address\":\"تهران، خیابان آزادی، پلاک ۱۲\",\"profileImageUrl\":\"/uploads/abc.jpg\"}";
+
+        mockMvc.perform(patch("/api/users/me")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.address").value("تهران، خیابان آزادی، پلاک ۱۲"))
+                .andExpect(jsonPath("$.profileImageUrl").value("/uploads/abc.jpg"));
+    }
+
+    @Test
+    void updateMe_updatesEmailWhenNotTaken() throws Exception {
+        when(userService.findById(USER_ID)).thenReturn(Optional.of(principalUser));
+        when(userRepository.existsByEmail("new@foody.test")).thenReturn(false);
+        when(userService.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        String body = "{\"email\":\"new@foody.test\"}";
+
+        mockMvc.perform(patch("/api/users/me")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.email").value("new@foody.test"));
+    }
+
+    @Test
+    void updateMe_rejectsEmailAlreadyTakenByAnotherUser() throws Exception {
+        when(userService.findById(USER_ID)).thenReturn(Optional.of(principalUser));
+        when(userRepository.existsByEmail("taken@foody.test")).thenReturn(true);
+
+        String body = "{\"email\":\"taken@foody.test\"}";
+
+        mockMvc.perform(patch("/api/users/me")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isConflict());
+
+        verify(userService, never()).save(any());
     }
 
     @Test

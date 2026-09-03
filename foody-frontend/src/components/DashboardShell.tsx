@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../features/auth/AuthContext";
 import { NotificationBell } from "../features/notifications/NotificationBell";
+import { AvatarMenuButton } from "./AvatarMenuButton";
 import { Button } from "./Button";
 
 export interface DashboardNavItem {
@@ -59,6 +60,7 @@ export function DashboardShell({
           <div className="dashboard-header-actions">
             {actions}
             <NotificationBell />
+            <AvatarMenuButton />
           </div>
         </div>
         {children}

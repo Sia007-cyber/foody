@@ -18,3 +18,6 @@ Thumbs.db
 
 # Runtime logs
 *.log
+
+# Locally-stored uploaded images (Phase 2 file storage) — not source, not synced across envs
+uploads/

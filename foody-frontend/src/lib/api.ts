@@ -1,6 +1,6 @@
 import type { ApiErrorBody } from "../types/api";
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8080";
+export const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8080";
 
 const ACCESS_TOKEN_KEY = "foody.accessToken";
 const REFRESH_TOKEN_KEY = "foody.refreshToken";
@@ -120,4 +120,44 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
     }
     throw err;
   }
+}
+
+/** Uploads a single image file (multipart/form-data) — used for profile pictures, etc.
+ *  Kept separate from apiRequest since it must NOT set Content-Type: application/json
+ *  (the browser sets the multipart boundary itself). Still shares the 401-refresh-retry
+ *  behavior so an expired access token doesn't surface as a raw failure to the user. */
+export async function apiUpload<T>(path: string, file: File): Promise<T> {
+  async function send(): Promise<Response> {
+    const headers: Record<string, string> = {};
+    const token = getAccessToken();
+    if (token) headers.Authorization = `Bearer ${token}`;
+    const formData = new FormData();
+    formData.append("file", file);
+    return fetch(buildUrl(path), { method: "POST", headers, body: formData });
+  }
+
+  let res = await send();
+  if (res.status === 401) {
+    const refreshed = await tryRefresh();
+    if (refreshed) {
+      res = await send();
+    }
+  }
+
+  const isJson = res.headers.get("content-type")?.includes("application/json");
+  const data = isJson ? await res.json() : null;
+
+  if (!res.ok) {
+    throw new ApiError(data as ApiErrorBody, res.status);
+  }
+  return data as T;
+}
+
+/** Resolves a possibly-relative media path (e.g. "/uploads/x.jpg" from the backend)
+ *  into an absolute URL against the API origin — needed because in dev the frontend
+ *  (:5173) and backend (:8080) are different origins. Absolute URLs pass through as-is. */
+export function resolveMediaUrl(path: string | null | undefined): string | null {
+  if (!path) return null;
+  if (/^https?:\/\//i.test(path)) return path;
+  return `${BASE_URL}${path.startsWith("/") ? "" : "/"}${path}`;
 }
