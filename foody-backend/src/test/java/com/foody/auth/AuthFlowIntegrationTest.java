@@ -128,7 +128,7 @@ class AuthFlowIntegrationTest extends AbstractContainerBaseTest {
         // V2 migration seeds business id=1 (APPROVED). It is publicly readable.
         mockMvc.perform(get("/api/businesses/1"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.name").value("Cafe Sunrise"))
+                .andExpect(jsonPath("$.name").value("کافه سان‌رایز"))
                 .andExpect(jsonPath("$.businessType").value("CAFE"));
     }
 

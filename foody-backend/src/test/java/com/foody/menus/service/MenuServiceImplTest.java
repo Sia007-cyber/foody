@@ -1,11 +1,16 @@
 package com.foody.menus.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.foody.businesses.entity.Business;
 import com.foody.businesses.service.BusinessService;
+import com.foody.common.exception.InvalidRequestException;
 import com.foody.menus.dto.CreateMenuRequest;
+import com.foody.menus.dto.UpdateMenuRequest;
 import com.foody.menus.entity.Menu;
 import com.foody.menus.repository.MenuRepository;
 import java.util.List;
@@ -76,5 +81,71 @@ class MenuServiceImplTest {
         Optional<Menu> result = menuService.findById(99L);
 
         assertThat(result).isEmpty();
+    }
+
+    @Test
+    void updateMenu_renamesOwnedMenu() {
+        Business business = new Business();
+        business.setId(10L);
+        Menu menu = new Menu();
+        menu.setId(1L);
+        menu.setBusinessId(10L);
+        menu.setName("Breakfast");
+
+        when(businessService.findByOwnerUserId(1L)).thenReturn(Optional.of(business));
+        when(menuRepository.findById(1L)).thenReturn(Optional.of(menu));
+        when(menuRepository.save(org.mockito.ArgumentMatchers.any(Menu.class)))
+                .thenAnswer(inv -> inv.getArgument(0));
+
+        Menu result = menuService.updateMenu(1L, 1L, new UpdateMenuRequest("Brunch"));
+
+        assertThat(result.getName()).isEqualTo("Brunch");
+    }
+
+    @Test
+    void updateMenu_rejectsMenuFromAnotherBusiness() {
+        Business business = new Business();
+        business.setId(10L);
+        Menu foreignMenu = new Menu();
+        foreignMenu.setId(1L);
+        foreignMenu.setBusinessId(999L);
+
+        when(businessService.findByOwnerUserId(1L)).thenReturn(Optional.of(business));
+        when(menuRepository.findById(1L)).thenReturn(Optional.of(foreignMenu));
+
+        assertThatThrownBy(() -> menuService.updateMenu(1L, 1L, new UpdateMenuRequest("Brunch")))
+                .isInstanceOf(InvalidRequestException.class);
+    }
+
+    @Test
+    void deleteMenu_deletesOwnedMenu() {
+        Business business = new Business();
+        business.setId(10L);
+        Menu menu = new Menu();
+        menu.setId(1L);
+        menu.setBusinessId(10L);
+
+        when(businessService.findByOwnerUserId(1L)).thenReturn(Optional.of(business));
+        when(menuRepository.findById(1L)).thenReturn(Optional.of(menu));
+
+        menuService.deleteMenu(1L, 1L);
+
+        verify(menuRepository).delete(menu);
+    }
+
+    @Test
+    void deleteMenu_rejectsMenuFromAnotherBusiness() {
+        Business business = new Business();
+        business.setId(10L);
+        Menu foreignMenu = new Menu();
+        foreignMenu.setId(1L);
+        foreignMenu.setBusinessId(999L);
+
+        when(businessService.findByOwnerUserId(1L)).thenReturn(Optional.of(business));
+        when(menuRepository.findById(1L)).thenReturn(Optional.of(foreignMenu));
+
+        assertThatThrownBy(() -> menuService.deleteMenu(1L, 1L))
+                .isInstanceOf(InvalidRequestException.class);
+        verify(menuRepository, never()).delete(org.mockito.ArgumentMatchers.any());
     }
 }

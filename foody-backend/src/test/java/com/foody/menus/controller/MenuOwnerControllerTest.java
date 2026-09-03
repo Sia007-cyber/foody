@@ -3,6 +3,8 @@ package com.foody.menus.controller;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -12,6 +14,7 @@ import com.foody.auth.security.FoodyUserPrincipal;
 import com.foody.common.exception.GlobalExceptionHandler;
 import com.foody.common.exception.ResourceNotFoundException;
 import com.foody.menus.dto.CreateMenuRequest;
+import com.foody.menus.dto.UpdateMenuRequest;
 import com.foody.menus.entity.Menu;
 import com.foody.menus.service.MenuService;
 import com.foody.users.entity.User;
@@ -121,5 +124,36 @@ class MenuOwnerControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void updateMenu_returnsRenamedMenu() throws Exception {
+        Menu renamed = sampleMenu();
+        renamed.setName("Brunch");
+
+        when(menuService.updateMenu(eq(OWNER_ID), eq(1L), any())).thenReturn(renamed);
+
+        mockMvc.perform(patch("/api/business/menus/1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(new UpdateMenuRequest("Brunch"))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.name").value("Brunch"));
+    }
+
+    @Test
+    void updateMenu_returns404WhenNotOwnedByCaller() throws Exception {
+        when(menuService.updateMenu(eq(OWNER_ID), eq(99L), any()))
+                .thenThrow(new ResourceNotFoundException("Menu not found for owner"));
+
+        mockMvc.perform(patch("/api/business/menus/99")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(new UpdateMenuRequest("Brunch"))))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void deleteMenu_returnsNoContent() throws Exception {
+        mockMvc.perform(delete("/api/business/menus/1"))
+                .andExpect(status().isNoContent());
     }
 }

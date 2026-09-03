@@ -6,8 +6,10 @@ import com.foody.products.dto.ProductResponse;
 import com.foody.products.dto.UpdateProductRequest;
 import com.foody.products.service.ProductService;
 import jakarta.validation.Valid;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -38,5 +40,12 @@ public class ProductOwnerController {
                                          @PathVariable Long id,
                                          @Valid @RequestBody UpdateProductRequest request) {
         return ProductResponse.from(productService.updateProduct(principal.getUserId(), id, request));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteProduct(@AuthenticationPrincipal FoodyUserPrincipal principal,
+                                              @PathVariable Long id) {
+        productService.deleteProduct(principal.getUserId(), id);
+        return ResponseEntity.noContent().build();
     }
 }

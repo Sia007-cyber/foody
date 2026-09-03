@@ -77,6 +77,18 @@ class ProductServiceImpl implements ProductService {
         return productRepository.save(product);
     }
 
+    @Override
+    @Transactional
+    public void deleteProduct(Long ownerUserId, Long productId) {
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new ResourceNotFoundException("Product not found: " + productId));
+
+        // Ownership check, same pattern as updateProduct.
+        requireOwnedMenu(ownerUserId, product.getMenuId());
+
+        productRepository.delete(product);
+    }
+
     private Menu requireOwnedMenu(Long ownerUserId, Long menuId) {
         Business business = businessService.findByOwnerUserId(ownerUserId)
                 .orElseThrow(() -> new ResourceNotFoundException("No business found for this owner"));

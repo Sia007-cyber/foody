@@ -20,4 +20,7 @@ public interface ProductService {
     Product createProduct(Long ownerUserId, CreateProductRequest request);
 
     Product updateProduct(Long ownerUserId, Long productId, UpdateProductRequest request);
+
+    // Business panel: deletes a product from a menu owned by the calling owner.
+    void deleteProduct(Long ownerUserId, Long productId);
 }

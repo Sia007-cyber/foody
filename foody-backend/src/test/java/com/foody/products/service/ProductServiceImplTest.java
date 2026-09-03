@@ -2,6 +2,8 @@ package com.foody.products.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.foody.businesses.entity.Business;
@@ -145,5 +147,39 @@ class ProductServiceImplTest {
 
         assertThat(result).hasSize(2);
         assertThat(result.get(0).getName()).isEqualTo("Latte");
+    }
+
+    @Test
+    void deleteProduct_deletesOwnedProduct() {
+        Product product = new Product();
+        product.setId(30L);
+        product.setMenuId(MENU_ID);
+
+        when(productRepository.findById(30L)).thenReturn(Optional.of(product));
+        when(businessService.findByOwnerUserId(OWNER_ID)).thenReturn(Optional.of(ownedBusiness()));
+        when(menuService.findById(MENU_ID)).thenReturn(Optional.of(ownedMenu()));
+
+        productService.deleteProduct(OWNER_ID, 30L);
+
+        verify(productRepository).delete(product);
+    }
+
+    @Test
+    void deleteProduct_rejectsProductFromMenuOfAnotherBusiness() {
+        Product product = new Product();
+        product.setId(30L);
+        product.setMenuId(MENU_ID);
+
+        Menu foreignMenu = new Menu();
+        foreignMenu.setId(MENU_ID);
+        foreignMenu.setBusinessId(999L);
+
+        when(productRepository.findById(30L)).thenReturn(Optional.of(product));
+        when(businessService.findByOwnerUserId(OWNER_ID)).thenReturn(Optional.of(ownedBusiness()));
+        when(menuService.findById(MENU_ID)).thenReturn(Optional.of(foreignMenu));
+
+        assertThatThrownBy(() -> productService.deleteProduct(OWNER_ID, 30L))
+                .isInstanceOf(InvalidRequestException.class);
+        verify(productRepository, never()).delete(org.mockito.ArgumentMatchers.any());
     }
 }
