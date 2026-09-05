@@ -23,12 +23,13 @@ spring:
       max-request-size: 10MB
 
 server:
-  port: 8080
+  port: ${PORT:8080}
 
 foody:
   jwt:
-    # 256-bit secret (base64). Override via env FOODY_JWT_SECRET in real deployments.
-    secret: Zm9vZHktcGhhc2UwLXNlY3JldC1rZXktZm9yLWhtYWMtYW5kLWFlc2VjLWtleWluZw==
+    # 256-bit secret (base64). Override via env FOODY_JWT_SECRET in real deployments
+    # (e.g. Render) — the value below is only a safe local-dev default.
+    secret: ${FOODY_JWT_SECRET:Zm9vZHktcGhhc2UwLXNlY3JldC1rZXktZm9yLWhtYWMtYW5kLWFlc2VjLWtleWluZw==}
     access-token-ttl-minutes: 15
     refresh-token-ttl-days: 7
   cors:
@@ -50,6 +51,19 @@ spring:
     url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/foody?createDatabaseIfNotExist=true&serverTimezone=UTC&useUnicode=true&characterEncoding=utf8
     username: ${DB_USERNAME:foody}
     password: ${DB_PASSWORD:foody}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+---
+# Production profile (Render, etc). All values come from environment variables —
+# set SPRING_PROFILES_ACTIVE=prod on the host.
+spring:
+  config:
+    activate:
+      on-profile: prod
+  datasource:
+    url: jdbc:mysql://${DB_HOST}:${DB_PORT}/${DB_NAME}?createDatabaseIfNotExist=true&serverTimezone=UTC&useUnicode=true&characterEncoding=utf8
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
 
 ---
