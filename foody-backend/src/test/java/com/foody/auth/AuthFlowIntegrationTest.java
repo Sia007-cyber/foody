@@ -5,13 +5,24 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.security.test.web.servlet.response.SecurityMockMvcResultMatchers.unauthenticated;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.foody.AbstractContainerBaseTest;
+import com.foody.auth.dto.TokenResponse;
+import com.foody.users.entity.User;
+import com.foody.users.entity.UserRole;
+import com.foody.users.entity.UserStatus;
+import com.foody.users.repository.UserRepository;
+import java.util.Map;
+import java.util.UUID;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 
 @AutoConfigureMockMvc
@@ -19,6 +30,102 @@ class AuthFlowIntegrationTest extends AbstractContainerBaseTest {
 
     @Autowired MockMvc mockMvc;
     @Autowired ObjectMapper objectMapper;
+    @Autowired UserRepository userRepository;
+    @Autowired PasswordEncoder passwordEncoder;
+
+    private record LoggedInAccount(User user, TokenResponse tokens) {}
+
+    private LoggedInAccount loginActiveAccount(UserRole role) throws Exception {
+        // Provision isolated accounts directly so ADMIN is covered without enabling admin signup.
+        User user = new User();
+        user.setEmail("eligibility_" + UUID.randomUUID() + "@foody.test");
+        user.setFullName("Account eligibility test");
+        user.setRole(role);
+        user.setStatus(UserStatus.ACTIVE);
+        user.setPasswordHash(passwordEncoder.encode("password123"));
+        user = userRepository.saveAndFlush(user);
+
+        String response = mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(Map.of(
+                                "email", user.getEmail(), "password", "password123"))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.accessToken").isNotEmpty())
+                .andExpect(jsonPath("$.refreshToken").isNotEmpty())
+                .andReturn().getResponse().getContentAsString();
+        TokenResponse tokens = objectMapper.readValue(response, TokenResponse.class);
+
+        mockMvc.perform(get("/api/users/me").header("Authorization", "Bearer " + tokens.accessToken()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(user.getId()))
+                .andExpect(jsonPath("$.role").value(role.name()));
+        return new LoggedInAccount(user, tokens);
+    }
+
+    private void assertAccountTokensRejected(TokenResponse tokens) throws Exception {
+        mockMvc.perform(get("/api/users/me").header("Authorization", "Bearer " + tokens.accessToken()))
+                .andExpect(status().isUnauthorized())
+                .andExpect(unauthenticated());
+
+        mockMvc.perform(post("/api/auth/refresh")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(Map.of("refreshToken", tokens.refreshToken()))))
+                .andExpect(status().isUnauthorized())
+                .andExpect(unauthenticated())
+                .andExpect(jsonPath("$.code").value("INVALID_CREDENTIALS"))
+                .andExpect(jsonPath("$.accessToken").doesNotExist())
+                .andExpect(jsonPath("$.refreshToken").doesNotExist());
+    }
+
+    @ParameterizedTest
+    @EnumSource(UserRole.class)
+    void activeAccount_canAccessAndRefresh(UserRole role) throws Exception {
+        LoggedInAccount account = loginActiveAccount(role);
+        String response = mockMvc.perform(post("/api/auth/refresh")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(Map.of(
+                                "refreshToken", account.tokens().refreshToken()))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.accessToken").isNotEmpty())
+                .andExpect(jsonPath("$.refreshToken").isNotEmpty())
+                .andReturn().getResponse().getContentAsString();
+        TokenResponse refreshed = objectMapper.readValue(response, TokenResponse.class);
+        mockMvc.perform(get("/api/users/me").header("Authorization", "Bearer " + refreshed.accessToken()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(account.user().getId()))
+                .andExpect(jsonPath("$.role").value(role.name()));
+    }
+
+    @ParameterizedTest
+    @EnumSource(UserRole.class)
+    void suspendedAfterLogin_existingAccessAndRefreshAreRejected(UserRole role) throws Exception {
+        LoggedInAccount account = loginActiveAccount(role);
+        account.user().setStatus(UserStatus.SUSPENDED);
+        // No enclosing test transaction: commit the status before subsequent HTTP requests.
+        userRepository.saveAndFlush(account.user());
+
+        assertAccountTokensRejected(account.tokens());
+    }
+
+    @ParameterizedTest
+    @EnumSource(UserRole.class)
+    void deletedAfterLogin_existingAccessAndRefreshAreRejected(UserRole role) throws Exception {
+        LoggedInAccount account = loginActiveAccount(role);
+        // These accounts have no business/order/wallet records, so deletion respects FKs.
+        userRepository.deleteById(account.user().getId());
+
+        assertAccountTokensRejected(account.tokens());
+    }
+
+    @ParameterizedTest
+    @EnumSource(UserRole.class)
+    void refreshToken_cannotAuthenticateProtectedRequest(UserRole role) throws Exception {
+        LoggedInAccount account = loginActiveAccount(role);
+        mockMvc.perform(get("/api/users/me")
+                        .header("Authorization", "Bearer " + account.tokens().refreshToken()))
+                .andExpect(status().isUnauthorized())
+                .andExpect(unauthenticated());
+    }
 
     private String registerAndGetAccessToken(String email, String password) throws Exception {
         String body = objectMapper.writeValueAsString(java.util.Map.of(

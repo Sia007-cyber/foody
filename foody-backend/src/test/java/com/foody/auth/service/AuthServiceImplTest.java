@@ -158,6 +158,48 @@ class AuthServiceImplTest {
                 .isInstanceOf(InvalidCredentialsException.class);
     }
 
+    @Test
+    void refresh_suspendedAccount_doesNotIssueTokens() {
+        Claims claims = org.mockito.Mockito.mock(Claims.class);
+        when(jwtService.parse(REFRESH)).thenReturn(claims);
+        when(jwtService.isRefreshToken(claims)).thenReturn(true);
+        when(jwtService.getUserId(claims)).thenReturn(1L);
+        when(userService.findById(1L)).thenReturn(Optional.of(makeUser(1L, UserStatus.SUSPENDED)));
+
+        assertThatThrownBy(() -> authService.refresh(REFRESH))
+                .isInstanceOf(InvalidCredentialsException.class);
+        verify(jwtService, never()).generateAccessToken(any());
+        verify(jwtService, never()).generateRefreshToken(any());
+    }
+
+    @Test
+    void refresh_missingAccount_doesNotIssueTokens() {
+        Claims claims = org.mockito.Mockito.mock(Claims.class);
+        when(jwtService.parse(REFRESH)).thenReturn(claims);
+        when(jwtService.isRefreshToken(claims)).thenReturn(true);
+        when(jwtService.getUserId(claims)).thenReturn(1L);
+        when(userService.findById(1L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> authService.refresh(REFRESH))
+                .isInstanceOf(InvalidCredentialsException.class);
+        verify(jwtService, never()).generateAccessToken(any());
+        verify(jwtService, never()).generateRefreshToken(any());
+    }
+
+    @Test
+    void refresh_missingUserId_doesNotLoadAccountOrIssueTokens() {
+        Claims claims = org.mockito.Mockito.mock(Claims.class);
+        when(jwtService.parse(REFRESH)).thenReturn(claims);
+        when(jwtService.isRefreshToken(claims)).thenReturn(true);
+        when(jwtService.getUserId(claims)).thenReturn(null);
+
+        assertThatThrownBy(() -> authService.refresh(REFRESH))
+                .isInstanceOf(InvalidCredentialsException.class);
+        verify(userService, never()).findById(any());
+        verify(jwtService, never()).generateAccessToken(any());
+        verify(jwtService, never()).generateRefreshToken(any());
+    }
+
     private User makeUser(Long id, UserStatus status) {
         User u = new User();
         u.setId(id);

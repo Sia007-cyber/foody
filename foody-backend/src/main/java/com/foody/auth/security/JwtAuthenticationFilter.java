@@ -41,6 +41,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 Long userId = jwtService.getUserId(claims);
                 if (SecurityContextHolder.getContext().getAuthentication() == null && userId != null) {
                     var principal = userDetailsService.loadByUserId(userId);
+                    // Eligibility comes from the current database account, not the JWT.
+                    if (!principal.isEnabled() || !principal.isAccountNonLocked()) {
+                        throw new com.foody.common.exception.InvalidCredentialsException("Account is suspended or disabled");
+                    }
                     var auth = new UsernamePasswordAuthenticationToken(
                             principal, null, principal.getAuthorities());
                     auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));

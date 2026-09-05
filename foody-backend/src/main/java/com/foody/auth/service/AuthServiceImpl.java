@@ -8,7 +8,6 @@ import com.foody.auth.security.JwtService;
 import com.foody.common.exception.DuplicateResourceException;
 import com.foody.common.exception.InvalidCredentialsException;
 import com.foody.common.exception.InvalidRequestException;
-import com.foody.common.exception.ResourceNotFoundException;
 import com.foody.users.entity.User;
 import com.foody.users.entity.UserRole;
 import com.foody.users.entity.UserStatus;
@@ -77,8 +76,14 @@ class AuthServiceImpl implements AuthService {
             throw new InvalidCredentialsException("Provided token is not a refresh token");
         }
         Long userId = jwtService.getUserId(claims);
+        if (userId == null) {
+            throw new InvalidCredentialsException("Invalid account");
+        }
         User user = userService.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+                .orElseThrow(() -> new InvalidCredentialsException("Invalid account"));
+        if (user.getStatus() != UserStatus.ACTIVE) {
+            throw new InvalidCredentialsException("Account is suspended or disabled");
+        }
         return issueTokens(user);
     }
 

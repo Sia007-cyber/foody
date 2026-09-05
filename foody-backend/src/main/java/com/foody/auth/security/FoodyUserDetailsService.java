@@ -1,6 +1,6 @@
 package com.foody.auth.security;
 
-import com.foody.common.exception.ResourceNotFoundException;
+import com.foody.common.exception.InvalidCredentialsException;
 import com.foody.users.entity.User;
 import com.foody.users.service.UserService;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -30,7 +30,7 @@ public class FoodyUserDetailsService implements UserDetailsService {
 
     public UserDetails loadByUserId(Long id) {
         User user = userService.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found: " + id));
+                .orElseThrow(() -> new InvalidCredentialsException("Invalid account"));
         return new FoodyUserPrincipal(user);
     }
 }
