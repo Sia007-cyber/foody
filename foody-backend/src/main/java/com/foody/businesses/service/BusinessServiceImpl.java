@@ -24,11 +24,12 @@ import org.springframework.transaction.annotation.Transactional;
 class BusinessServiceImpl implements BusinessService {
 
     // Admin-driven approval transitions:
-    // PENDING -> APPROVED -> SUSPENDED
+    // PENDING -> APPROVED -> SUSPENDED -> APPROVED (reactivate)
     // PENDING -> REJECTED
     private static final Map<BusinessStatus, Set<BusinessStatus>> VALID_ADMIN_TRANSITIONS = Map.of(
             BusinessStatus.PENDING, Set.of(BusinessStatus.APPROVED, BusinessStatus.REJECTED),
-            BusinessStatus.APPROVED, Set.of(BusinessStatus.SUSPENDED)
+            BusinessStatus.APPROVED, Set.of(BusinessStatus.SUSPENDED),
+            BusinessStatus.SUSPENDED, Set.of(BusinessStatus.APPROVED)
     );
 
     private final BusinessRepository businessRepository;

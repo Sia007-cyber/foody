@@ -19,7 +19,7 @@ const statusOptions: { value: BusinessStatus | ""; label: string }[] = [
 ];
 
 // Mirrors BusinessServiceImpl.VALID_ADMIN_TRANSITIONS exactly:
-// PENDING -> APPROVED / REJECTED, APPROVED -> SUSPENDED.
+// PENDING -> APPROVED / REJECTED, APPROVED -> SUSPENDED, SUSPENDED -> APPROVED.
 export function AdminBusinessesPage() {
   const [status, setStatus] = useState<BusinessStatus | "">("PENDING");
   const queryClient = useQueryClient();
@@ -93,6 +93,11 @@ export function AdminBusinessesPage() {
                 {b.status === "APPROVED" && (
                   <Button size="sm" variant="danger" onClick={() => suspendMutation.mutate(b.id)}>
                     معلق کردن
+                  </Button>
+                )}
+                {b.status === "SUSPENDED" && (
+                  <Button size="sm" onClick={() => approveMutation.mutate(b.id)}>
+                    فعال‌سازی مجدد
                   </Button>
                 )}
               </div>
