@@ -1,32 +1,48 @@
-# React + TypeScript + Vite
+# Foody Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+رابط فارسی و RTL پروژهٔ Foody، شامل پنل‌های مشتری، مالک کسب‌وکار و ادمین. وضعیت کامل پروژه و اولویت‌های توسعه در [README اصلی](../README.md) آمده است؛ اصول ظاهری در [DESIGN.md](DESIGN.md) قرار دارند.
 
-Currently, two official plugins are available:
+## فناوری‌ها
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+React 19، TypeScript، Vite، React Router و TanStack Query، با فونت Vazirmatn و Oxlint.
 
-## React Compiler
+## اجرای محلی
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+دستورها را از پوشهٔ `foody-frontend` اجرا کنید:
 
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+```bash
+npm install
+cp .env.example .env
+npm run dev
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+آدرس پیش‌فرض `http://localhost:5173` است. مقدار `VITE_API_BASE_URL` در `.env` به‌صورت پیش‌فرض `http://localhost:8080` است؛ بک‌اند باید جداگانه اجرا شود و CORS آن origin فرانت‌اند را بپذیرد.
+
+## بررسی و ساخت
+
+```bash
+npm run build
+npm run lint
+```
+
+`build` بررسی TypeScript و ساخت Vite را اجرا می‌کند. برای مشاهدهٔ خروجی ساخته‌شده از `npm run preview` استفاده کنید. اسکریپت تست خودکار فرانت‌اند هنوز تعریف نشده است.
+
+## ساختار
+
+- `src/features/`: صفحات و APIهای هر قابلیت، از جمله سفارش، رزرو، کیف پول، اعلان، پروفایل و پنل‌ها
+- `src/components/`: اجزای مشترک رابط و چیدمان
+- `src/lib/`: کلاینت HTTP، Query Client و ابزارهای مشترک
+- `src/types/`: قراردادهای مشترک TypeScript
+
+## وضعیت فعلی
+
+جریان‌های ورود/ثبت‌نام، کشف کسب‌وکار، منو، سبد خرید، سفارش، رزرو، اعلان، کیف پول و مدیریت کسب‌وکار پیاده‌سازی شده‌اند. کیف پول شارژ شبیه‌سازی‌شده دارد؛ پرداخت سفارش از کیف پول هنوز متصل نیست.
+
+موارد مهم باقی‌مانده:
+
+- هدایت پس از ثبت رزرو به `/reservations/:id` می‌رود که صفحه‌ای برایش تعریف نشده است.
+- مدیریت نشست، پاک‌سازی cache پس از شکست احراز هویت و پردازش خطاهای غیر JSON نیاز به اصلاح دارند.
+- جزئیات لازم سفارش برای آماده‌سازی و ارسال در پنل مالک کامل نمایش داده نمی‌شوند.
+- بخشی از اعتبار، تخفیف و آمار داشبورد نمایشی است؛ QR و پیشنهادها هنوز پیاده‌سازی نشده‌اند.
+
+پاسخ عمومی availability رزرو شیء `{date, availabilityCalculated}` است. مقدار `false` یعنی ظرفیت محاسبه نشده؛ wrapper در `reservationApi.ts` هماهنگ شده و در حال حاضر هیچ صفحه‌ای آن را مصرف نمی‌کند.

@@ -9,6 +9,7 @@ import com.foody.common.exception.ResourceNotFoundException;
 import com.foody.notifications.entity.NotificationType;
 import com.foody.notifications.service.NotificationService;
 import com.foody.reservations.dto.CreateReservationRequest;
+import com.foody.reservations.dto.ReservationAvailabilityResponse;
 import com.foody.reservations.dto.ReservationResponse;
 import com.foody.reservations.entity.Reservation;
 import com.foody.reservations.entity.ReservationStatus;
@@ -113,14 +114,11 @@ class ReservationServiceImpl implements ReservationService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<ReservationResponse> getAvailability(Long businessId, LocalDate date) {
+    public ReservationAvailabilityResponse getAvailability(Long businessId, LocalDate date) {
         businessService.findByIdAndStatus(businessId, BusinessStatus.APPROVED)
                 .orElseThrow(() -> new ResourceNotFoundException("Business not found: " + businessId));
 
-        return reservationRepository
-                .findByBusinessIdAndReservationDateOrderByReservationTimeAsc(businessId, date).stream()
-                .map(ReservationResponse::from)
-                .toList();
+        return new ReservationAvailabilityResponse(date, false);
     }
 
     private Reservation findOwnedReservation(Long reservationId, Long customerUserId) {

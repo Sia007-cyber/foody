@@ -6,7 +6,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
-/** Public view of a reservation. Returned instead of the entity. */
+/** Detailed reservation view for the authenticated customer or owning business only. */
 public record ReservationResponse(
         Long id,
         Long businessId,

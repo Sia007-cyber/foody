@@ -1,93 +1,67 @@
-# Foody Backend — Phase 0 (Base Infrastructure)
+# Foody Backend
 
-Modular Monolith (Spring Boot) for the Foody platform. This module implements the
-Phase 0 skeleton: project structure, auth (JWT), core data model, and Flyway
-migrations — strictly following `foody-phase0-phase1-spec.md`.
+بک‌اند Foody با معماری Spring Boot Modular Monolith برای سفارش غذا، رزرو مستقل میز و پنل‌های مشتری، مالک و ادمین پیاده‌سازی شده است. وضعیت قابلیت‌ها، محدودیت‌ها و اولویت‌های ادامهٔ کار در [README اصلی](../README.md) نگهداری می‌شوند.
 
-## Stack
+## فناوری و ماژول‌ها
 
-- Java 21 (bytecode target), Spring Boot 3.5.16
-- Spring Security + JWT (jjwt 0.12) — access + refresh tokens
-- Spring Data JPA / Hibernate, Flyway, MySQL Connector/J
-- Testcontainers (MySQL 8.4) for integration tests
-- Maven
+- Java 21، Spring Boot 3.5.16 و Maven
+- Spring Security و JWT برای access و refresh
+- Spring Data JPA، MySQL و Flyway؛ migrationهای V1 تا V10
+- JUnit، Mockito، MockMvc و Testcontainers با MySQL 8.4
 
-## Module layout
+ماژول‌های فعال شامل `auth`، `users`، `businesses`، `menus`، `products`، `orders`، `reservations`، `notifications`، `wallet` و `admin` هستند. `reviews` هنوز اسکلت است. کیف پول موجودی، شارژ شبیه‌سازی‌شده و تاریخچه دارد و هنوز به پرداخت سفارش متصل نیست.
 
-```
-com.foody
- ├── auth          controller/service/dto          — JWT, auth endpoints
- ├── users         controller/service/repository/entity/dto
- ├── businesses    controller/service/repository/entity/dto  (read-only lookup in P0)
- ├── menus, products, orders, reservations, reviews, notifications, admin  — skeletons
- └── common        exception / util / config       — shared error envelope, handler
-```
+قاعدهٔ معماری، ارتباط ماژول‌ها از طریق interface سرویس‌هاست؛ تست خودکار مرز ماژول‌ها هنوز در نقشهٔ راه قرار دارد. تغییر schema باید با migration جدید انجام شود.
 
-**Boundary rule (enforced from day one):** modules talk to each other only through
-service *interfaces* (`UserService`, `BusinessService`, …), never another module's
-repository. e.g. `WebSecurityConfig`/`JwtAuthenticationFilter` load users via
-`UserService`, not `UserRepository`.
+## اجرای محلی
 
-## Running
+دستورها را از پوشهٔ `foody-backend` اجرا کنید. ابتدا یک MySQL محلی با دیتابیس و کاربر `foody` آماده کنید؛ نمونهٔ Docker در [راهنمای اصلی](../README.md) آمده است.
 
-### Option A — Testcontainers (no DB setup; default)
 ```bash
-JAVA_HOME=$(dirname $(dirname $(readlink -f $(which java))))   # or /usr/lib/jvm/java-21-openjdk
-mvn test                 # spins up MySQL in Docker automatically
-mvn spring-boot:run      # boots with the 'tc' profile (needs Docker)
+SPRING_PROFILES_ACTIVE=local \
+DB_HOST=localhost DB_PORT=3309 DB_USERNAME=foody DB_PASSWORD=foody \
+mvn spring-boot:run
 ```
 
-### Option B — local MySQL / MariaDB
-```bash
-# Create db + user once (adjust for your server):
-#   CREATE DATABASE foody;
-#   CREATE USER 'foody'@'%' IDENTIFIED BY 'foody';
-#   GRANT ALL PRIVILEGES ON foody.* TO 'foody'@'%';
-mvn spring-boot:run -Dspring-boot.run.profiles=local \
-  -Dspring-boot.run.jvmArguments="-DDB_USERNAME=foody -DDB_PASSWORD=foody -Dspring.datasource.url=jdbc:mysql://localhost:3306/foody?createDatabaseIfNotExist=true&serverTimezone=UTC&useUnicode=true&characterEncoding=utf8"
-```
+پورت بالا با نمونهٔ Docker راهنمای اصلی مطابقت دارد؛ برای MySQL روی پورت معمول، `DB_PORT=3306` قرار دهید. برنامه به‌صورت پیش‌فرض روی `http://localhost:8080` اجرا می‌شود و Flyway migrationها را اعمال می‌کند.
 
-### Config
-`foody.jwt.secret` (base64, 256-bit) — override via env `FOODY_JWT_SECRET` in real deployments.
-`foody.jwt.access-token-ttl-minutes` (default 15), `foody.jwt.refresh-token-ttl-days` (default 7).
-`foody.cors.allowed-origins` — comma-separated origins allowed to call the API
-(default `http://localhost:5173`, the frontend dev server). Override via env
-`FOODY_CORS_ALLOWED_ORIGINS` for other deployments.
+پروفایل پیش‌فرض `tc` برای تست‌ها تنظیم شده است؛ راه‌اندازی خودکار کانتینر در زیرساخت تست انجام می‌شود و اجرای معمول برنامه با `mvn spring-boot:run` به‌تنهایی کانتینر ایجاد نمی‌کند.
 
-## API (Phase 0)
+## تنظیمات
 
-| Method | Path | Auth | Purpose |
-|---|---|---|---|
-| POST | /api/auth/register | public | register CUSTOMER, returns tokens |
-| POST | /api/auth/login | public | returns tokens |
-| POST | /api/auth/refresh | public | refreshToken → new access token |
-| POST | /api/auth/logout | any | 200 (client discards tokens) |
-| GET  | /api/users/me | Bearer | current user profile |
-| PATCH| /api/users/me | Bearer | update fullName/phone/password |
-| GET  | /api/businesses?type=&search= | public | Discover: list APPROVED businesses, optional type filter + name search (Phase 1) |
-| GET  | /api/businesses/{id} | public | view an APPROVED business (seeded demo) |
+| متغیر | کاربرد |
+|---|---|
+| `SPRING_PROFILES_ACTIVE` | `local` برای اجرای محلی، `prod` برای محیط منتشرشده |
+| `DB_HOST`, `DB_PORT`, `DB_USERNAME`, `DB_PASSWORD` | اتصال MySQL |
+| `DB_NAME` | نام دیتابیس در پروفایل `prod`؛ در `local` نام `foody` است |
+| `PORT` | پورت HTTP؛ پیش‌فرض `8080` |
+| `FOODY_JWT_SECRET` | کلید Base64 برای JWT؛ fallback عمومی فعلی برای production مناسب نیست |
+| `FOODY_CORS_ALLOWED_ORIGINS` | originهای مجاز، جداشده با کاما؛ پیش‌فرض `http://localhost:5173` |
+| `FOODY_UPLOAD_DIR` | مسیر محلی تصاویر؛ پیش‌فرض `./uploads` |
 
-Consistent error envelope (JSON):
+عمر access پیش‌فرض ۱۵ دقیقه و refresh هفت روز است. migrationها حساب‌های نمایشی مالک و ادمین ایجاد می‌کنند؛ بررسی seed و الزام کلید امن در production هنوز یک مورد P0 است.
+
+## قراردادها و محدودیت‌های مهم
+
+- ثبت‌نام برای `CUSTOMER` و `BUSINESS_OWNER` مجاز است؛ ثبت‌نام `ADMIN` مجاز نیست.
+- حساب معلق یا حذف‌شده در access و refresh رد می‌شود. logout هنوز ابطال سمت سرور ندارد و refresh rotation پیاده‌سازی نشده است.
+- سفارش فقط `PICKUP` یا `DELIVERY` است؛ رزرو میز مستقل از سفارش است.
+- `GET /api/businesses/{id}/reservation-availability?date=2026-09-06` برای کسب‌وکار تأییدشده، پاسخ زیر را می‌دهد:
+
 ```json
-{ "timestamp":"...", "status":401, "error":"Unauthorized",
-  "code":"INVALID_CREDENTIALS", "message":"...", "path":"...", "details":null }
+{"date":"2026-09-06","availabilityCalculated":false}
 ```
 
-## Database model (Phase 0)
-`users`, `businesses`, `business_hours`, `menus`, `products` (per spec) +
-`business_types` (reference table). `business_type` is a VARCHAR FK to
-`business_types`; adding a new type = insert a row + add a `BusinessTypeCode`
-constant — **no ALTER TABLE on businesses**.
+این پاسخ هیچ رکورد یا اطلاعات مشتری ندارد. مقدار `false` یعنی ظرفیت محاسبه نشده است؛ وضعیت آزاد یا پر بودن را مشخص نمی‌کند. کسب‌وکار ناموجود یا تأییدنشده `404` می‌دهد. جزئیات رزرو فقط برای مشتری یا مالک مجاز در دسترس است.
 
-Migrations are version-controlled and incremental: `V1__init.sql`,
-`V2__seed_demo_business.sql`, ..., `V5__seed_admin_user.sql` (seeds an ADMIN
-test account — `admin@foody.test` / `password123` — since the register endpoint
-only ever creates CUSTOMER accounts). Never change the schema outside a migration.
+خطاهای برنامه handler مشترک دارند؛ قالب همهٔ خطاهای امنیتی و درخواست هنوز یکسان نشده است. فهرست APIهای اصلی در [README اصلی](../README.md) آمده است.
 
-## Tests
-- `AuthServiceImplTest` — unit tests for register/login/refresh branches (mocked).
-- `JwtServiceTest` — token round-trip + refresh-type validation.
-- `AuthFlowIntegrationTest` — full flow against real MySQL (Testcontainers):
-  register → me → refresh → logout, duplicate-email conflict (409), seeded
-  business lookup (200/404).
-Run: `mvn test`.
+## تست
+
+با Docker در حال اجرا:
+
+```bash
+mvn test
+```
+
+تست‌های یکپارچه MySQL واقعی را با Testcontainers راه‌اندازی می‌کنند. گزارش‌های موجود Surefire شامل ۱۹۱ تست با صفر failure، error و skip هستند؛ این عدد نتیجهٔ اجرای ثبت‌شده است. تست اختصاصی کیف پول و مرز ماژول‌ها هنوز اضافه نشده است.

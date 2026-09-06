@@ -1,6 +1,7 @@
 package com.foody.reservations.service;
 
 import com.foody.reservations.dto.CreateReservationRequest;
+import com.foody.reservations.dto.ReservationAvailabilityResponse;
 import com.foody.reservations.dto.ReservationResponse;
 import com.foody.reservations.entity.ReservationStatus;
 import java.time.LocalDate;
@@ -19,9 +20,8 @@ public interface ReservationService {
 
     ReservationResponse cancelReservation(Long reservationId, Long customerUserId);
 
-    // Phase 1 "availability": existing reservations for a business on a given date,
-    // with no capacity limit — see decision log.
-    List<ReservationResponse> getAvailability(Long businessId, LocalDate date);
+    // Public capability response only; actual slot availability is not calculated.
+    ReservationAvailabilityResponse getAvailability(Long businessId, LocalDate date);
 
     // Business panel: reservations at the calling owner's own business.
     // dateFilter is optional — pass null to list all dates.

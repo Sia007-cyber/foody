@@ -1,6 +1,12 @@
 import { apiRequest } from "../../lib/api";
 import type { Reservation, ReservationStatus } from "../../types/api";
 
+/** Public response: no booking records; false does not mean the date is unavailable. */
+export interface ReservationAvailability {
+  date: string;
+  availabilityCalculated: boolean;
+}
+
 export interface CreateReservationPayload {
   businessId: number;
   date: string; // YYYY-MM-DD
@@ -19,7 +25,7 @@ export const reservationApi = {
   cancel: (id: number) => apiRequest<Reservation>(`/api/reservations/${id}/cancel`, { method: "PATCH" }),
 
   availability: (businessId: number, date: string) =>
-    apiRequest<Reservation[]>(`/api/businesses/${businessId}/reservation-availability`, {
+    apiRequest<ReservationAvailability>(`/api/businesses/${businessId}/reservation-availability`, {
       auth: false,
       query: { date },
     }),

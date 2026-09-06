@@ -9,10 +9,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.foody.auth.security.FoodyUserPrincipal;
 import com.foody.common.exception.GlobalExceptionHandler;
 import com.foody.common.exception.InvalidStateTransitionException;
 import com.foody.reservations.dto.CreateReservationRequest;
+import com.foody.reservations.dto.ReservationAvailabilityResponse;
 import com.foody.reservations.dto.ReservationResponse;
 import com.foody.reservations.entity.ReservationStatus;
 import com.foody.reservations.service.ReservationService;
@@ -30,6 +32,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.MediaType;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.bind.support.WebDataBinderFactory;
@@ -45,7 +48,8 @@ class ReservationControllerTest {
     @Mock ReservationService reservationService;
 
     MockMvc mockMvc;
-    ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
+    ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules()
+            .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 
     @BeforeEach
     void setUp() {
@@ -73,6 +77,7 @@ class ReservationControllerTest {
         };
 
         mockMvc = MockMvcBuilders.standaloneSetup(controller)
+                .setMessageConverters(new MappingJackson2HttpMessageConverter(objectMapper))
                 .setControllerAdvice(new GlobalExceptionHandler())
                 .setCustomArgumentResolvers(principalResolver)
                 .build();
@@ -121,14 +126,16 @@ class ReservationControllerTest {
     }
 
     @Test
-    void getAvailability_returnsReservationsForDate() throws Exception {
+    void getAvailability_returnsSafeCapabilityResponse() throws Exception {
         when(reservationService.getAvailability(eq(10L), eq(LocalDate.now())))
-                .thenReturn(List.of(sampleReservation(ReservationStatus.CONFIRMED)));
+                .thenReturn(new ReservationAvailabilityResponse(LocalDate.now(), false));
 
         mockMvc.perform(get("/api/businesses/10/reservation-availability")
                         .param("date", LocalDate.now().toString()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$", org.hamcrest.Matchers.hasSize(1)));
+                .andExpect(jsonPath("$.date").value(LocalDate.now().toString()))
+                .andExpect(jsonPath("$.availabilityCalculated").value(false))
+                .andExpect(jsonPath("$.*", org.hamcrest.Matchers.hasSize(2)));
     }
 
     @Test

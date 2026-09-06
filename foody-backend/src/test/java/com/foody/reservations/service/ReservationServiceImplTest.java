@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.verifyNoInteractions;
 
 import com.foody.businesses.entity.Business;
 import com.foody.businesses.entity.BusinessStatus;
@@ -13,13 +14,13 @@ import com.foody.common.exception.InvalidStateTransitionException;
 import com.foody.common.exception.ResourceNotFoundException;
 import com.foody.notifications.service.NotificationService;
 import com.foody.reservations.dto.CreateReservationRequest;
+import com.foody.reservations.dto.ReservationAvailabilityResponse;
 import com.foody.reservations.dto.ReservationResponse;
 import com.foody.reservations.entity.Reservation;
 import com.foody.reservations.entity.ReservationStatus;
 import com.foody.reservations.repository.ReservationRepository;
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -150,24 +151,16 @@ class ReservationServiceImplTest {
     }
 
     @Test
-    void getAvailability_returnsReservationsForDate() {
-        Reservation reservation = new Reservation();
-        reservation.setId(1L);
-        reservation.setBusinessId(BUSINESS_ID);
-        reservation.setCustomerUserId(CUSTOMER_ID);
-        reservation.setReservationDate(LocalDate.now());
-        reservation.setReservationTime(LocalTime.of(19, 0));
-        reservation.setGuestCount(2);
-        reservation.setStatus(ReservationStatus.CONFIRMED);
-
+    void getAvailability_reportsUncalculatedWithoutReadingReservations() {
+        LocalDate date = LocalDate.now().plusDays(1);
         when(businessService.findByIdAndStatus(BUSINESS_ID, BusinessStatus.APPROVED))
                 .thenReturn(Optional.of(approvedBusiness()));
-        when(reservationRepository.findByBusinessIdAndReservationDateOrderByReservationTimeAsc(
-                BUSINESS_ID, LocalDate.now())).thenReturn(List.of(reservation));
 
-        List<ReservationResponse> result = reservationService.getAvailability(BUSINESS_ID, LocalDate.now());
+        ReservationAvailabilityResponse result = reservationService.getAvailability(BUSINESS_ID, date);
 
-        assertThat(result).hasSize(1);
+        assertThat(result.date()).isEqualTo(date);
+        assertThat(result.availabilityCalculated()).isFalse();
+        verifyNoInteractions(reservationRepository);
     }
 
     @Test

@@ -2,6 +2,7 @@ package com.foody.reservations.controller;
 
 import com.foody.auth.security.FoodyUserPrincipal;
 import com.foody.reservations.dto.CreateReservationRequest;
+import com.foody.reservations.dto.ReservationAvailabilityResponse;
 import com.foody.reservations.dto.ReservationResponse;
 import com.foody.reservations.service.ReservationService;
 import jakarta.validation.Valid;
@@ -35,7 +36,7 @@ public class ReservationController {
     }
 
     @GetMapping("/businesses/{businessId}/reservation-availability")
-    public List<ReservationResponse> getAvailability(
+    public ReservationAvailabilityResponse getAvailability(
             @PathVariable Long businessId,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
         return reservationService.getAvailability(businessId, date);
