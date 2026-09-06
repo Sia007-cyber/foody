@@ -1,4 +1,4 @@
-import { apiRequest } from "../../lib/api";
+import { apiRequest } from "../../lib/api.ts";
 import type { TokenResponse, User } from "../../types/api";
 
 export interface LoginPayload {
@@ -18,13 +18,17 @@ export interface RegisterPayload {
 }
 
 export const authApi = {
-  login: (payload: LoginPayload) =>
-    apiRequest<TokenResponse>("/api/auth/login", { method: "POST", body: payload, auth: false }),
+  login: (payload: LoginPayload, signal?: AbortSignal) =>
+    apiRequest<TokenResponse>("/api/auth/login", { method: "POST", body: payload, auth: false, signal }),
 
-  register: (payload: RegisterPayload) =>
-    apiRequest<TokenResponse>("/api/auth/register", { method: "POST", body: payload, auth: false }),
+  register: (payload: RegisterPayload, signal?: AbortSignal) =>
+    apiRequest<TokenResponse>("/api/auth/register", { method: "POST", body: payload, auth: false, signal }),
 
-  logout: () => apiRequest<void>("/api/auth/logout", { method: "POST" }),
+  logout: (accessToken: string | null) =>
+    apiRequest<void>("/api/auth/logout", { method: "POST", auth: false, bearerToken: accessToken }),
 
   me: () => apiRequest<User>("/api/users/me"),
+
+  candidateMe: (accessToken: string, signal: AbortSignal) =>
+    apiRequest<User>("/api/users/me", { auth: false, bearerToken: accessToken, signal }),
 };

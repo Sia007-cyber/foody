@@ -7,6 +7,7 @@ import { useToast, errorMessage } from "../../components/Feedback";
 import { CameraIcon, UserIcon } from "../../components/icons";
 import { LocationPicker } from "../../components/LocationPicker";
 import { resolveMediaUrl } from "../../lib/api";
+import { assertSession, captureSession } from "../../lib/session";
 import "./profile.css";
 
 const ROLE_LABEL: Record<string, string> = {
@@ -42,9 +43,11 @@ export function ProfilePage() {
     e.target.value = ""; // allow re-selecting the same file later
     if (!file) return;
 
+    const ticket = captureSession();
     setUploadingPhoto(true);
     try {
       const { url } = await usersApi.uploadPhoto(file);
+      assertSession(ticket);
       const updated = await usersApi.updateMe({ profileImageUrl: url });
       updateUser(updated);
       notify("عکس پروفایل به‌روز شد", "ok");

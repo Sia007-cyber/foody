@@ -46,8 +46,8 @@ export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
-        <AuthProvider>
-          <CartProvider>
+        <CartProvider>
+          <AuthProvider>
             <ToastProvider>
               <Routes>
                 <Route element={<PublicLayout />}>
@@ -222,8 +222,8 @@ export default function App() {
                 <Route path="*" element={<NotFoundPage />} />
               </Routes>
             </ToastProvider>
-          </CartProvider>
-        </AuthProvider>
+          </AuthProvider>
+        </CartProvider>
       </BrowserRouter>
     </QueryClientProvider>
   );

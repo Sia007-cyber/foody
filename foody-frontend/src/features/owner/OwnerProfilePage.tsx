@@ -10,6 +10,7 @@ import { useToast, errorMessage } from "../../components/Feedback";
 import { CameraIcon, StoreIcon } from "../../components/icons";
 import { LocationPicker } from "../../components/LocationPicker";
 import { resolveMediaUrl } from "../../lib/api";
+import { assertSession, captureSession } from "../../lib/session";
 import { ownerNavItems } from "./ownerNav";
 
 export function OwnerProfilePage() {
@@ -69,9 +70,11 @@ export function OwnerProfilePage() {
     e.target.value = ""; // allow re-selecting the same file later
     if (!file) return;
 
+    const ticket = captureSession();
     setUploadingCover(true);
     try {
       const { url } = await businessApi.uploadCoverImage(file);
+      assertSession(ticket);
       await businessApi.updateMyProfile({ coverImageUrl: url });
       queryClient.invalidateQueries({ queryKey: ["business", "profile"] });
       notify("عکس کسب‌وکار به‌روز شد", "ok");
