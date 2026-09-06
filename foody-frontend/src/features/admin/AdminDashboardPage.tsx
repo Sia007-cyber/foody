@@ -14,12 +14,8 @@ import {
   BellIcon,
   ChatIcon,
   ActivityIcon,
-  ShieldIcon,
   MegaphoneIcon,
   ChevronStartIcon,
-  ClockIcon,
-  CheckCircleIcon,
-  StarIcon,
 } from "../../components/icons";
 
 const AD_TOOLS = [
@@ -28,31 +24,6 @@ const AD_TOOLS = [
   { icon: <ActivityIcon size={18} />, title: "ویژه شدن در فهرست", subtitle: "نمایش ویژه‌ی کافه در نتیجه‌ی جست‌وجو" },
   { icon: <ChatIcon size={18} />, title: "تبلیغ در دسته‌بندی‌ها", subtitle: "نمایش در دسته‌بندی‌های منتخب" },
   { icon: <MegaphoneIcon size={18} />, title: "کمپین اختصاصی", subtitle: "طراحی کمپین تبلیغاتی برای کافه" },
-];
-
-/**
- * TODO: replace with real data once the backend exposes activity/review/violation
- * endpoints (not in the phase-1 admin API yet — only /admin/dashboard/summary and
- * /admin/businesses exist so far). Kept here as clearly-labeled placeholder content
- * so the layout/UX is real while the data source catches up.
- */
-const RECENT_ACTIVITY: { text: string; time: string; icon: ReactNode; tone: "ok" | "danger" | "pending" | "ember" }[] = [
-  { text: "«کافه رها» به‌عنوان کسب‌وکار جدید تایید شد", time: "۵ دقیقه پیش", icon: <CheckCircleIcon size={15} />, tone: "ok" },
-  { text: "سفارش شماره ۴۵۲۸۹ با تاخیر مواجه شد", time: "۲۲ دقیقه پیش", icon: <ShieldIcon size={15} />, tone: "danger" },
-  { text: "کاربر جدید «علی محمدی» ثبت‌نام کرد", time: "۱ ساعت پیش", icon: <UsersIcon size={15} />, tone: "ember" },
-  { text: "درخواست تایید «فست‌فود میدان» ثبت شد", time: "۳ ساعت پیش", icon: <ClockIcon size={15} />, tone: "pending" },
-];
-
-const RECENT_REVIEWS = [
-  { name: "سارا احمدی", biz: "کافه رها", text: "غذا خیلی عالی بود، همیشه دوباره سفارش می‌دم.", rating: 5, time: "۱۰ دقیقه پیش" },
-  { name: "علی رضایی", biz: "فست‌فود میدان", text: "کیفیت قهوه متوسط بود ولی سرویس خوب بود.", rating: 3, time: "۳۵ دقیقه پیش" },
-  { name: "مهسا کریمی", biz: "کافه آرام", text: "فضای کافه دلنشین و دنج بود.", rating: 4, time: "۱ ساعت پیش" },
-];
-
-const OPEN_VIOLATIONS: { biz: string; issue: string; time: string; tone: "danger" | "pending" | "suspended" }[] = [
-  { biz: "کافه ونیز", issue: "عدم رعایت کیفیت ثبت‌شده در منو", time: "۲۰ دقیقه پیش", tone: "danger" },
-  { biz: "کافه انریوم", issue: "برخورد نامناسب پرسنل", time: "۱ ساعت پیش", tone: "pending" },
-  { biz: "کافه رها", issue: "تاخیر مکرر در تحویل سفارش", time: "۳ ساعت پیش", tone: "pending" },
 ];
 
 export function AdminDashboardPage() {
@@ -74,7 +45,7 @@ export function AdminDashboardPage() {
       title="داشبورد"
       topBar={
         <div className="admin-topbar">
-          <span className="admin-topbar-period">۳۰ روز گذشته</span>
+          <span className="admin-topbar-period">تمام دوران</span>
           <div className="admin-topbar-right">
             <div className="admin-user">
               <span className="admin-user-avatar">{(user?.fullName ?? "؟").slice(0, 1)}</span>
@@ -101,61 +72,6 @@ export function AdminDashboardPage() {
           </div>
 
           <div className="admin-grid">
-            <div className="admin-grid-col">
-              <Panel title="آخرین نظرات کاربران" icon={<ChatIcon size={17} />}>
-                <ul className="review-list">
-                  {RECENT_REVIEWS.map((r) => (
-                    <li key={r.name + r.time} className="review-row">
-                      <div className="review-row-head">
-                        <span>{r.name}</span>
-                        <span className="review-rating">
-                          <StarIcon size={13} />
-                          {new Intl.NumberFormat("fa-IR").format(r.rating)}
-                        </span>
-                      </div>
-                      <p className="review-row-sub">
-                        {r.biz} · {r.time}
-                      </p>
-                      <p className="review-row-text">{r.text}</p>
-                    </li>
-                  ))}
-                </ul>
-              </Panel>
-
-              <Panel title="گزارش‌های تخلف باز" icon={<ShieldIcon size={17} />}>
-                <ul className="violation-list">
-                  {OPEN_VIOLATIONS.map((v) => (
-                    <li key={v.biz + v.time} className="violation-row">
-                      <div className="violation-meta">
-                        <span className="violation-biz">{v.biz}</span>
-                        <span className="violation-issue">{v.issue}</span>
-                        <span className="violation-time">{v.time}</span>
-                      </div>
-                      <span className={`violation-badge tone-${v.tone}`}>
-                        {v.tone === "danger" ? "بحرانی" : v.tone === "suspended" ? "تعلیق‌شده" : "در حال بررسی"}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              </Panel>
-            </div>
-
-            <div className="admin-grid-col">
-              <Panel title="آخرین فعالیت‌ها" icon={<ActivityIcon size={17} />}>
-                <ul className="activity-list">
-                  {RECENT_ACTIVITY.map((a) => (
-                    <li key={a.text} className="activity-row">
-                      <span className={`activity-icon tone-${a.tone}`}>{a.icon}</span>
-                      <span className="activity-meta">
-                        <span className="activity-text">{a.text}</span>
-                        <span className="activity-time">{a.time}</span>
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              </Panel>
-            </div>
-
             <div className="admin-grid-col">
               <Panel title="ابزارهای تبلیغاتی" icon={<MegaphoneIcon size={17} />}>
                 <p className="panel-subnote">این ابزارها هنوز فعال نیستند و به‌زودی اضافه خواهند شد.</p>
