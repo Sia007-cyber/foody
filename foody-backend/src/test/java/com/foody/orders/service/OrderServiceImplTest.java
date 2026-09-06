@@ -241,4 +241,29 @@ class OrderServiceImplTest {
 
         assertThat(result).isEmpty();
     }
+
+    @Test
+    void getAllOrders_delegatesToRepositoryWithBothFiltersOptional() {
+        Order order = new Order();
+        order.setId(100L);
+        order.setBusinessId(BUSINESS_ID);
+        order.setStatus(OrderStatus.PENDING);
+        order.setTotalAmount(new BigDecimal("9.00"));
+
+        when(orderRepository.findAllForAdmin(OrderStatus.PENDING, BUSINESS_ID)).thenReturn(List.of(order));
+
+        List<OrderResponse> result = orderService.getAllOrders(OrderStatus.PENDING, BUSINESS_ID);
+
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).id()).isEqualTo(100L);
+    }
+
+    @Test
+    void getAllOrders_passesNullFiltersThrough() {
+        when(orderRepository.findAllForAdmin(null, null)).thenReturn(List.of());
+
+        List<OrderResponse> result = orderService.getAllOrders(null, null);
+
+        assertThat(result).isEmpty();
+    }
 }

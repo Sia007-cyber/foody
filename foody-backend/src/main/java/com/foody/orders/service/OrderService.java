@@ -24,6 +24,11 @@ public interface OrderService {
 
     OrderResponse updateOrderStatus(Long ownerUserId, Long orderId, OrderStatus newStatus);
 
+    // Admin panel: orders across every business, optionally filtered by status and/or
+    // business. Pass null for either to skip that filter. Read-only — admin never
+    // drives the order lifecycle, only the owning business does (see updateOrderStatus).
+    List<OrderResponse> getAllOrders(OrderStatus statusFilter, Long businessIdFilter);
+
     // Admin dashboard summary.
     long countAll();
 }

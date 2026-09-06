@@ -216,6 +216,14 @@ class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional(readOnly = true)
+    public List<OrderResponse> getAllOrders(OrderStatus statusFilter, Long businessIdFilter) {
+        return orderRepository.findAllForAdmin(statusFilter, businessIdFilter).stream()
+                .map(OrderResponse::from)
+                .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public long countAll() {
         return orderRepository.count();
     }

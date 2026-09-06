@@ -1,8 +1,10 @@
 package com.foody.admin.service;
 
+import com.foody.admin.dto.AdminOrderResponse;
 import com.foody.admin.dto.DashboardSummaryResponse;
 import com.foody.businesses.entity.Business;
 import com.foody.businesses.entity.BusinessStatus;
+import com.foody.orders.entity.OrderStatus;
 import com.foody.users.entity.User;
 import com.foody.users.entity.UserRole;
 import com.foody.users.entity.UserStatus;
@@ -31,4 +33,8 @@ public interface AdminService {
     User activateUser(Long userId);
 
     DashboardSummaryResponse getDashboardSummary();
+
+    // Admin panel: orders across every business, optionally filtered by status
+    // and/or business. Pass null for either to skip that filter. Read-only.
+    List<AdminOrderResponse> getOrders(OrderStatus statusFilter, Long businessIdFilter);
 }

@@ -94,6 +94,25 @@ export interface Order {
   updatedAt: string;
 }
 
+// Admin panel view: same shape as Order plus the business/customer names and
+// contact info, since the admin overview spans every business.
+export interface AdminOrder {
+  id: number;
+  businessId: number;
+  businessName: string;
+  customerUserId: number;
+  customerName: string;
+  customerEmail: string | null;
+  customerPhone: string | null;
+  fulfillmentType: FulfillmentType;
+  status: OrderStatus;
+  deliveryAddress: string | null;
+  totalAmount: string;
+  items: OrderItem[];
+  createdAt: string;
+  updatedAt: string;
+}
+
 export type ReservationStatus = "PENDING" | "CONFIRMED" | "COMPLETED" | "REJECTED" | "CANCELLED";
 
 export interface Reservation {

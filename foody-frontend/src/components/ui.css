@@ -227,6 +227,26 @@
   gap: 8px;
   flex-shrink: 0;
 }
+.list-row-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 20px;
+  background: var(--mist);
+  border-bottom: 1px solid var(--line);
+  font-size: 13px;
+}
+.list-row-detail-line {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  color: var(--ink-soft);
+}
+.list-row-detail-total {
+  font-weight: 700;
+  color: var(--ember-deep);
+}
 
 /* ---------- Switch (availability toggle) ---------- */
 .switch-row {

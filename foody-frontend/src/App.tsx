@@ -29,6 +29,7 @@ import { ownerNavItems } from "./features/owner/ownerNav";
 import { AdminDashboardPage } from "./features/admin/AdminDashboardPage";
 import { AdminBusinessesPage } from "./features/admin/AdminBusinessesPage";
 import { AdminUsersPage } from "./features/admin/AdminUsersPage";
+import { AdminOrdersPage } from "./features/admin/AdminOrdersPage";
 import { ComingSoonFeaturePage } from "./pages/ComingSoonFeaturePage";
 import { adminNavItems } from "./features/admin/adminNav";
 import {
@@ -130,17 +131,7 @@ export default function App() {
                   <Route path="/admin" element={<AdminDashboardPage />} />
                   <Route path="/admin/businesses" element={<AdminBusinessesPage />} />
                   <Route path="/admin/users" element={<AdminUsersPage />} />
-                  <Route
-                    path="/admin/orders"
-                    element={
-                      <ComingSoonFeaturePage
-                        navItems={adminNavItems}
-                        title="سفارش‌ها"
-                        icon={<ReceiptIcon size={40} />}
-                        description="نمای کلی سفارش‌های همه‌ی کافه‌ها برای ادمین به‌زودی اضافه خواهد شد."
-                      />
-                    }
-                  />
+                  <Route path="/admin/orders" element={<AdminOrdersPage />} />
                   <Route
                     path="/admin/transactions"
                     element={
