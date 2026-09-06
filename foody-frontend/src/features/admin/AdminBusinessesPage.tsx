@@ -21,7 +21,7 @@ const statusOptions: { value: BusinessStatus | ""; label: string }[] = [
 // Mirrors BusinessServiceImpl.VALID_ADMIN_TRANSITIONS exactly:
 // PENDING -> APPROVED / REJECTED, APPROVED -> SUSPENDED, SUSPENDED -> APPROVED.
 export function AdminBusinessesPage() {
-  const [status, setStatus] = useState<BusinessStatus | "">("PENDING");
+  const [status, setStatus] = useState<BusinessStatus | "">("");
   const queryClient = useQueryClient();
   const { notify } = useToast();
 
@@ -44,16 +44,28 @@ export function AdminBusinessesPage() {
     onError: (err: unknown) => notify(errorMessage(err), "danger"),
   });
 
-  const approveMutation = useMutation({ mutationFn: adminApi.approve, ...onMutationSettled("کسب‌وکار تایید شد") });
-  const rejectMutation = useMutation({ mutationFn: adminApi.reject, ...onMutationSettled("کسب‌وکار رد شد") });
-  const suspendMutation = useMutation({ mutationFn: adminApi.suspend, ...onMutationSettled("کسب‌وکار معلق شد") });
+  const approveMutation = useMutation({
+    mutationFn: adminApi.approve,
+    ...onMutationSettled("کسب‌وکار تایید شد"),
+  });
+  const rejectMutation = useMutation({
+    mutationFn: adminApi.reject,
+    ...onMutationSettled("کسب‌وکار رد شد"),
+  });
+  const suspendMutation = useMutation({
+    mutationFn: adminApi.suspend,
+    ...onMutationSettled("کسب‌وکار معلق شد"),
+  });
 
   return (
     <DashboardShell
       navItems={adminNavItems}
       title="کسب‌وکارها"
       actions={
-        <Select value={status} onChange={(e) => setStatus(e.target.value as BusinessStatus | "")}>
+        <Select
+          value={status}
+          onChange={(e) => setStatus(e.target.value as BusinessStatus | "")}
+        >
           {statusOptions.map((opt) => (
             <option key={opt.value} value={opt.value}>
               {opt.label}
@@ -65,7 +77,11 @@ export function AdminBusinessesPage() {
       {isLoading ? (
         <PageSpinner />
       ) : isError ? (
-        <ErrorState error={error} onRetry={() => refetch()} title="کسب‌وکارها لود نشدن" />
+        <ErrorState
+          error={error}
+          onRetry={() => refetch()}
+          title="کسب‌وکارها لود نشدن"
+        />
       ) : !businesses || businesses.length === 0 ? (
         <EmptyState title="کسب‌وکاری پیدا نشد" />
       ) : (
@@ -82,21 +98,35 @@ export function AdminBusinessesPage() {
                 <BusinessStatusBadge status={b.status} />
                 {b.status === "PENDING" && (
                   <>
-                    <Button size="sm" onClick={() => approveMutation.mutate(b.id)}>
+                    <Button
+                      size="sm"
+                      onClick={() => approveMutation.mutate(b.id)}
+                    >
                       تایید
                     </Button>
-                    <Button size="sm" variant="danger" onClick={() => rejectMutation.mutate(b.id)}>
+                    <Button
+                      size="sm"
+                      variant="danger"
+                      onClick={() => rejectMutation.mutate(b.id)}
+                    >
                       رد کردن
                     </Button>
                   </>
                 )}
                 {b.status === "APPROVED" && (
-                  <Button size="sm" variant="danger" onClick={() => suspendMutation.mutate(b.id)}>
+                  <Button
+                    size="sm"
+                    variant="danger"
+                    onClick={() => suspendMutation.mutate(b.id)}
+                  >
                     معلق کردن
                   </Button>
                 )}
                 {b.status === "SUSPENDED" && (
-                  <Button size="sm" onClick={() => approveMutation.mutate(b.id)}>
+                  <Button
+                    size="sm"
+                    onClick={() => approveMutation.mutate(b.id)}
+                  >
                     فعال‌سازی مجدد
                   </Button>
                 )}
