@@ -1,19 +1,12 @@
 import type { ReactNode } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import type { Business } from "../../types/api";
 import { useToast } from "../../components/Feedback";
-import { WalletIcon, CalendarCheckIcon, MegaphoneIcon, StarIcon } from "../../components/icons";
+import { WalletIcon, CalendarCheckIcon } from "../../components/icons";
 import { NearbyBusinessCard } from "./NearbyBusinessCard";
 import { walletApi } from "../wallet/walletApi";
 import { formatToman } from "../../lib/format";
-
-// ---------------------------------------------------------------------------
-// موجودی کیف پول از /api/wallet واقعیه (useQuery پایین). سقف اعتبار، درصد
-// تخفیف اپ و ماموریت‌ها هنوز MOCK/ثابت هستن — این بخش‌ها هنوز توی بک‌اند
-// ساخته نشدن (credit limit / app discount / missions). وقتی endpoint های
-// واقعی‌شون آماده شد، همین‌جا با useQuery جایگزین می‌شن.
-// ---------------------------------------------------------------------------
 
 interface QuickAction {
   key: string;
@@ -22,23 +15,6 @@ interface QuickAction {
   onClick: () => void;
   accent?: "ember" | "violet" | "pistachio";
 }
-
-interface Mission {
-  key: string;
-  title: string;
-  reward: string;
-  icon: ReactNode;
-  accent?: "ember" | "violet" | "pistachio";
-}
-
-const MOCK_CREDIT_LIMIT = 625000;
-const MOCK_APP_DISCOUNT_PERCENT = 20;
-
-const MOCK_MISSIONS: Mission[] = [
-  { key: "invite", title: "یک دوست دعوت کن", reward: "+۴۰,۰۰۰ اعتبار", icon: <MegaphoneIcon size={20} />, accent: "violet" },
-  { key: "qr", title: "یک QR اسکن کن", reward: "+۱۰,۰۰۰ اعتبار", icon: <WalletIcon size={20} />, accent: "pistachio" },
-  { key: "first-order", title: "اولین خریدت رو انجام بده", reward: "+۵۰,۰۰۰ اعتبار", icon: <StarIcon size={20} />, accent: "ember" },
-];
 
 export function CustomerHome({ nearbyBusinesses }: { nearbyBusinesses: Business[] }) {
   const { notify } = useToast();
@@ -104,14 +80,7 @@ export function CustomerHome({ nearbyBusinesses }: { nearbyBusinesses: Business[
             ) : (
               <span className="wallet-card-amount">{formatToman(wallet?.balance ?? "0")}</span>
             )}
-            <span className="wallet-card-hint">
-              با این موجودی تا {formatToman(MOCK_CREDIT_LIMIT)} می‌تونید خرید کنید
-            </span>
           </div>
-        </div>
-        <div className="discount-card">
-          <span className="discount-card-percent">٪{MOCK_APP_DISCOUNT_PERCENT}</span>
-          <span className="discount-card-label">تخفیف خرید از اپلیکیشن</span>
         </div>
       </section>
 
@@ -126,23 +95,10 @@ export function CustomerHome({ nearbyBusinesses }: { nearbyBusinesses: Business[
         ))}
       </section>
 
-      <section className="promo-banner">
-        <div className="promo-banner-text">
-          <span className="promo-banner-title">🎁 قهوه رایگان برای شما</span>
-          <span className="promo-banner-desc">با اولین خرید از طریق اپلیکیشن</span>
-        </div>
-        <button type="button" className="btn btn-secondary btn-sm" onClick={() => comingSoon("مشاهده‌ی کافه‌ها")}>
-          مشاهده کافه‌ها
-        </button>
-      </section>
-
       {nearbyBusinesses.length > 0 && (
         <section id="nearby-businesses" className="nearby-section">
           <div className="nearby-section-head">
             <h2>کافه‌ها را کشف کنید</h2>
-            <Link to="#" className="nearby-see-all" onClick={(e) => e.preventDefault()}>
-              مشاهده همه
-            </Link>
           </div>
           <div className="nearby-scroll">
             {nearbyBusinesses.map((b) => (
@@ -151,21 +107,6 @@ export function CustomerHome({ nearbyBusinesses }: { nearbyBusinesses: Business[
           </div>
         </section>
       )}
-
-      <section className="missions-section">
-        <h2>ماموریت‌های امروز</h2>
-        <div className="missions-grid">
-          {MOCK_MISSIONS.map((m) => (
-            <button key={m.key} type="button" className="mission-card" onClick={() => comingSoon(m.title)}>
-              <span className={`mission-icon ${m.accent && m.accent !== "ember" ? `mission-icon-${m.accent}` : ""}`}>
-                {m.icon}
-              </span>
-              <span className="mission-title">{m.title}</span>
-              <span className="mission-reward">{m.reward}</span>
-            </button>
-          ))}
-        </div>
-      </section>
     </div>
   );
 }
