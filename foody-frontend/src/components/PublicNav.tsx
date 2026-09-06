@@ -43,9 +43,9 @@ export function PublicNav() {
             </a>
           )}
           {user?.role === "ADMIN" && (
-            <NavLink to="/admin" className={({ isActive }) => `nav-link ${isActive ? "active" : ""}`}>
+            <a href="/admin" target="_blank" rel="noopener noreferrer" className="nav-link">
               پنل ادمین
-            </NavLink>
+            </a>
           )}
         </nav>
 

@@ -574,61 +574,87 @@
   line-height: 1.8;
 }
 
-/* ---------- Ad tools list ---------- */
-.ad-tool-list {
+/* ---------- Ad tools grid (admin dashboard) ---------- */
+.panel-header-note {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--pending);
+  background: var(--pending-wash);
+  padding: 4px 10px;
+  border-radius: var(--r-pill);
+  flex-shrink: 0;
+}
+.ad-tool-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+  margin-top: 14px;
+}
+.ad-tool-card {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-}
-.ad-tool-row {
-  display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 10px;
-  padding: 10px 8px;
-  border-radius: var(--r-sm);
-  opacity: 0.85;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  background: var(--paper);
+  opacity: 0.9;
+  position: relative;
 }
 .ad-tool-icon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  width: 38px;
+  height: 38px;
   border-radius: var(--r-sm);
-  background: var(--mist);
-  color: var(--ink-soft);
+  background: var(--ember-wash);
+  color: var(--ember-deep);
   flex-shrink: 0;
 }
-.ad-tool-meta {
+.ad-tool-icon-violet {
+  background: var(--violet-wash);
+  color: var(--violet);
+}
+.ad-tool-icon-pistachio {
+  background: var(--pistachio-wash);
+  color: var(--pistachio);
+}
+.ad-tool-card-meta {
   display: flex;
   flex-direction: column;
+  gap: 3px;
   min-width: 0;
-  flex: 1;
+  width: 100%;
 }
 .ad-tool-title {
-  font-size: 13.5px;
-  font-weight: 600;
+  font-size: 14px;
+  font-weight: 700;
   color: var(--ink);
 }
 .ad-tool-subtitle {
-  font-size: 11.5px;
+  font-size: 12.5px;
   color: var(--ink-faint);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  line-height: 1.6;
 }
 .ad-tool-soon {
-  font-size: 11px;
+  position: absolute;
+  top: 14px;
+  inset-inline-end: 14px;
+  font-size: 10.5px;
   font-weight: 700;
   color: var(--pending);
   background: var(--pending-wash);
-  padding: 3px 8px;
+  padding: 3px 9px;
   border-radius: var(--r-pill);
   flex-shrink: 0;
 }
-.ad-tool-chevron {
-  color: var(--ink-faint);
-  flex-shrink: 0;
+
+@media (max-width: 520px) {
+  .ad-tool-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* ---------- Activity feed (admin dashboard) ---------- */

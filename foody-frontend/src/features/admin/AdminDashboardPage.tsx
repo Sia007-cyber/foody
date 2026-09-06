@@ -15,15 +15,16 @@ import {
   ChatIcon,
   ActivityIcon,
   MegaphoneIcon,
-  ChevronStartIcon,
 } from "../../components/icons";
 
-const AD_TOOLS = [
-  { icon: <StoreIcon size={18} />, title: "تبلیغ در صفحه اصلی", subtitle: "نمایش تبلیغات در صفحه اصلی اپلیکیشن" },
-  { icon: <BellIcon size={18} />, title: "پوش نوتیفیکیشن", subtitle: "ارسال پیام تبلیغاتی به کاربران" },
-  { icon: <ActivityIcon size={18} />, title: "ویژه شدن در فهرست", subtitle: "نمایش ویژه‌ی کافه در نتیجه‌ی جست‌وجو" },
-  { icon: <ChatIcon size={18} />, title: "تبلیغ در دسته‌بندی‌ها", subtitle: "نمایش در دسته‌بندی‌های منتخب" },
-  { icon: <MegaphoneIcon size={18} />, title: "کمپین اختصاصی", subtitle: "طراحی کمپین تبلیغاتی برای کافه" },
+type Accent = "ember" | "violet" | "pistachio";
+
+const AD_TOOLS: { icon: ReactNode; title: string; subtitle: string; accent: Accent }[] = [
+  { icon: <StoreIcon size={18} />, title: "تبلیغ در صفحه اصلی", subtitle: "نمایش تبلیغات در صفحه اصلی اپلیکیشن", accent: "ember" },
+  { icon: <BellIcon size={18} />, title: "پوش نوتیفیکیشن", subtitle: "ارسال پیام تبلیغاتی به کاربران", accent: "violet" },
+  { icon: <ActivityIcon size={18} />, title: "ویژه شدن در فهرست", subtitle: "نمایش ویژه‌ی کافه در نتیجه‌ی جست‌وجو", accent: "pistachio" },
+  { icon: <ChatIcon size={18} />, title: "تبلیغ در دسته‌بندی‌ها", subtitle: "نمایش در دسته‌بندی‌های منتخب", accent: "violet" },
+  { icon: <MegaphoneIcon size={18} />, title: "کمپین اختصاصی", subtitle: "طراحی کمپین تبلیغاتی برای کافه", accent: "ember" },
 ];
 
 export function AdminDashboardPage() {
@@ -65,32 +66,33 @@ export function AdminDashboardPage() {
       ) : (
         <>
           <div className="stat-grid">
-            <StatTile icon={<UsersIcon size={20} />} label="کل کاربران" value={summary.totalUsers} />
-            <StatTile icon={<StoreIcon size={20} />} label="کافه‌های فعال" value={summary.activeBusinesses} />
-            <StatTile icon={<ReceiptIcon size={20} />} label="سفارش‌های ثبت‌شده" value={summary.totalOrders} />
-            <StatTile icon={<CalendarCheckIcon size={20} />} label="رزروهای ثبت‌شده" value={summary.totalReservations} />
+            <StatTile icon={<UsersIcon size={20} />} label="کل کاربران" value={summary.totalUsers} accent="ember" />
+            <StatTile icon={<StoreIcon size={20} />} label="کافه‌های فعال" value={summary.activeBusinesses} accent="violet" />
+            <StatTile icon={<ReceiptIcon size={20} />} label="سفارش‌های ثبت‌شده" value={summary.totalOrders} accent="pistachio" />
+            <StatTile icon={<CalendarCheckIcon size={20} />} label="رزروهای ثبت‌شده" value={summary.totalReservations} accent="ember" />
           </div>
 
-          <div className="admin-grid">
-            <div className="admin-grid-col">
-              <Panel title="ابزارهای تبلیغاتی" icon={<MegaphoneIcon size={17} />}>
-                <p className="panel-subnote">این ابزارها هنوز فعال نیستند و به‌زودی اضافه خواهند شد.</p>
-                <ul className="ad-tool-list">
-                  {AD_TOOLS.map((tool) => (
-                    <li key={tool.title} className="ad-tool-row" aria-disabled="true">
-                      <span className="ad-tool-icon">{tool.icon}</span>
-                      <div className="ad-tool-meta">
-                        <span className="ad-tool-title">{tool.title}</span>
-                        <span className="ad-tool-subtitle">{tool.subtitle}</span>
-                      </div>
-                      <span className="ad-tool-soon">به‌زودی</span>
-                      <ChevronStartIcon size={16} className="ad-tool-chevron" />
-                    </li>
-                  ))}
-                </ul>
-              </Panel>
+          <Panel
+            title="ابزارهای تبلیغاتی"
+            icon={<MegaphoneIcon size={17} />}
+            action={<span className="panel-header-note">به‌زودی</span>}
+          >
+            <p className="panel-subnote">این ابزارها هنوز فعال نیستند و به‌زودی اضافه خواهند شد.</p>
+            <div className="ad-tool-grid">
+              {AD_TOOLS.map((tool) => (
+                <div key={tool.title} className="ad-tool-card" aria-disabled="true">
+                  <span className={`ad-tool-icon ${tool.accent !== "ember" ? `ad-tool-icon-${tool.accent}` : ""}`}>
+                    {tool.icon}
+                  </span>
+                  <div className="ad-tool-card-meta">
+                    <span className="ad-tool-title">{tool.title}</span>
+                    <span className="ad-tool-subtitle">{tool.subtitle}</span>
+                  </div>
+                  <span className="ad-tool-soon">به‌زودی</span>
+                </div>
+              ))}
             </div>
-          </div>
+          </Panel>
 
           <p className="admin-more-link">
             برای مدیریت وضعیت کافه‌ها (تایید/رد/تعلیق) به{" "}
@@ -102,10 +104,20 @@ export function AdminDashboardPage() {
   );
 }
 
-function StatTile({ icon, label, value }: { icon: ReactNode; label: string; value: number }) {
+function StatTile({
+  icon,
+  label,
+  value,
+  accent,
+}: {
+  icon: ReactNode;
+  label: string;
+  value: number;
+  accent: Accent;
+}) {
   return (
     <div className="stat-tile">
-      <span className="stat-tile-icon">{icon}</span>
+      <span className={`stat-tile-icon ${accent !== "ember" ? `stat-tile-icon-${accent}` : ""}`}>{icon}</span>
       <span className="stat-value">{new Intl.NumberFormat("fa-IR").format(value)}</span>
       <span className="stat-label">{label}</span>
     </div>
