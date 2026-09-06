@@ -42,9 +42,9 @@ export function NewReservationPage() {
     setError(null);
     setSubmitting(true);
     try {
-      const reservation = await reservationApi.create({ businessId, date, time, guestCount });
+      await reservationApi.create({ businessId, date, time, guestCount });
       notify("رزرو با موفقیت ثبت شد", "ok");
-      navigate(`/reservations/${reservation.id}`);
+      navigate("/reservations");
     } catch (err) {
       setError(errorMessage(err));
     } finally {
