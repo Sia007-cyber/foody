@@ -1,14 +1,18 @@
 package com.foody.users.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.foody.common.exception.InvalidRequestException;
+import com.foody.common.exception.ResourceNotFoundException;
 import com.foody.users.entity.User;
 import com.foody.users.entity.UserRole;
 import com.foody.users.entity.UserStatus;
 import com.foody.users.repository.UserRepository;
+import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -129,5 +133,56 @@ class UserServiceImplTest {
         long result = userService.count();
 
         assertThat(result).isEqualTo(42L);
+    }
+
+    @Test
+    void findAll_delegatesToRepositorySearchWithFilters() {
+        when(userRepository.search(UserRole.CUSTOMER, UserStatus.ACTIVE)).thenReturn(List.of(sampleUser()));
+
+        List<User> result = userService.findAll(UserRole.CUSTOMER, UserStatus.ACTIVE);
+
+        assertThat(result).hasSize(1);
+        verify(userRepository).search(UserRole.CUSTOMER, UserStatus.ACTIVE);
+    }
+
+    @Test
+    void updateStatus_suspendsACustomerAccount() {
+        User active = sampleUser();
+        when(userRepository.findById(1L)).thenReturn(Optional.of(active));
+        when(userRepository.save(active)).thenReturn(active);
+
+        User result = userService.updateStatus(1L, UserStatus.SUSPENDED);
+
+        assertThat(result.getStatus()).isEqualTo(UserStatus.SUSPENDED);
+    }
+
+    @Test
+    void updateStatus_reactivatesASuspendedAccount() {
+        User suspended = sampleUser();
+        suspended.setStatus(UserStatus.SUSPENDED);
+        when(userRepository.findById(1L)).thenReturn(Optional.of(suspended));
+        when(userRepository.save(suspended)).thenReturn(suspended);
+
+        User result = userService.updateStatus(1L, UserStatus.ACTIVE);
+
+        assertThat(result.getStatus()).isEqualTo(UserStatus.ACTIVE);
+    }
+
+    @Test
+    void updateStatus_rejectsChangingAnAdminAccount() {
+        User admin = sampleUser();
+        admin.setRole(UserRole.ADMIN);
+        when(userRepository.findById(1L)).thenReturn(Optional.of(admin));
+
+        assertThatThrownBy(() -> userService.updateStatus(1L, UserStatus.SUSPENDED))
+                .isInstanceOf(InvalidRequestException.class);
+    }
+
+    @Test
+    void updateStatus_throwsWhenUserNotFound() {
+        when(userRepository.findById(99L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> userService.updateStatus(99L, UserStatus.SUSPENDED))
+                .isInstanceOf(ResourceNotFoundException.class);
     }
 }

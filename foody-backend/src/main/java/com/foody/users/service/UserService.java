@@ -1,6 +1,9 @@
 package com.foody.users.service;
 
 import com.foody.users.entity.User;
+import com.foody.users.entity.UserRole;
+import com.foody.users.entity.UserStatus;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -22,4 +25,10 @@ public interface UserService {
 
     // Admin dashboard summary.
     long count();
+
+    // Admin panel: user list, optionally filtered by role and/or status (either may be null).
+    List<User> findAll(UserRole roleFilter, UserStatus statusFilter);
+
+    // Admin panel: suspend/reactivate a user account. Refuses to change an ADMIN account's status.
+    User updateStatus(Long userId, UserStatus newStatus);
 }

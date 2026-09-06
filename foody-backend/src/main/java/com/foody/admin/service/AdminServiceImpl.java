@@ -6,6 +6,9 @@ import com.foody.businesses.entity.BusinessStatus;
 import com.foody.businesses.service.BusinessService;
 import com.foody.orders.service.OrderService;
 import com.foody.reservations.service.ReservationService;
+import com.foody.users.entity.User;
+import com.foody.users.entity.UserRole;
+import com.foody.users.entity.UserStatus;
 import com.foody.users.service.UserService;
 import java.util.List;
 import org.springframework.stereotype.Service;
@@ -49,6 +52,24 @@ class AdminServiceImpl implements AdminService {
     @Transactional
     public Business suspendBusiness(Long businessId) {
         return businessService.updateStatus(businessId, BusinessStatus.SUSPENDED);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<User> getUsers(UserRole roleFilter, UserStatus statusFilter) {
+        return userService.findAll(roleFilter, statusFilter);
+    }
+
+    @Override
+    @Transactional
+    public User suspendUser(Long userId) {
+        return userService.updateStatus(userId, UserStatus.SUSPENDED);
+    }
+
+    @Override
+    @Transactional
+    public User activateUser(Long userId) {
+        return userService.updateStatus(userId, UserStatus.ACTIVE);
     }
 
     @Override

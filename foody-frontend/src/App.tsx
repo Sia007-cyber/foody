@@ -28,10 +28,10 @@ import { RequireOwnerBusiness } from "./components/RequireOwnerBusiness";
 import { ownerNavItems } from "./features/owner/ownerNav";
 import { AdminDashboardPage } from "./features/admin/AdminDashboardPage";
 import { AdminBusinessesPage } from "./features/admin/AdminBusinessesPage";
+import { AdminUsersPage } from "./features/admin/AdminUsersPage";
 import { ComingSoonFeaturePage } from "./pages/ComingSoonFeaturePage";
 import { adminNavItems } from "./features/admin/adminNav";
 import {
-  UsersIcon,
   ReceiptIcon,
   WalletIcon,
   MegaphoneIcon,
@@ -129,17 +129,7 @@ export default function App() {
                 <Route element={<RequireAuth roles={["ADMIN"]} />}>
                   <Route path="/admin" element={<AdminDashboardPage />} />
                   <Route path="/admin/businesses" element={<AdminBusinessesPage />} />
-                  <Route
-                    path="/admin/users"
-                    element={
-                      <ComingSoonFeaturePage
-                        navItems={adminNavItems}
-                        title="کاربران"
-                        icon={<UsersIcon size={40} />}
-                        description="فهرست کاربران، جزئیات پروفایل و امکان تعلیق/فعال‌سازی حساب از این بخش به‌زودی اضافه خواهد شد."
-                      />
-                    }
-                  />
+                  <Route path="/admin/users" element={<AdminUsersPage />} />
                   <Route
                     path="/admin/orders"
                     element={
