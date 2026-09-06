@@ -27,8 +27,8 @@ server:
 
 foody:
   jwt:
-    # 256-bit secret (base64). Override via env FOODY_JWT_SECRET in real deployments
-    # (e.g. Render) — the value below is only a safe local-dev default.
+    # Development/test fallback only. The prod profile overrides this with no fallback,
+    # and JwtConfig rejects this known value if it is supplied explicitly in production.
     secret: ${FOODY_JWT_SECRET:Zm9vZHktcGhhc2UwLXNlY3JldC1rZXktZm9yLWhtYWMtYW5kLWFlc2VjLWtleWluZw==}
     access-token-ttl-minutes: 15
     refresh-token-ttl-days: 7
@@ -67,6 +67,12 @@ spring:
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
+
+foody:
+  jwt:
+    # Required in production. Startup validation also checks Base64, decoded key
+    # length, and rejects the committed development fallback.
+    secret: ${FOODY_JWT_SECRET:}
 
 ---
 # Testcontainers profile (default). Spins up a real MySQL via Docker — no manual DB setup.

@@ -35,11 +35,19 @@ mvn spring-boot:run
 | `DB_HOST`, `DB_PORT`, `DB_USERNAME`, `DB_PASSWORD` | اتصال MySQL |
 | `DB_NAME` | نام دیتابیس در پروفایل `prod`؛ در `local` نام `foody` است |
 | `PORT` | پورت HTTP؛ پیش‌فرض `8080` |
-| `FOODY_JWT_SECRET` | کلید Base64 برای JWT؛ fallback عمومی فعلی برای production مناسب نیست |
+| `FOODY_JWT_SECRET` | کلید HMAC با Base64 معتبر؛ در `prod` الزامی و حداقل ۳۲ بایت پس از decode |
 | `FOODY_CORS_ALLOWED_ORIGINS` | originهای مجاز، جداشده با کاما؛ پیش‌فرض `http://localhost:5173` |
 | `FOODY_UPLOAD_DIR` | مسیر محلی تصاویر؛ پیش‌فرض `./uploads` |
 
-عمر access پیش‌فرض ۱۵ دقیقه و refresh هفت روز است. migrationها حساب‌های نمایشی مالک و ادمین ایجاد می‌کنند؛ بررسی seed و الزام کلید امن در production هنوز یک مورد P0 است.
+عمر access پیش‌فرض ۱۵ دقیقه و refresh هفت روز است. پروفایل‌های `local` و `tc` برای راحتی توسعه از fallback شناخته‌شدهٔ مخزن استفاده می‌کنند. پروفایل `prod` بدون `FOODY_JWT_SECRET` اجرا نمی‌شود و مقدار خالی، fallback توسعه، Base64 نامعتبر یا کلید کوتاه‌تر از ۲۵۶ بیت را هنگام startup رد می‌کند.
+
+برای تولید یک کلید تصادفی ۲۵۶ بیتی مناسب:
+
+```bash
+openssl rand -base64 32
+```
+
+خروجی را فقط در secret/environment محیط انتشار قرار دهید. آن را در مخزن، README یا فایل `.env` commit نکنید و از fallback توسعه در production استفاده نکنید. migrationها همچنان حساب‌های نمایشی مالک و ادمین ایجاد می‌کنند؛ بررسی سیاست seed محیط منتشرشده جداگانه باقی مانده است.
 
 ## قراردادها و محدودیت‌های مهم
 
