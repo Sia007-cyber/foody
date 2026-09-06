@@ -89,7 +89,8 @@ class BusinessServiceImpl implements BusinessService {
         business.setAddress(request.address());
         business.setPhone(request.phone());
         business.setStatus(BusinessStatus.PENDING);
-        return businessRepository.save(business);
+        // Flush so a concurrent insert is surfaced to the API exception handler as a conflict.
+        return businessRepository.saveAndFlush(business);
     }
 
     @Override

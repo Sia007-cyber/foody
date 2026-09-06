@@ -151,7 +151,7 @@ class BusinessServiceImplTest {
     @Test
     void createForOwner_createsPendingBusinessWhenOwnerHasNone() {
         when(businessRepository.findByOwnerUserId(OWNER_ID)).thenReturn(Optional.empty());
-        when(businessRepository.save(any(Business.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(businessRepository.saveAndFlush(any(Business.class))).thenAnswer(inv -> inv.getArgument(0));
 
         CreateBusinessRequest request = new CreateBusinessRequest("کافه رها", "CAFE", null, "تهران", "021");
         Business result = businessService.createForOwner(OWNER_ID, request);

@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.jupiter.api.Test;
 import jakarta.persistence.OptimisticLockException;
 import org.springframework.dao.OptimisticLockingFailureException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mock.web.MockHttpServletRequest;
 
@@ -41,5 +42,19 @@ class GlobalExceptionHandlerTest {
         assertThat(response.getBody()).isNotNull();
         assertThat(response.getBody().code()).isEqualTo("CONCURRENT_MODIFICATION");
         assertThat(response.getBody().message()).doesNotContain("Hibernate");
+    }
+
+    @Test
+    void databaseUniquenessFailure_returnsConflictEnvelope() {
+        MockHttpServletRequest request = new MockHttpServletRequest("POST", "/api/business");
+
+        ResponseEntity<ErrorResponse> response = handler.handleDataIntegrityViolation(
+                new DataIntegrityViolationException("Duplicate entry for uk_businesses_owner_user_id"), request);
+
+        assertThat(response.getStatusCode().value()).isEqualTo(409);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().code()).isEqualTo("RESOURCE_ALREADY_EXISTS");
+        assertThat(response.getBody().message()).doesNotContain("uk_businesses");
+        assertThat(response.getBody().path()).isEqualTo("/api/business");
     }
 }
