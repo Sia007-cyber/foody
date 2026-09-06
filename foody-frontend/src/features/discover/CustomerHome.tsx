@@ -139,7 +139,7 @@ export function CustomerHome({ nearbyBusinesses }: { nearbyBusinesses: Business[
       {nearbyBusinesses.length > 0 && (
         <section id="nearby-businesses" className="nearby-section">
           <div className="nearby-section-head">
-            <h2>کافه‌های محبوب نزدیک شما</h2>
+            <h2>کافه‌ها را کشف کنید</h2>
             <Link to="#" className="nearby-see-all" onClick={(e) => e.preventDefault()}>
               مشاهده همه
             </Link>
