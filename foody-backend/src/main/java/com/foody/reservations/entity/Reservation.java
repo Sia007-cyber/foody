@@ -10,6 +10,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -48,6 +49,11 @@ public class Reservation {
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
 
+    /** Detects competing lifecycle writes across transactions/backend instances. */
+    @Version
+    @Column(nullable = false)
+    private Long version;
+
     @PrePersist
     void onCreate() {
         Instant now = Instant.now();
@@ -76,4 +82,6 @@ public class Reservation {
     public void setStatus(ReservationStatus status) { this.status = status; }
     public Instant getCreatedAt() { return createdAt; }
     public Instant getUpdatedAt() { return updatedAt; }
+    public Long getVersion() { return version; }
+    public void setVersion(Long version) { this.version = version; }
 }

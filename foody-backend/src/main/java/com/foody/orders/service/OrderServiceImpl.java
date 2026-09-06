@@ -143,6 +143,8 @@ class OrderServiceImpl implements OrderService {
         }
         order.setStatus(OrderStatus.CANCELLED);
         Order saved = orderRepository.save(order);
+        // Detect a stale lifecycle write before emitting its notification.
+        orderRepository.flush();
 
         businessService.findById(saved.getBusinessId()).ifPresent(business ->
                 notificationService.notify(business.getOwnerUserId(), NotificationType.ORDER_STATUS_CHANGED,
@@ -184,6 +186,8 @@ class OrderServiceImpl implements OrderService {
         }
         order.setStatus(newStatus);
         Order saved = orderRepository.save(order);
+        // The transaction loser fails here, before it can report success or notify.
+        orderRepository.flush();
 
         notificationService.notify(saved.getCustomerUserId(), NotificationType.ORDER_STATUS_CHANGED,
                 "به‌روزرسانی سفارش",

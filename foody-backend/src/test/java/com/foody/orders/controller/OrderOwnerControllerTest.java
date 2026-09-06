@@ -30,6 +30,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.core.MethodParameter;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -147,6 +148,23 @@ class OrderOwnerControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isConflict());
+    }
+
+    @Test
+    void updateStatus_returnsConcurrencyConflictEnvelopeForStaleWrite() throws Exception {
+        when(orderService.updateOrderStatus(eq(OWNER_ID), eq(100L), eq(OrderStatus.ACCEPTED)))
+                .thenThrow(new ObjectOptimisticLockingFailureException("Order", 100L));
+
+        UpdateOrderStatusRequest request = new UpdateOrderStatusRequest(OrderStatus.ACCEPTED);
+
+        mockMvc.perform(patch("/api/business/orders/100/status")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.code").value("CONCURRENT_MODIFICATION"))
+                .andExpect(jsonPath("$.message").value(
+                        "The resource was modified by another request. Please reload and try again."))
+                .andExpect(jsonPath("$.path").value("/api/business/orders/100/status"));
     }
 
     @Test

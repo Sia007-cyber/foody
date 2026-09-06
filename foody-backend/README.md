@@ -6,7 +6,7 @@
 
 - Java 21، Spring Boot 3.5.16 و Maven
 - Spring Security و JWT برای access و refresh
-- Spring Data JPA، MySQL و Flyway؛ migrationهای V1 تا V10
+- Spring Data JPA، MySQL و Flyway؛ migrationهای V1 تا V11
 - JUnit، Mockito، MockMvc و Testcontainers با MySQL 8.4
 
 ماژول‌های فعال شامل `auth`، `users`، `businesses`، `menus`، `products`، `orders`، `reservations`، `notifications`، `wallet` و `admin` هستند. `reviews` هنوز اسکلت است. کیف پول موجودی، شارژ شبیه‌سازی‌شده و تاریخچه دارد و هنوز به پرداخت سفارش متصل نیست.
@@ -64,4 +64,4 @@ mvn spring-boot:run
 mvn test
 ```
 
-تست‌های یکپارچه MySQL واقعی را با Testcontainers راه‌اندازی می‌کنند. گزارش‌های موجود Surefire شامل ۱۹۱ تست با صفر failure، error و skip هستند؛ این عدد نتیجهٔ اجرای ثبت‌شده است. تست اختصاصی کیف پول و مرز ماژول‌ها هنوز اضافه نشده است.
+تست‌های یکپارچه MySQL واقعی را با Testcontainers راه‌اندازی می‌کنند. آخرین اجرای کامل شامل ۲۰۰ تست با صفر failure، error و skip است. رقابت‌های وضعیت Order و Reservation در تراکنش‌ها و persistence contextهای جدا بررسی می‌شوند. تست اختصاصی کیف پول و مرز ماژول‌ها هنوز اضافه نشده است.

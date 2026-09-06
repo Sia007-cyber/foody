@@ -102,6 +102,8 @@ class ReservationServiceImpl implements ReservationService {
         }
         reservation.setStatus(ReservationStatus.CANCELLED);
         Reservation saved = reservationRepository.save(reservation);
+        // Detect a stale lifecycle write before emitting its notification.
+        reservationRepository.flush();
 
         businessService.findById(saved.getBusinessId()).ifPresent(business ->
                 notificationService.notify(business.getOwnerUserId(), NotificationType.RESERVATION_STATUS_CHANGED,
@@ -156,6 +158,8 @@ class ReservationServiceImpl implements ReservationService {
         }
         reservation.setStatus(newStatus);
         Reservation saved = reservationRepository.save(reservation);
+        // The transaction loser fails here, before it can report success or notify.
+        reservationRepository.flush();
 
         notificationService.notify(saved.getCustomerUserId(), NotificationType.RESERVATION_STATUS_CHANGED,
                 "به‌روزرسانی رزرو",
