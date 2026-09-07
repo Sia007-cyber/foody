@@ -218,3 +218,29 @@ export interface ApiErrorBody {
   path: string;
   details: string[] | null;
 }
+
+export type OfferStatus = "ACTIVE" | "CANCELLED";
+
+export interface Offer {
+  id: number;
+  businessId: number;
+  businessName: string | null;
+  title: string;
+  description: string | null;
+  capacity: number;
+  claimCount: number;
+  remainingAvailability: number;
+  startsAt: string;
+  expiresAt: string;
+  status: OfferStatus;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateOfferRequest {
+  title: string;
+  description?: string;
+  capacity: number;
+  startsAt: string;
+  expiresAt: string;
+}

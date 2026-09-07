@@ -24,6 +24,7 @@ import { OwnerMenusPage } from "./features/owner/OwnerMenusPage";
 import { OwnerOrdersPage } from "./features/owner/OwnerOrdersPage";
 import { OwnerReservationsPage } from "./features/owner/OwnerReservationsPage";
 import { OwnerWalletPage } from "./features/owner/OwnerWalletPage";
+import { OwnerOffersPage } from "./features/owner/OwnerOffersPage";
 import { ProfilePage } from "./features/profile/ProfilePage";
 import { WalletPage } from "./features/wallet/WalletPage";
 import { RequireOwnerBusiness } from "./components/RequireOwnerBusiness";
@@ -88,6 +89,7 @@ export default function App() {
                     <Route path="/business/orders" element={<OwnerOrdersPage />} />
                     <Route path="/business/reservations" element={<OwnerReservationsPage />} />
                     <Route path="/business/wallets" element={<OwnerWalletPage />} />
+                    <Route path="/business/offers" element={<OwnerOffersPage />} />
                     <Route
                       path="/business/discounts"
                       element={

@@ -1,0 +1,21 @@
+.owner-offer-form { margin-bottom: 20px; padding: 20px; }
+.owner-offer-form-heading { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; }
+.owner-offer-form-heading h2, .owner-offer-card h2 { margin: 0; font-size: 17px; font-weight: 800; }
+.owner-offer-form-heading p, .owner-offer-card-header p { margin: 4px 0 0; color: var(--ink-soft); font-size: 14px; line-height: 1.8; }
+.owner-offer-form-icon { display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: var(--r-md); color: var(--ember-deep); background: var(--ember-wash); }
+.owner-offer-form-grid { display: grid; grid-template-columns: minmax(0, 2fr) minmax(140px, 1fr); gap: 14px; }
+.owner-offer-form-description, .owner-offer-time-fields, .owner-offer-form-error, .owner-offer-form-actions { grid-column: 1 / -1; }
+.owner-offer-time-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.owner-offer-form-error { margin: 0; color: var(--danger); font-size: 14px; }
+.owner-offer-form-actions { display: flex; justify-content: flex-start; }
+.owner-offer-list { display: grid; gap: 14px; }
+.owner-offer-card { border: 1px solid var(--line); border-radius: var(--r-lg); background: var(--paper); padding: 20px; }
+.owner-offer-card-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; }
+.owner-offer-status { flex: none; border-radius: var(--r-pill); padding: 5px 11px; font-size: 13px; font-weight: 700; white-space: nowrap; }
+.owner-offer-status-active { background: var(--ok-wash); color: var(--ok); }.owner-offer-status-upcoming { background: var(--violet-wash); color: var(--violet); }.owner-offer-status-expired, .owner-offer-status-cancelled { background: var(--pending-wash); color: var(--pending); }.owner-offer-status-full { background: var(--ember-wash); color: var(--ember-deep); }
+.owner-offer-capacity { margin-top: 18px; padding: 14px; border-radius: var(--r-md); background: var(--mist); }
+.owner-offer-capacity-label { display: flex; justify-content: space-between; gap: 12px; color: var(--ink-soft); font-size: 14px; }.owner-offer-capacity-label strong { color: var(--ink); }
+.owner-offer-progress { height: 8px; margin-top: 10px; overflow: hidden; border-radius: var(--r-pill); background: var(--mist-deep); }.owner-offer-progress span { display: block; height: 100%; border-radius: inherit; background: var(--ember); }
+.owner-offer-times { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 16px; color: var(--ink-soft); font-size: 13px; }.owner-offer-times span { display: inline-flex; align-items: center; gap: 6px; }
+.owner-offer-card-actions { display: flex; justify-content: flex-end; margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--line); }
+@media (max-width: 520px) { .owner-offer-form-grid, .owner-offer-time-fields { grid-template-columns: 1fr; }.owner-offer-card-header, .owner-offer-capacity-label { align-items: flex-start; flex-direction: column; }.owner-offer-card { padding: 16px; } }
