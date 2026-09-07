@@ -37,6 +37,17 @@ export function ProfilePage() {
   if (!user) return null;
 
   const photoUrl = resolveMediaUrl(user.profileImageUrl);
+  const publicId = user.publicId;
+
+  async function copyPublicId() {
+    if (!publicId) return;
+    try {
+      await navigator.clipboard.writeText(publicId);
+      notify("شناسه فودی کپی شد", "ok");
+    } catch {
+      notify("کپی شناسه فودی انجام نشد؛ دوباره تلاش کنید.", "danger");
+    }
+  }
 
   async function handlePhotoChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -126,17 +137,14 @@ export function ProfilePage() {
         </div>
       </div>
 
-      {user.role === "CUSTOMER" && user.publicId && (
+      {user.role === "CUSTOMER" && publicId && (
         <section className="profile-public-id" aria-labelledby="foody-id-title">
           <div>
             <span id="foody-id-title" className="profile-section-label">شناسه فودی من</span>
-            <code dir="ltr">{user.publicId}</code>
+            <code dir="ltr">{publicId}</code>
             <p>این شناسه را برای دریافت اعتبار با کافه به اشتراک بگذارید.</p>
           </div>
-          <Button type="button" size="sm" variant="secondary" onClick={() => {
-            navigator.clipboard.writeText(user.publicId!);
-            notify("شناسه فودی کپی شد", "ok");
-          }}>کپی شناسه</Button>
+          <Button type="button" size="sm" variant="secondary" onClick={copyPublicId} aria-label="کپی شناسه فودی">کپی شناسه</Button>
         </section>
       )}
 
