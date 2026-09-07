@@ -18,6 +18,7 @@ import com.foody.users.entity.UserStatus;
 import com.foody.users.repository.UserRepository;
 import com.foody.users.service.UserService;
 import java.util.Optional;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -57,6 +58,7 @@ class UsersControllerTest {
         principalUser.setPhone("0912xxxxxxx");
         principalUser.setRole(UserRole.CUSTOMER);
         principalUser.setStatus(UserStatus.ACTIVE);
+        ReflectionTestUtils.setField(principalUser, "publicId", "F-23456789ABCDEFGH");
         FoodyUserPrincipal principal = new FoodyUserPrincipal(principalUser);
 
         HandlerMethodArgumentResolver principalResolver = new HandlerMethodArgumentResolver() {
@@ -83,6 +85,7 @@ class UsersControllerTest {
         mockMvc.perform(get("/api/users/me"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(USER_ID))
+                .andExpect(jsonPath("$.publicId").value("F-23456789ABCDEFGH"))
                 .andExpect(jsonPath("$.email").value("customer@foody.test"))
                 .andExpect(jsonPath("$.fullName").value("Test Customer"))
                 .andExpect(jsonPath("$.role").value("CUSTOMER"));

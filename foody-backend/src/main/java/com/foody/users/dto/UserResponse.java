@@ -12,6 +12,7 @@ import java.time.Instant;
  */
 public record UserResponse(
         Long id,
+        String publicId,
         String email,
         String phone,
         String address,
@@ -27,6 +28,7 @@ public record UserResponse(
     public static UserResponse from(User u) {
         return new UserResponse(
                 u.getId(),
+                u.getPublicId(),
                 u.getEmail(),
                 u.getPhone(),
                 u.getAddress(),

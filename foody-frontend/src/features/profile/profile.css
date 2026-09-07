@@ -84,6 +84,21 @@
   gap: 16px;
 }
 
+.profile-public-id {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px;
+  margin-bottom: 20px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--mist);
+}
+.profile-public-id div { display: grid; gap: 6px; }
+.profile-public-id code { direction: ltr; font-size: 18px; font-weight: 800; }
+.profile-public-id p { margin: 0; color: var(--ink-soft); font-size: 12px; }
+
 .profile-password-section {
   display: flex;
   flex-direction: column;

@@ -126,6 +126,20 @@ export function ProfilePage() {
         </div>
       </div>
 
+      {user.role === "CUSTOMER" && user.publicId && (
+        <section className="profile-public-id" aria-labelledby="foody-id-title">
+          <div>
+            <span id="foody-id-title" className="profile-section-label">شناسه فودی من</span>
+            <code dir="ltr">{user.publicId}</code>
+            <p>این شناسه را برای دریافت اعتبار با کافه به اشتراک بگذارید.</p>
+          </div>
+          <Button type="button" size="sm" variant="secondary" onClick={() => {
+            navigator.clipboard.writeText(user.publicId!);
+            notify("شناسه فودی کپی شد", "ok");
+          }}>کپی شناسه</Button>
+        </section>
+      )}
+
       <form onSubmit={handleSubmit} className="profile-form">
         <Input label="نام کامل" value={fullName} onChange={(e) => setFullName(e.target.value)} required />
         <Input

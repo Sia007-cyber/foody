@@ -6,6 +6,7 @@ export type UserStatus = "ACTIVE" | "SUSPENDED";
 
 export interface User {
   id: number;
+  publicId: string | null;
   email: string;
   phone: string | null;
   address: string | null;
@@ -167,6 +168,19 @@ export interface Wallet {
   customerUserId: number;
   businessId: number;
   balance: string;
+}
+
+export interface OwnerWallet {
+  id: number;
+  businessId: number;
+  balance: string;
+  customerPublicId: string;
+  customerDisplayName: string;
+}
+
+export interface CustomerLookup {
+  publicId: string;
+  displayName: string;
 }
 
 export interface WalletTransaction {

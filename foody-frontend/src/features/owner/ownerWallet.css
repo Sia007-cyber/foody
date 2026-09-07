@@ -4,6 +4,19 @@
   gap: 14px;
 }
 
+.owner-customer-lookup {
+  display: grid;
+  gap: 14px;
+  margin-bottom: 24px;
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--paper);
+}
+.owner-customer-lookup h2, .owner-customer-confirmation p { margin: 0; }
+.owner-customer-confirmation { display: grid; gap: 12px; padding-top: 14px; border-top: 1px solid var(--line); }
+.owner-customer-confirmation code, .owner-wallet-summary code { direction: ltr; color: var(--ink-soft); }
+
 .owner-wallet-card {
   border: 1px solid var(--line);
   border-radius: var(--r-lg);

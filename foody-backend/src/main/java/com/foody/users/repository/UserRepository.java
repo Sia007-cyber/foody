@@ -17,6 +17,10 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     boolean existsByEmail(String email);
 
+    Optional<User> findByPublicIdAndRole(String publicId, UserRole role);
+
+    boolean existsByPublicId(String publicId);
+
     // Admin panel: full user list, optionally filtered by role and/or status.
     // Passing null for a param means "don't filter on it" — mirrors BusinessRepository.search.
     @Query("""

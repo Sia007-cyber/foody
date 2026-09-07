@@ -12,6 +12,7 @@ import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 import java.math.BigDecimal;
 import java.time.Instant;
+import com.foody.users.service.PublicCustomerIdGenerator;
 
 /**
  * Core user account. Shared account record across roles; the {@code role} column
@@ -24,6 +25,9 @@ public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(name = "public_id", unique = true, updatable = false, length = 19)
+    private String publicId;
 
     @Column(nullable = false, unique = true)
     private String email;
@@ -67,6 +71,9 @@ public class User {
 
     @PrePersist
     void onCreate() {
+        if (role == UserRole.CUSTOMER && publicId == null) {
+            publicId = PublicCustomerIdGenerator.generate();
+        }
         Instant now = Instant.now();
         this.createdAt = now;
         this.updatedAt = now;
@@ -79,6 +86,7 @@ public class User {
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
+    public String getPublicId() { return publicId; }
     public String getEmail() { return email; }
     public void setEmail(String email) { this.email = email; }
     public String getPhone() { return phone; }
