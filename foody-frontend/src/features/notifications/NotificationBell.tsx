@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { notificationApi } from "./notificationApi";
 import { useAuth } from "../auth/AuthContext";
-import { BellIcon, ReceiptIcon, CalendarCheckIcon, StoreIcon } from "../../components/icons";
+import { BellIcon, CloseIcon, ReceiptIcon, CalendarCheckIcon, StoreIcon } from "../../components/icons";
 import { Spinner, EmptyState } from "../../components/Controls";
 import { formatRelativeTime } from "../../lib/format";
 import type { Notification } from "../../types/api";
@@ -15,6 +16,8 @@ const TYPE_ICON: Record<Notification["type"], ReactNode> = {
   NEW_RESERVATION: <CalendarCheckIcon size={16} />,
   BUSINESS_STATUS_CHANGED: <StoreIcon size={16} />,
 };
+
+const MOBILE_QUERY = "(max-width: 720px)";
 
 /** Resolves where a notification should deep-link to, based on the viewer's role. */
 function resolveLink(n: Notification, role: string | undefined): string | null {
@@ -38,6 +41,8 @@ export function NotificationBell() {
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const [desktopPos, setDesktopPos] = useState<{ top: number; left: number } | null>(null);
 
   const { data: unread } = useQuery({
     queryKey: ["notifications", "unread-count"],
@@ -71,9 +76,31 @@ export function NotificationBell() {
     },
   });
 
+  // موقع باز شدن، اگه سایز صفحه دسکتاپه، جای دراپ‌داون رو زیر آیکون زنگ محاسبه کن
+  // (چون دراپ‌داون الان با پورتال بیرون از هدر رندر می‌شه تا زیر هیرو گیر نکنه)
+  useEffect(() => {
+    if (!open) return;
+    function updatePosition() {
+      if (window.matchMedia(MOBILE_QUERY).matches) {
+        setDesktopPos(null);
+        return;
+      }
+      const rect = rootRef.current?.getBoundingClientRect();
+      if (rect) {
+        setDesktopPos({ top: rect.bottom + 10, left: rect.left });
+      }
+    }
+    updatePosition();
+    window.addEventListener("resize", updatePosition);
+    return () => window.removeEventListener("resize", updatePosition);
+  }, [open]);
+
   useEffect(() => {
     function onClickOutside(e: MouseEvent) {
-      if (rootRef.current && !rootRef.current.contains(e.target as Node)) {
+      const target = e.target as Node;
+      const insideRoot = rootRef.current?.contains(target);
+      const insideDropdown = dropdownRef.current?.contains(target);
+      if (!insideRoot && !insideDropdown) {
         setOpen(false);
       }
     }
@@ -108,56 +135,76 @@ export function NotificationBell() {
         )}
       </button>
 
-      {open && (
-        <div className="notif-dropdown" role="menu">
-          <div className="notif-dropdown-header">
-            <span>اعلان‌ها</span>
-            {unreadCount > 0 && (
-              <button
-                type="button"
-                className="notif-mark-all"
-                onClick={() => markAllAsRead.mutate()}
-                disabled={markAllAsRead.isPending}
-              >
-                علامت‌گذاری همه به‌عنوان خوانده‌شده
-              </button>
-            )}
-          </div>
+      {open &&
+        createPortal(
+          <>
+            <div className="notif-backdrop" onClick={() => setOpen(false)} />
+            <div
+              className="notif-dropdown"
+              role="menu"
+              ref={dropdownRef}
+              style={desktopPos ? { top: desktopPos.top, left: desktopPos.left } : undefined}
+            >
+              <div className="notif-dropdown-header">
+                <span>اعلان‌ها</span>
+                <div className="notif-dropdown-header-actions">
+                  {unreadCount > 0 && (
+                    <button
+                      type="button"
+                      className="notif-mark-all"
+                      onClick={() => markAllAsRead.mutate()}
+                      disabled={markAllAsRead.isPending}
+                    >
+                      علامت‌گذاری همه به‌عنوان خوانده‌شده
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    className="notif-close-btn"
+                    aria-label="بستن اعلان‌ها"
+                    onClick={() => setOpen(false)}
+                  >
+                    <CloseIcon size={16} />
+                  </button>
+                </div>
+              </div>
 
-          <div className="notif-dropdown-list">
-            {isLoading ? (
-              <div className="notif-dropdown-loading">
-                <Spinner />
+              <div className="notif-dropdown-list">
+                {isLoading ? (
+                  <div className="notif-dropdown-loading">
+                    <Spinner />
+                  </div>
+                ) : isError ? (
+                  <div className="notif-dropdown-loading">
+                    <button type="button" className="notif-mark-all" onClick={() => refetch()}>
+                      اعلان‌ها لود نشد — تلاش دوباره
+                    </button>
+                  </div>
+                ) : !notifications || notifications.length === 0 ? (
+                  <EmptyState title="فعلاً اعلانی نداری" />
+                ) : (
+                  notifications.map((n) => (
+                    <button
+                      key={n.id}
+                      type="button"
+                      className={`notif-item ${n.read ? "" : "unread"}`}
+                      onClick={() => handleItemClick(n)}
+                    >
+                      <span className="notif-item-icon">{TYPE_ICON[n.type]}</span>
+                      <span className="notif-item-body">
+                        <span className="notif-item-title">{n.title}</span>
+                        <span className="notif-item-message">{n.message}</span>
+                        <span className="notif-item-time">{formatRelativeTime(n.createdAt)}</span>
+                      </span>
+                      {!n.read && <span className="notif-item-dot" />}
+                    </button>
+                  ))
+                )}
               </div>
-            ) : isError ? (
-              <div className="notif-dropdown-loading">
-                <button type="button" className="notif-mark-all" onClick={() => refetch()}>
-                  اعلان‌ها لود نشد — تلاش دوباره
-                </button>
-              </div>
-            ) : !notifications || notifications.length === 0 ? (
-              <EmptyState title="فعلاً اعلانی نداری" />
-            ) : (
-              notifications.map((n) => (
-                <button
-                  key={n.id}
-                  type="button"
-                  className={`notif-item ${n.read ? "" : "unread"}`}
-                  onClick={() => handleItemClick(n)}
-                >
-                  <span className="notif-item-icon">{TYPE_ICON[n.type]}</span>
-                  <span className="notif-item-body">
-                    <span className="notif-item-title">{n.title}</span>
-                    <span className="notif-item-message">{n.message}</span>
-                    <span className="notif-item-time">{formatRelativeTime(n.createdAt)}</span>
-                  </span>
-                  {!n.read && <span className="notif-item-dot" />}
-                </button>
-              ))
-            )}
-          </div>
-        </div>
-      )}
+            </div>
+          </>,
+          document.body,
+        )}
     </div>
   );
 }
