@@ -5,6 +5,7 @@ import { AuthProvider } from "./features/auth/AuthContext";
 import { CartProvider } from "./features/cart/CartContext";
 import { ToastProvider } from "./components/Feedback";
 import { PublicLayout } from "./components/PublicLayout";
+import { AuthLayout } from "./components/AuthLayout";
 import { RequireAuth } from "./components/RequireAuth";
 
 import { LoginPage } from "./features/auth/LoginPage";
@@ -56,8 +57,6 @@ export default function App() {
                 <Route element={<PublicLayout />}>
                   <Route path="/" element={<DiscoverPage />} />
                   <Route path="/businesses/:id" element={<BusinessDetailPage />} />
-                  <Route path="/login" element={<LoginPage />} />
-                  <Route path="/register" element={<RegisterPage />} />
 
                   <Route element={<RequireAuth roles={["CUSTOMER", "BUSINESS_OWNER"]} />}>
                     <Route path="/checkout" element={<CheckoutPage />} />
@@ -72,6 +71,12 @@ export default function App() {
                     <Route path="/wallet" element={<WalletPage />} />
                   </Route>
                 </Route>
+
+                <Route element={<AuthLayout />}>
+                  <Route path="/login" element={<LoginPage />} />
+                  <Route path="/register" element={<RegisterPage />} />
+                </Route>
+
 
                 <Route element={<RequireAuth roles={["BUSINESS_OWNER"]} />}>
                   <Route path="/business/register" element={<OwnerRegisterBusinessPage />} />

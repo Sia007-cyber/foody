@@ -279,7 +279,7 @@
   gap: 12px;
 }
 
-/* ---------- Dashboard mobile topbar + drawer toggle (owner / admin, small screens) ---------- */
+
 .dashboard-mobile-topbar {
   display: none;
   align-items: center;

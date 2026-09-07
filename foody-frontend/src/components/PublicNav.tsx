@@ -28,14 +28,16 @@ export function PublicNav() {
 
   const navItems = (
     <>
-      <NavLink
-        to="/"
-        end
-        onClick={() => setDrawerOpen(false)}
-        className={({ isActive }) => `nav-link ${isActive ? "active" : ""}`}
-      >
-        کشف کسب‌وکارها
-      </NavLink>
+      {user && (
+        <NavLink
+          to="/"
+          end
+          onClick={() => setDrawerOpen(false)}
+          className={({ isActive }) => `nav-link ${isActive ? "active" : ""}`}
+        >
+          کشف کسب‌وکارها
+        </NavLink>
+      )}
       {(user?.role === "CUSTOMER" || user?.role === "BUSINESS_OWNER") && (
         <>
           <NavLink
@@ -86,14 +88,16 @@ export function PublicNav() {
     <header className="public-nav">
       <div className="container public-nav-inner">
         <div className="public-nav-start">
-          <button
-            type="button"
-            className="nav-drawer-toggle"
-            aria-label="باز کردن منو"
-            onClick={() => setDrawerOpen(true)}
-          >
-            <MenuIcon size={20} />
-          </button>
+          {user && (
+            <button
+              type="button"
+              className="nav-drawer-toggle"
+              aria-label="باز کردن منو"
+              onClick={() => setDrawerOpen(true)}
+            >
+              <MenuIcon size={20} />
+            </button>
+          )}
           <NavLink to="/" className="brand">
             فودی<span className="brand-dot">.</span>
           </NavLink>
