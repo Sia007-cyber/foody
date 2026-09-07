@@ -31,6 +31,7 @@ import { AdminDashboardPage } from "./features/admin/AdminDashboardPage";
 import { AdminBusinessesPage } from "./features/admin/AdminBusinessesPage";
 import { AdminUsersPage } from "./features/admin/AdminUsersPage";
 import { AdminOrdersPage } from "./features/admin/AdminOrdersPage";
+import { AdminWalletPage } from "./features/admin/AdminWalletPage";
 import { ComingSoonFeaturePage } from "./pages/ComingSoonFeaturePage";
 import { adminNavItems } from "./features/admin/adminNav";
 import {
@@ -134,6 +135,7 @@ export default function App() {
                   <Route path="/admin/businesses" element={<AdminBusinessesPage />} />
                   <Route path="/admin/users" element={<AdminUsersPage />} />
                   <Route path="/admin/orders" element={<AdminOrdersPage />} />
+                  <Route path="/admin/wallets" element={<AdminWalletPage />} />
                   <Route
                     path="/admin/transactions"
                     element={
