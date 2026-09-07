@@ -1,109 +1,30 @@
 package com.foody.wallet.service;
-
-import com.foody.common.exception.InsufficientBalanceException;
-import com.foody.wallet.dto.WalletResponse;
-import com.foody.wallet.dto.WalletTransactionResponse;
-import com.foody.wallet.entity.Wallet;
-import com.foody.wallet.entity.WalletTransaction;
-import com.foody.wallet.entity.WalletTransactionType;
-import com.foody.wallet.repository.WalletRepository;
-import com.foody.wallet.repository.WalletTransactionRepository;
-import java.math.BigDecimal;
-import java.util.List;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-@Service
-class WalletServiceImpl implements WalletService {
-
-    private final WalletRepository walletRepository;
-    private final WalletTransactionRepository transactionRepository;
-
-    WalletServiceImpl(WalletRepository walletRepository, WalletTransactionRepository transactionRepository) {
-        this.walletRepository = walletRepository;
-        this.transactionRepository = transactionRepository;
-    }
-
-    @Override
-    @Transactional
-    public WalletResponse getBalance(Long userId) {
-        return WalletResponse.from(getOrCreateWallet(userId));
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<WalletTransactionResponse> getTransactions(Long userId) {
-        return walletRepository.findByUserId(userId)
-                .map(wallet -> transactionRepository.findByWalletIdOrderByCreatedAtDesc(wallet.getId()).stream()
-                        .map(WalletTransactionResponse::from)
-                        .toList())
-                // No wallet yet means no transactions yet — an empty list, not a 404;
-                // a wallet that's never been touched isn't an error state for this read.
-                .orElseGet(List::of);
-    }
-
-    @Override
-    @Transactional
-    public WalletResponse topUp(Long userId, BigDecimal amount) {
-        WalletTransactionResponse tx = applyCredit(getOrCreateWallet(userId), amount, WalletTransactionType.TOPUP,
-                null, null, "شارژ کیف پول");
-        return new WalletResponse(tx.balanceAfter());
-    }
-
-    @Override
-    @Transactional
-    public WalletTransactionResponse debit(Long userId, BigDecimal amount, String referenceType,
-                                           Long referenceId, String description) {
-        Wallet wallet = getOrCreateWallet(userId);
-        if (wallet.getBalance().compareTo(amount) < 0) {
-            throw new InsufficientBalanceException(
-                    "Wallet balance " + wallet.getBalance() + " is insufficient for a debit of " + amount);
-        }
-        wallet.setBalance(wallet.getBalance().subtract(amount));
-        Wallet saved = walletRepository.save(wallet);
-
-        WalletTransaction tx = new WalletTransaction();
-        tx.setWalletId(saved.getId());
-        tx.setType(WalletTransactionType.ORDER_PAYMENT);
-        tx.setCredit(false);
-        tx.setAmount(amount);
-        tx.setBalanceAfter(saved.getBalance());
-        tx.setDescription(description);
-        tx.setReferenceType(referenceType);
-        tx.setReferenceId(referenceId);
-        return WalletTransactionResponse.from(transactionRepository.save(tx));
-    }
-
-    @Override
-    @Transactional
-    public WalletTransactionResponse credit(Long userId, BigDecimal amount, WalletTransactionType type,
-                                            String referenceType, Long referenceId, String description) {
-        return applyCredit(getOrCreateWallet(userId), amount, type, referenceType, referenceId, description);
-    }
-
-    private WalletTransactionResponse applyCredit(Wallet wallet, BigDecimal amount, WalletTransactionType type,
-                                                   String referenceType, Long referenceId, String description) {
-        wallet.setBalance(wallet.getBalance().add(amount));
-        Wallet saved = walletRepository.save(wallet);
-
-        WalletTransaction tx = new WalletTransaction();
-        tx.setWalletId(saved.getId());
-        tx.setType(type);
-        tx.setCredit(true);
-        tx.setAmount(amount);
-        tx.setBalanceAfter(saved.getBalance());
-        tx.setDescription(description);
-        tx.setReferenceType(referenceType);
-        tx.setReferenceId(referenceId);
-        return WalletTransactionResponse.from(transactionRepository.save(tx));
-    }
-
-    private Wallet getOrCreateWallet(Long userId) {
-        return walletRepository.findByUserId(userId).orElseGet(() -> {
-            Wallet wallet = new Wallet();
-            wallet.setUserId(userId);
-            wallet.setBalance(BigDecimal.ZERO);
-            return walletRepository.save(wallet);
-        });
-    }
+import com.foody.businesses.entity.Business; import com.foody.businesses.repository.BusinessRepository;
+import com.foody.common.exception.*; import com.foody.users.entity.UserRole; import com.foody.users.repository.UserRepository;
+import com.foody.wallet.dto.*; import com.foody.wallet.entity.*; import com.foody.wallet.repository.*;
+import java.math.BigDecimal; import java.time.Instant; import java.util.List; import org.springframework.data.domain.Sort; import org.springframework.stereotype.Service; import org.springframework.transaction.annotation.Transactional;
+@Service class WalletServiceImpl implements WalletService {
+ private final WalletRepository wallets; private final WalletTransactionRepository txs; private final OwnerDebitRequestRepository requests; private final BusinessRepository businesses; private final UserRepository users;
+ WalletServiceImpl(WalletRepository w,WalletTransactionRepository t,OwnerDebitRequestRepository r,BusinessRepository b,UserRepository u){wallets=w;txs=t;requests=r;businesses=b;users=u;}
+ @Transactional(readOnly=true) public List<WalletResponse> customerWallets(Long id){return wallets.findByCustomerUserIdOrderByCreatedAtDesc(id).stream().map(WalletResponse::from).toList();}
+ @Transactional(readOnly=true) public List<WalletTransactionResponse> customerTransactions(Long cid,Long wid){Wallet w=wallets.findById(wid).filter(x->x.getCustomerUserId().equals(cid)).orElseThrow(()->new ResourceNotFoundException("Wallet not found")); return history(w.getId());}
+ @Transactional(readOnly=true) public List<DebitRequestResponse> pendingRequests(Long id){return requests.findByCustomerUserIdAndStatusOrderByCreatedAtDesc(id,DebitRequestStatus.PENDING).stream().map(DebitRequestResponse::from).toList();}
+ @Transactional public DebitRequestResponse approve(Long cid,Long rid){OwnerDebitRequest r=lockedOwnRequest(cid,rid); ensurePending(r); Wallet w=wallets.findByIdForUpdate(r.getWalletId()).orElseThrow(()->new ResourceNotFoundException("Wallet not found")); if(w.getBalance().compareTo(r.getAmount())<0)throw new InsufficientBalanceException("Insufficient wallet balance"); w.setBalance(w.getBalance().subtract(r.getAmount())); wallets.save(w); r.setStatus(DebitRequestStatus.APPROVED);r.setResolvedAt(Instant.now());requests.save(r); ledger(w,r.getAmount(),WalletTransactionType.OWNER_DEBIT,r.getRequestedByOwnerUserId(),WalletActorType.OWNER,r.getId());return DebitRequestResponse.from(r);}
+ @Transactional public DebitRequestResponse reject(Long cid,Long rid){OwnerDebitRequest r=lockedOwnRequest(cid,rid);ensurePending(r);r.setStatus(DebitRequestStatus.REJECTED);r.setResolvedAt(Instant.now());return DebitRequestResponse.from(requests.save(r));}
+ @Transactional(readOnly=true) public List<WalletResponse> ownerWallets(Long oid){return wallets.findByBusinessIdOrderByCreatedAtDesc(ownerBusiness(oid).getId()).stream().map(WalletResponse::from).toList();}
+ @Transactional public WalletResponse ownerCredit(Long oid,Long cid,BigDecimal amount){Business b=ownerBusiness(oid);Wallet w=getOrCreate(cid,b.getId());apply(w,amount,true,WalletTransactionType.OWNER_CREDIT,oid,WalletActorType.OWNER,null);return WalletResponse.from(w);}
+ @Transactional public DebitRequestResponse ownerRequestDebit(Long oid,Long cid,BigDecimal amount){requirePositive(amount);Business b=ownerBusiness(oid);Wallet w=getOrCreate(cid,b.getId());OwnerDebitRequest r=new OwnerDebitRequest();r.setWalletId(w.getId());r.setCustomerUserId(cid);r.setBusinessId(b.getId());r.setRequestedByOwnerUserId(oid);r.setAmount(amount);return DebitRequestResponse.from(requests.save(r));}
+ @Transactional public WalletResponse adminCredit(Long aid,Long cid,Long bid,BigDecimal amount){Wallet w=getOrCreate(cid,checkedBusiness(bid).getId());apply(w,amount,true,WalletTransactionType.ADMIN_CREDIT,aid,WalletActorType.ADMIN,null);return WalletResponse.from(w);}
+ @Transactional public WalletResponse adminDebit(Long aid,Long cid,Long bid,BigDecimal amount){Wallet w=getOrCreate(cid,checkedBusiness(bid).getId());apply(w,amount,false,WalletTransactionType.ADMIN_DEBIT,aid,WalletActorType.ADMIN,null);return WalletResponse.from(w);}
+ @Transactional(readOnly=true) public List<WalletResponse> adminWallets(){return wallets.findAll(Sort.by(Sort.Direction.DESC,"createdAt")).stream().map(WalletResponse::from).toList();}
+ @Transactional(readOnly=true) public List<WalletTransactionResponse> adminTransactions(Long wid){if(!wallets.existsById(wid))throw new ResourceNotFoundException("Wallet not found");return history(wid);}
+ private List<WalletTransactionResponse> history(Long id){return txs.findByWalletIdOrderByCreatedAtDesc(id).stream().map(WalletTransactionResponse::from).toList();}
+ private OwnerDebitRequest lockedOwnRequest(Long cid,Long rid){return requests.findByIdForUpdate(rid).filter(r->r.getCustomerUserId().equals(cid)).orElseThrow(()->new ResourceNotFoundException("Debit request not found"));}
+ private void ensurePending(OwnerDebitRequest r){if(r.getStatus()!=DebitRequestStatus.PENDING)throw new InvalidStateTransitionException("Debit request is already resolved");}
+ private Business ownerBusiness(Long oid){return businesses.findByOwnerUserId(oid).orElseThrow(()->new ResourceNotFoundException("No business found for this owner"));}
+ private Business checkedBusiness(Long bid){return businesses.findById(bid).orElseThrow(()->new ResourceNotFoundException("Business not found: "+bid));}
+ private Wallet getOrCreate(Long cid,Long bid){if(users.findById(cid).filter(u->u.getRole()==UserRole.CUSTOMER).isEmpty())throw new ResourceNotFoundException("Customer not found: "+cid);return wallets.findByCustomerUserIdAndBusinessId(cid,bid).orElseGet(()->{Wallet w=new Wallet();w.setCustomerUserId(cid);w.setBusinessId(bid);return wallets.saveAndFlush(w);});}
+ private void apply(Wallet w,BigDecimal a,boolean credit,WalletTransactionType type,Long actor,WalletActorType actorType,Long req){requirePositive(a);Wallet locked=wallets.findByIdForUpdate(w.getId()).orElseThrow();if(!credit&&locked.getBalance().compareTo(a)<0)throw new InsufficientBalanceException("Insufficient wallet balance");locked.setBalance(credit?locked.getBalance().add(a):locked.getBalance().subtract(a));wallets.save(locked);ledger(locked,a,type,actor,actorType,req);w.setBalance(locked.getBalance());}
+ private void requirePositive(BigDecimal amount){if(amount==null||amount.signum()<=0||amount.scale()>2)throw new InvalidRequestException("Amount must be positive with at most two decimal places");}
+ private void ledger(Wallet w,BigDecimal a,WalletTransactionType type,Long actor,WalletActorType at,Long req){WalletTransaction t=new WalletTransaction();t.setWalletId(w.getId());t.setAmount(a);t.setType(type);t.setActorUserId(actor);t.setActorType(at);t.setBalanceAfter(w.getBalance());t.setDebitRequestId(req);txs.save(t);}
 }
