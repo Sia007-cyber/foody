@@ -1,0 +1,85 @@
+.owner-wallet-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.owner-wallet-card {
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  background: var(--paper);
+  overflow: hidden;
+}
+
+.owner-wallet-summary {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 18px 20px;
+  background: var(--mist);
+}
+
+.owner-wallet-icon {
+  width: 42px;
+  height: 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--r-md);
+  background: var(--ember-wash);
+  color: var(--ember-deep);
+}
+
+.owner-wallet-summary h2 {
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.owner-wallet-summary p {
+  margin-top: 4px;
+  font-size: 14px;
+  color: var(--ink-soft);
+}
+
+.owner-wallet-summary strong { color: var(--ink); }
+
+.owner-wallet-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  padding: 18px 20px;
+}
+
+.owner-wallet-action-form {
+  display: flex;
+  align-items: end;
+  gap: 10px;
+}
+
+.owner-wallet-action-form .field { flex: 1; }
+
+.owner-wallet-debit-form {
+  align-items: flex-start;
+  flex-direction: column;
+}
+
+.owner-wallet-debit-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.owner-wallet-debit-controls p {
+  font-size: 12px;
+  color: var(--ink-soft);
+  line-height: 1.7;
+}
+
+@media (max-width: 720px) {
+  .owner-wallet-actions { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 440px) {
+  .owner-wallet-action-form { align-items: stretch; flex-direction: column; }
+  .owner-wallet-debit-controls { align-items: flex-start; flex-direction: column; }
+}
