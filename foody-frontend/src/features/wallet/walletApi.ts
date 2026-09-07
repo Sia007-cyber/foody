@@ -1,11 +1,16 @@
 import { apiRequest } from "../../lib/api";
-import type { Wallet, WalletTransaction } from "../../types/api";
+import type { DebitRequest, Wallet, WalletTransaction } from "../../types/api";
 
 export const walletApi = {
-  getBalance: () => apiRequest<Wallet>("/api/wallet"),
+  getWallets: () => apiRequest<Wallet[]>("/api/wallet"),
 
-  getTransactions: () => apiRequest<WalletTransaction[]>("/api/wallet/transactions"),
+  getTransactions: (walletId: number) => apiRequest<WalletTransaction[]>(`/api/wallet/${walletId}/transactions`),
 
-  topUp: (amount: number) =>
-    apiRequest<Wallet>("/api/wallet/topup", { method: "POST", body: { amount } }),
+  getPendingDebitRequests: () => apiRequest<DebitRequest[]>("/api/wallet/debit-requests"),
+
+  approveDebitRequest: (requestId: number) =>
+    apiRequest<DebitRequest>(`/api/wallet/debit-requests/${requestId}/approve`, { method: "POST" }),
+
+  rejectDebitRequest: (requestId: number) =>
+    apiRequest<DebitRequest>(`/api/wallet/debit-requests/${requestId}/reject`, { method: "POST" }),
 };

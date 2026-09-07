@@ -157,26 +157,42 @@ export interface UnreadCountResponse {
 }
 
 export type WalletTransactionType =
-  | "TOPUP"
-  | "ORDER_PAYMENT"
-  | "REFUND"
-  | "CREDIT_REWARD"
-  | "ADMIN_ADJUSTMENT";
+  | "OWNER_CREDIT"
+  | "OWNER_DEBIT"
+  | "ADMIN_CREDIT"
+  | "ADMIN_DEBIT";
 
 export interface Wallet {
+  id: number;
+  customerUserId: number;
+  businessId: number;
   balance: string;
 }
 
 export interface WalletTransaction {
   id: number;
+  walletId: number;
   type: WalletTransactionType;
-  credit: boolean;
   amount: string;
+  actorUserId: number;
+  actorType: "OWNER" | "ADMIN";
   balanceAfter: string;
-  description: string | null;
-  referenceType: string | null;
-  referenceId: number | null;
+  debitRequestId: number | null;
   createdAt: string;
+}
+
+export type DebitRequestStatus = "PENDING" | "APPROVED" | "REJECTED";
+
+export interface DebitRequest {
+  id: number;
+  walletId: number;
+  customerUserId: number;
+  businessId: number;
+  requestedByOwnerUserId: number;
+  amount: string;
+  status: DebitRequestStatus;
+  createdAt: string;
+  resolvedAt: string | null;
 }
 
 export interface ApiErrorBody {

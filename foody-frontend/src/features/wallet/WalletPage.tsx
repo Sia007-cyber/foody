@@ -1,152 +1,149 @@
-import { useState, type FormEvent } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { walletApi } from "./walletApi";
-import { Input } from "../../components/Field";
+import { useMemo } from "react";
+import { useMutation, useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
+import { businessApi } from "../businesses/businessApi";
 import { Button } from "../../components/Button";
 import { PageSpinner, ErrorState, EmptyState } from "../../components/Controls";
 import { useToast, errorMessage } from "../../components/Feedback";
 import { WalletIcon } from "../../components/icons";
 import { formatToman, formatDateTime } from "../../lib/format";
-import type { WalletTransactionType } from "../../types/api";
+import type { DebitRequestStatus, WalletTransactionType } from "../../types/api";
+import { walletApi } from "./walletApi";
 import "./wallet.css";
 
 const TX_TYPE_LABEL: Record<WalletTransactionType, string> = {
-  TOPUP: "شارژ کیف پول",
-  ORDER_PAYMENT: "پرداخت سفارش",
-  REFUND: "بازگشت وجه",
-  CREDIT_REWARD: "پاداش اعتبار",
-  ADMIN_ADJUSTMENT: "تنظیم توسط ادمین",
+  OWNER_CREDIT: "اعتبار از کسب‌وکار",
+  OWNER_DEBIT: "برداشت تاییدشده کسب‌وکار",
+  ADMIN_CREDIT: "اعتبار از مدیریت",
+  ADMIN_DEBIT: "برداشت مدیریت",
 };
 
-const QUICK_AMOUNTS = [50000, 100000, 200000, 500000];
+const REQUEST_STATUS_LABEL: Record<DebitRequestStatus, string> = {
+  PENDING: "در انتظار پاسخ",
+  APPROVED: "تاییدشده",
+  REJECTED: "ردشده",
+};
+
+function isCredit(type: WalletTransactionType) {
+  return type === "OWNER_CREDIT" || type === "ADMIN_CREDIT";
+}
 
 export function WalletPage() {
   const queryClient = useQueryClient();
   const { notify } = useToast();
-  const [amount, setAmount] = useState("");
-
-  const {
-    data: wallet,
-    isLoading: isWalletLoading,
-    isError: isWalletError,
-    refetch: refetchWallet,
-  } = useQuery({
-    queryKey: ["wallet", "balance"],
-    queryFn: walletApi.getBalance,
+  const walletsQuery = useQuery({ queryKey: ["wallet", "wallets"], queryFn: walletApi.getWallets });
+  const requestsQuery = useQuery({ queryKey: ["wallet", "debit-requests"], queryFn: walletApi.getPendingDebitRequests });
+  const wallets = walletsQuery.data ?? [];
+  const pendingRequests = requestsQuery.data ?? [];
+  const businessIds = useMemo(
+    () => Array.from(new Set([...wallets.map((wallet) => wallet.businessId), ...pendingRequests.map((request) => request.businessId)])),
+    [wallets, pendingRequests],
+  );
+  const businessQueries = useQueries({
+    queries: businessIds.map((businessId) => ({
+      queryKey: ["businesses", businessId],
+      queryFn: () => businessApi.getById(businessId),
+    })),
   });
-
-  const {
-    data: transactions,
-    isLoading: isTxLoading,
-    isError: isTxError,
-    error: txError,
-    refetch: refetchTx,
-  } = useQuery({
-    queryKey: ["wallet", "transactions"],
-    queryFn: walletApi.getTransactions,
+  const transactionsQueries = useQueries({
+    queries: wallets.map((wallet) => ({
+      queryKey: ["wallet", "transactions", wallet.id],
+      queryFn: () => walletApi.getTransactions(wallet.id),
+    })),
   });
+  const businessById = new Map(businessIds.map((id, index) => [id, businessQueries[index]]));
 
-  const topUp = useMutation({
-    mutationFn: (value: number) => walletApi.topUp(value),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["wallet"] });
-      setAmount("");
-      notify("کیف پول شارژ شد", "ok");
+  const resolveRequest = useMutation({
+    mutationFn: ({ requestId, action }: { requestId: number; action: "approve" | "reject" }) =>
+      action === "approve" ? walletApi.approveDebitRequest(requestId) : walletApi.rejectDebitRequest(requestId),
+    onSuccess: (_request, { action }) => {
+      queryClient.invalidateQueries({ queryKey: ["wallet", "wallets"] });
+      queryClient.invalidateQueries({ queryKey: ["wallet", "transactions"] });
+      queryClient.invalidateQueries({ queryKey: ["wallet", "debit-requests"] });
+      notify(action === "approve" ? "درخواست برداشت تایید شد" : "درخواست برداشت رد شد", "ok");
     },
-    onError: (err) => notify(errorMessage(err), "danger"),
+    onError: (error) => notify(errorMessage(error), "danger"),
   });
 
-  function handleSubmit(e: FormEvent) {
-    e.preventDefault();
-    const value = Number(amount);
-    if (!value || value < 1000) {
-      notify("حداقل مبلغ شارژ ۱٬۰۰۰ تومانه", "danger");
-      return;
-    }
-    topUp.mutate(value);
-  }
+  const businessName = (businessId: number) => businessById.get(businessId)?.data?.name;
+  const businessQuery = (businessId: number) => businessById.get(businessId);
+
+  if (walletsQuery.isLoading) return <PageSpinner />;
+  if (walletsQuery.isError) return <ErrorState error={walletsQuery.error} onRetry={() => walletsQuery.refetch()} title="کیف پول‌ها لود نشدن" />;
 
   return (
     <div className="container wallet-page">
-      <h1 className="wallet-page-title">کیف پول من</h1>
+      <h1 className="wallet-page-title">کیف پول‌های من</h1>
 
-      <div className="wallet-balance-card">
-        <div className="wallet-balance-icon">
-          <WalletIcon size={26} />
-        </div>
-        <div className="wallet-balance-body">
-          <span className="wallet-balance-label">موجودی فعلی</span>
-          {isWalletLoading ? (
-            <span className="wallet-balance-amount wallet-balance-loading">در حال بارگذاری...</span>
-          ) : isWalletError ? (
-            <button type="button" className="wallet-card-retry" onClick={() => refetchWallet()}>
-              خطا در دریافت موجودی — تلاش دوباره
-            </button>
-          ) : (
-            <span className="wallet-balance-amount">{formatToman(wallet?.balance ?? "0")}</span>
-          )}
-        </div>
-      </div>
-
-      <form onSubmit={handleSubmit} className="wallet-topup-form">
-        <span className="profile-section-label">شارژ کیف پول</span>
-        <div className="wallet-quick-amounts">
-          {QUICK_AMOUNTS.map((a) => (
-            <button
-              key={a}
-              type="button"
-              className={`wallet-quick-amount ${Number(amount) === a ? "active" : ""}`}
-              onClick={() => setAmount(String(a))}
-            >
-              {formatToman(a)}
-            </button>
-          ))}
-        </div>
-        <div className="wallet-topup-row">
-          <Input
-            type="number"
-            min={1000}
-            step={1000}
-            placeholder="مبلغ دلخواه (تومان)"
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
-          />
-          <Button type="submit" loading={topUp.isPending}>
-            شارژ کن
-          </Button>
-        </div>
-        <p className="wallet-topup-note">
-          ⚠️ این شارژ داخلی/دستیه، پرداخت آنلاین واقعی هنوز اضافه نشده.
-        </p>
-      </form>
-
-      <section className="wallet-history">
-        <h2>تاریخچه‌ی تراکنش‌ها</h2>
-        {isTxLoading ? (
-          <PageSpinner />
-        ) : isTxError ? (
-          <ErrorState error={txError} onRetry={() => refetchTx()} title="تاریخچه لود نشد" />
-        ) : !transactions || transactions.length === 0 ? (
-          <EmptyState title="هنوز تراکنشی نداری" />
-        ) : (
-          <ul className="wallet-tx-list">
-            {transactions.map((tx) => (
-              <li key={tx.id} className="wallet-tx-row">
-                <div className="wallet-tx-main">
-                  <span className="wallet-tx-type">{TX_TYPE_LABEL[tx.type]}</span>
-                  <span className="wallet-tx-date">{formatDateTime(tx.createdAt)}</span>
-                  {tx.description && <span className="wallet-tx-desc">{tx.description}</span>}
+      <section className="wallet-balances" aria-labelledby="wallet-balances-title">
+        <h2 id="wallet-balances-title">موجودی به تفکیک کسب‌وکار</h2>
+        {wallets.length === 0 ? <EmptyState title="هنوز کیف پولی نداری" description="با دریافت اعتبار از یک کسب‌وکار، کیف پول آن اینجا نمایش داده می‌شود." /> : (
+          <div className="wallet-balance-grid">
+            {wallets.map((wallet) => {
+              const business = businessQuery(wallet.businessId);
+              return <article key={wallet.id} className="wallet-balance-card">
+                <div className="wallet-balance-icon"><WalletIcon size={26} /></div>
+                <div className="wallet-balance-body">
+                  <span className="wallet-balance-label">{business?.isLoading ? "در حال دریافت نام کسب‌وکار..." : business?.isError ? "نام کسب‌وکار دریافت نشد" : businessName(wallet.businessId)}</span>
+                  {business?.isError && <button type="button" className="wallet-card-retry" onClick={() => business.refetch()}>تلاش دوباره</button>}
+                  <span className="wallet-balance-amount">{formatToman(wallet.balance)}</span>
                 </div>
-                <div className="wallet-tx-amounts">
-                  <span className={`wallet-tx-amount ${tx.credit ? "credit" : "debit"}`}>
-                    {tx.credit ? "+" : "−"}
-                    {formatToman(tx.amount)}
-                  </span>
-                  <span className="wallet-tx-balance-after">موجودی بعدش: {formatToman(tx.balanceAfter)}</span>
+              </article>;
+            })}
+          </div>
+        )}
+      </section>
+
+      <section className="wallet-requests" aria-labelledby="wallet-requests-title">
+        <h2 id="wallet-requests-title">درخواست‌های برداشت</h2>
+        {requestsQuery.isLoading ? <PageSpinner /> : requestsQuery.isError ? (
+          <ErrorState error={requestsQuery.error} onRetry={() => requestsQuery.refetch()} title="درخواست‌ها لود نشدن" />
+        ) : pendingRequests.length === 0 ? <EmptyState title="درخواست برداشت در انتظاری نداری" /> : (
+          <ul className="wallet-request-list">
+            {pendingRequests.map((request) => {
+              const business = businessQuery(request.businessId);
+              const resolving = resolveRequest.isPending && resolveRequest.variables?.requestId === request.id;
+              return <li key={request.id} className="wallet-request-row">
+                <div className="wallet-request-main">
+                  <span className="wallet-request-business">{business?.isLoading ? "در حال دریافت نام کسب‌وکار..." : business?.isError ? "نام کسب‌وکار دریافت نشد" : businessName(request.businessId)}</span>
+                  <span>{formatToman(request.amount)}</span>
+                  <span className="wallet-request-status">{REQUEST_STATUS_LABEL[request.status]}</span>
+                  <span className="wallet-tx-date">{formatDateTime(request.createdAt)}</span>
                 </div>
-              </li>
-            ))}
+                <div className="wallet-request-actions">
+                  <Button size="sm" loading={resolving && resolveRequest.variables.action === "approve"} disabled={resolveRequest.isPending} onClick={() => resolveRequest.mutate({ requestId: request.id, action: "approve" })}>تایید</Button>
+                  <Button size="sm" variant="danger" loading={resolving && resolveRequest.variables.action === "reject"} disabled={resolveRequest.isPending} onClick={() => resolveRequest.mutate({ requestId: request.id, action: "reject" })}>رد کردن</Button>
+                </div>
+              </li>;
+            })}
           </ul>
+        )}
+      </section>
+
+      <section className="wallet-history" aria-labelledby="wallet-history-title">
+        <h2 id="wallet-history-title">تاریخچه‌ی تراکنش‌ها</h2>
+        {wallets.length === 0 ? <EmptyState title="هنوز تراکنشی نداری" /> : (
+          <div className="wallet-history-groups">
+            {wallets.map((wallet, index) => {
+              const transactions = transactionsQueries[index];
+              const business = businessQuery(wallet.businessId);
+              return <section key={wallet.id} className="wallet-history-group">
+                <h3>{business?.data?.name ?? "تراکنش‌های کسب‌وکار"}</h3>
+                {transactions.isLoading ? <PageSpinner /> : transactions.isError ? (
+                  <ErrorState error={transactions.error} onRetry={() => transactions.refetch()} title="تاریخچه لود نشد" />
+                ) : !transactions.data || transactions.data.length === 0 ? <EmptyState title="تراکنشی برای این کسب‌وکار نداری" /> : (
+                  <ul className="wallet-tx-list">
+                    {transactions.data.map((transaction) => {
+                      const credit = isCredit(transaction.type);
+                      return <li key={transaction.id} className="wallet-tx-row">
+                        <div className="wallet-tx-main"><span className="wallet-tx-type">{TX_TYPE_LABEL[transaction.type]}</span><span className="wallet-tx-date">{formatDateTime(transaction.createdAt)}</span></div>
+                        <div className="wallet-tx-amounts"><span className={`wallet-tx-amount ${credit ? "credit" : "debit"}`}>{credit ? "+" : "−"}{formatToman(transaction.amount)}</span><span className="wallet-tx-balance-after">موجودی بعدش: {formatToman(transaction.balanceAfter)}</span></div>
+                      </li>;
+                    })}
+                  </ul>
+                )}
+              </section>;
+            })}
+          </div>
         )}
       </section>
     </div>

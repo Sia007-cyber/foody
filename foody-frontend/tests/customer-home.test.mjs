@@ -9,7 +9,9 @@ test("customer home uses a neutral discovery label for unranked business results
   assert.doesNotMatch(source, /کافه‌های محبوب نزدیک شما/);
 });
 
-test("customer home does not render mock credit, discounts, promotions, or missions", () => {
+test("customer home links to the per-business wallet overview without a global balance", () => {
   assert.doesNotMatch(source, /MOCK_CREDIT_LIMIT|MOCK_APP_DISCOUNT_PERCENT|MOCK_MISSIONS/);
-  assert.doesNotMatch(source, /wallet-card-hint|discount-card|promo-banner|missions-section|nearby-see-all/);
+  assert.match(source, /کیف پول‌های شما/);
+  assert.match(source, /navigate\("\/wallet"\)/);
+  assert.doesNotMatch(source, /getBalance|wallet\?\.balance|formatToman/);
 });

@@ -261,6 +261,11 @@
 }
 
 .wallet-card {
+  width: 100%;
+  border: 0;
+  text-align: inherit;
+  font-family: var(--font);
+  cursor: pointer;
   display: flex;
   align-items: center;
   gap: 16px;

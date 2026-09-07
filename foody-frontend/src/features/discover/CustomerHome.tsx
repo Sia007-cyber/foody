@@ -1,12 +1,9 @@
 import type { ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
 import type { Business } from "../../types/api";
 import { useToast } from "../../components/Feedback";
 import { WalletIcon, CalendarCheckIcon } from "../../components/icons";
 import { NearbyBusinessCard } from "./NearbyBusinessCard";
-import { walletApi } from "../wallet/walletApi";
-import { formatToman } from "../../lib/format";
 
 interface QuickAction {
   key: string;
@@ -20,16 +17,6 @@ export function CustomerHome({ nearbyBusinesses }: { nearbyBusinesses: Business[
   const { notify } = useToast();
   const navigate = useNavigate();
   const comingSoon = (label: string) => notify(`${label} — این قابلیت به‌زودی فعال می‌شه.`);
-
-  const {
-    data: wallet,
-    isLoading: isWalletLoading,
-    isError: isWalletError,
-    refetch: refetchWallet,
-  } = useQuery({
-    queryKey: ["wallet", "balance"],
-    queryFn: walletApi.getBalance,
-  });
 
   const quickActions: QuickAction[] = [
     {
@@ -65,23 +52,15 @@ export function CustomerHome({ nearbyBusinesses }: { nearbyBusinesses: Business[
   return (
     <div className="customer-home container">
       <section className="wallet-strip">
-        <div className="wallet-card">
+        <button type="button" className="wallet-card" onClick={() => navigate("/wallet")}>
           <div className="wallet-card-icon">
             <WalletIcon size={26} />
           </div>
           <div className="wallet-card-body">
-            <span className="wallet-card-label">موجودی کیف پول شما</span>
-            {isWalletLoading ? (
-              <span className="wallet-card-amount wallet-card-amount-loading">در حال بارگذاری...</span>
-            ) : isWalletError ? (
-              <button type="button" className="wallet-card-retry" onClick={() => refetchWallet()}>
-                خطا در دریافت موجودی — تلاش دوباره
-              </button>
-            ) : (
-              <span className="wallet-card-amount">{formatToman(wallet?.balance ?? "0")}</span>
-            )}
+            <span className="wallet-card-label">کیف پول‌های شما</span>
+            <span className="wallet-card-hint">مشاهده موجودی هر کسب‌وکار</span>
           </div>
-        </div>
+        </button>
       </section>
 
       <section className="quick-actions">

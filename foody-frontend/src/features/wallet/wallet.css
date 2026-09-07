@@ -11,6 +11,19 @@
   font-weight: 800;
 }
 
+.wallet-balances h2,
+.wallet-requests h2,
+.wallet-history h2 {
+  font-size: 17px;
+  font-weight: 800;
+  margin-bottom: 14px;
+}
+.wallet-balance-grid,
+.wallet-history-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
 .wallet-balance-card {
   display: flex;
   align-items: center;
@@ -58,53 +71,37 @@
   padding: 0;
 }
 
-.wallet-topup-form {
+.wallet-request-list {
   display: flex;
   flex-direction: column;
+  gap: 10px;
+  list-style: none;
+}
+.wallet-request-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   gap: 12px;
-  padding: 18px;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  background: var(--paper);
+}
+.wallet-request-main {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.wallet-request-business { font-size: 14px; font-weight: 800; }
+.wallet-request-status { color: var(--ember-deep); font-size: 12px; font-weight: 700; }
+.wallet-request-actions { display: flex; gap: 8px; flex-shrink: 0; }
+.wallet-history-group {
+  padding: 16px;
   border-radius: var(--r-lg);
   border: 1px solid var(--line);
   background: var(--paper);
 }
-.wallet-quick-amounts {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-.wallet-quick-amount {
-  padding: 8px 14px;
-  border-radius: var(--r-pill);
-  border: 1px solid var(--line);
-  background: var(--mist);
-  font-family: var(--font);
-  font-size: 13px;
-  cursor: pointer;
-}
-.wallet-quick-amount.active {
-  background: var(--ember-wash);
-  border-color: var(--ember);
-  color: var(--ember);
-  font-weight: 700;
-}
-.wallet-topup-row {
-  display: flex;
-  gap: 10px;
-  align-items: flex-start;
-}
-.wallet-topup-row .field {
-  flex: 1;
-}
-.wallet-topup-note {
-  font-size: 12px;
-  color: var(--ink-soft);
-}
-
-.wallet-history h2 {
-  font-size: 17px;
-  font-weight: 800;
-  margin-bottom: 14px;
-}
+.wallet-history-group h3 { font-size: 15px; font-weight: 800; margin-bottom: 12px; }
 .wallet-tx-list {
   display: flex;
   flex-direction: column;
@@ -157,4 +154,7 @@
 .wallet-tx-balance-after {
   font-size: 11px;
   color: var(--ink-faint);
+}
+@media (max-width: 420px) {
+  .wallet-request-row { align-items: flex-start; flex-direction: column; }
 }
