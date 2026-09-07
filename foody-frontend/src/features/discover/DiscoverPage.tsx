@@ -59,27 +59,6 @@ export function DiscoverPage() {
 
   const isCustomerHome = user?.role === "CUSTOMER" || user?.role === "BUSINESS_OWNER";
 
-  const searchAndFilter = (
-    <>
-      <input
-        className="input"
-        type="search"
-        placeholder="جستجوی نام کسب‌وکار..."
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-      />
-      <Segmented
-        value={type}
-        onChange={setType}
-        options={[
-          { value: "", label: "همه" },
-          { value: "CAFE", label: "کافه" },
-          { value: "FAST_FOOD", label: "فست‌فود" },
-        ]}
-      />
-    </>
-  );
-
   const businessResults = isLoading ? (
     <PageSpinner />
   ) : isError ? (
@@ -97,11 +76,26 @@ export function DiscoverPage() {
   if (isCustomerHome) {
     return (
       <div>
-        <CustomerHome nearbyBusinesses={(businesses ?? []).slice(0, 8)} />
+        <CustomerHome nearbyBusinesses={(businesses ?? []).slice(0, 8)} search={search} onSearchChange={setSearch} />
 
         <section className="container discover-section discover-section-customer">
-          <h2 className="discover-section-title">جستجو و فیلتر کسب‌وکارها</h2>
-          <div className="discover-search-row">{searchAndFilter}</div>
+          <div className="discover-section-head">
+            <span className="section-eyebrow">جستجو</span>
+            <h2 className="discover-section-title">
+              {debouncedSearch ? `نتیجه‌ی جستجو برای «${debouncedSearch}»` : "همه‌ی کسب‌وکارها"}
+            </h2>
+          </div>
+          <div className="discover-search-row">
+            <Segmented
+              value={type}
+              onChange={setType}
+              options={[
+                { value: "", label: "همه" },
+                { value: "CAFE", label: "کافه" },
+                { value: "FAST_FOOD", label: "فست‌فود" },
+              ]}
+            />
+          </div>
           {businessResults}
         </section>
       </div>
