@@ -244,3 +244,10 @@ export interface CreateOfferRequest {
   startsAt: string;
   expiresAt: string;
 }
+
+export interface OfferClaim {
+  id: number;
+  offerId: number;
+  claimedAt: string;
+  remainingAvailability: number;
+}

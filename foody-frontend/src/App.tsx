@@ -46,6 +46,7 @@ import {
   SettingsIcon,
 } from "./components/icons";
 import { NotFoundPage } from "./pages/NotFoundPage";
+import { OffersPage } from "./features/offers/OffersPage";
 
 export default function App() {
   return (
@@ -58,6 +59,10 @@ export default function App() {
                 <Route element={<PublicLayout />}>
                   <Route path="/" element={<DiscoverPage />} />
                   <Route path="/businesses/:id" element={<BusinessDetailPage />} />
+                  <Route path="/offers" element={<OffersPage />} />
+                  <Route element={<RequireAuth roles={["CUSTOMER"]} />}>
+                    <Route path="/offers/my-claims" element={<OffersPage />} />
+                  </Route>
 
                   <Route element={<RequireAuth roles={["CUSTOMER", "BUSINESS_OWNER"]} />}>
                     <Route path="/checkout" element={<CheckoutPage />} />
