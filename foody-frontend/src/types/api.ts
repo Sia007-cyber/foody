@@ -46,6 +46,21 @@ export interface Business {
   updatedAt: string;
 }
 
+export interface Review {
+  id: number;
+  rating: number;
+  comment: string | null;
+  reviewerDisplayName: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ReviewListResponse {
+  reviews: Review[];
+  averageRating: number;
+  reviewCount: number;
+}
+
 export interface Menu {
   id: number;
   businessId: number;

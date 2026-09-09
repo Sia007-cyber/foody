@@ -4,6 +4,7 @@ import { businessApi } from "../businesses/businessApi";
 import { menuApi } from "../catalog/catalogApi";
 import { MenuSection } from "./MenuSection";
 import { CartPanel } from "./CartPanel";
+import { ReviewsSection } from "./ReviewsSection";
 import { useCart } from "../cart/CartContext";
 import { PageSpinner, EmptyState, ErrorState } from "../../components/Controls";
 import { Button } from "../../components/Button";
@@ -54,6 +55,8 @@ export function BusinessDetailPage() {
           رزرو میز
         </Link>
       </div>
+
+      <ReviewsSection businessId={business.id} />
 
       <div className="container biz-layout">
         <div>
