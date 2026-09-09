@@ -54,13 +54,13 @@ export function PublicNav() {
           >
             رزروهای من
           </NavLink>
-          {user?.role === "CUSTOMER" && <NavLink
+          <NavLink
             to="/wallet"
             onClick={() => setDrawerOpen(false)}
             className={({ isActive }) => `nav-link ${isActive ? "active" : ""}`}
           >
             کیف پول من
-          </NavLink>}
+          </NavLink>
         </>
       )}
       {user && <NavLink to="/offers" onClick={() => setDrawerOpen(false)} className={({ isActive }) => `nav-link ${isActive ? "active" : ""}`}>

@@ -137,7 +137,7 @@ export function ProfilePage() {
         </div>
       </div>
 
-      {user.role === "CUSTOMER" && publicId && (
+      {(user.role === "CUSTOMER" || user.role === "BUSINESS_OWNER") && publicId && (
         <section className="profile-public-id" aria-labelledby="foody-id-title">
           <div>
             <span id="foody-id-title" className="profile-section-label">شناسه فودی من</span>

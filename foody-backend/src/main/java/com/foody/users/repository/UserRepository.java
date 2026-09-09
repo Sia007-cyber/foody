@@ -19,6 +19,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     Optional<User> findByPublicIdAndRole(String publicId, UserRole role);
 
+    Optional<User> findByPublicId(String publicId);
+
     boolean existsByPublicId(String publicId);
 
     // Admin panel: full user list, optionally filtered by role and/or status.

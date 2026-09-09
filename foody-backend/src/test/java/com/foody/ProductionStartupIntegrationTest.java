@@ -27,7 +27,7 @@ class ProductionStartupIntegrationTest extends AbstractContainerBaseTest {
     @Autowired Flyway flyway;
     @Autowired MockMvc mvc;
     @Test void productionStartsWithMigratedSchemaAndRestrictedCors() throws Exception {
-        assertThat(flyway.info().current().getVersion().getVersion()).isEqualTo("19");
+        assertThat(flyway.info().current().getVersion().getVersion()).isEqualTo("20");
         assertThat(flyway.validateWithResult().validationSuccessful).isTrue();
         mvc.perform(get("/api/businesses")).andExpect(status().isOk());
         mvc.perform(options("/api/businesses").header("Origin", "https://foody.example.com")

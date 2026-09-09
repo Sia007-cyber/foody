@@ -71,7 +71,7 @@ public class User {
 
     @PrePersist
     void onCreate() {
-        if (role == UserRole.CUSTOMER && publicId == null) {
+        if ((role == UserRole.CUSTOMER || role == UserRole.BUSINESS_OWNER) && publicId == null) {
             publicId = PublicCustomerIdGenerator.generate();
         }
         Instant now = Instant.now();

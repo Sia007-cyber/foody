@@ -61,7 +61,7 @@ export default function App() {
                   <Route path="/" element={<DiscoverPage />} />
                   <Route path="/businesses/:id" element={<BusinessDetailPage />} />
                   <Route path="/offers" element={<OffersPage />} />
-                  <Route element={<RequireAuth roles={["CUSTOMER"]} />}>
+                  <Route element={<RequireAuth roles={["CUSTOMER", "BUSINESS_OWNER"]} />}>
                     <Route path="/wallet" element={<WalletPage />} />
                   </Route>
 

@@ -42,7 +42,7 @@ export function CustomerHome({ nearbyBusinesses, search, onSearchChange }: Custo
   const { user } = useAuth();
   const { notify } = useToast();
   const navigate = useNavigate();
-  const hasCustomerWallet = user?.role === "CUSTOMER";
+  const hasCustomerWallet = user?.role === "CUSTOMER" || user?.role === "BUSINESS_OWNER";
   const comingSoon = (label: string) => notify(`${label} — این قابلیت به‌زودی فعال می‌شه.`);
   const firstName = user?.fullName?.trim().split(/\s+/)[0];
 

@@ -54,6 +54,15 @@ class RoleAuthorizationIntegrationTest extends AbstractContainerBaseTest {
                 .andExpect(status().isNoContent());
     }
 
+    @Test void personalWalletEndpointsAllowCustomersAndOwnersButNotAdmins() throws Exception {
+        mvc.perform(get("/api/wallet").header("Authorization", bearer(user(UserRole.CUSTOMER))))
+                .andExpect(status().isOk());
+        mvc.perform(get("/api/wallet").header("Authorization", bearer(user(UserRole.BUSINESS_OWNER))))
+                .andExpect(status().isOk());
+        mvc.perform(get("/api/wallet").header("Authorization", bearer(user(UserRole.ADMIN))))
+                .andExpect(status().isForbidden());
+    }
+
     private User user(UserRole role) {
         User user = new User(); user.setEmail(UUID.randomUUID()+"@role.test"); user.setFullName("Role test");
         user.setPasswordHash("unused"); user.setRole(role); user.setStatus(UserStatus.ACTIVE); return users.saveAndFlush(user);

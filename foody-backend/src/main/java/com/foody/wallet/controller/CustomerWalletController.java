@@ -1,7 +1,7 @@
 package com.foody.wallet.controller;
 import com.foody.auth.security.FoodyUserPrincipal; import com.foody.wallet.dto.*; import com.foody.wallet.service.WalletService; import java.util.List;
 import org.springframework.security.access.prepost.PreAuthorize; import org.springframework.security.core.annotation.AuthenticationPrincipal; import org.springframework.web.bind.annotation.*;
-@RestController @RequestMapping("/api/wallet") @PreAuthorize("hasRole('CUSTOMER')")
+@RestController @RequestMapping("/api/wallet") @PreAuthorize("hasAnyRole('CUSTOMER', 'BUSINESS_OWNER')")
 public class CustomerWalletController {private final WalletService service; public CustomerWalletController(WalletService s){service=s;}
  @GetMapping public List<WalletResponse> wallets(@AuthenticationPrincipal FoodyUserPrincipal p){return service.customerWallets(p.getUserId());}
  @GetMapping("/{walletId}/transactions") public List<WalletTransactionResponse> transactions(@AuthenticationPrincipal FoodyUserPrincipal p,@PathVariable Long walletId){return service.customerTransactions(p.getUserId(),walletId);}
