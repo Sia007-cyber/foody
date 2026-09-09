@@ -5,7 +5,7 @@ import { menuApi, productApi } from "../catalog/catalogApi";
 import { DashboardShell } from "../../components/DashboardShell";
 import { Input, Textarea } from "../../components/Field";
 import { Button } from "../../components/Button";
-import { Switch, PageSpinner, EmptyState } from "../../components/Controls";
+import { Switch, PageSpinner, EmptyState, ErrorState } from "../../components/Controls";
 import { ConfirmDialog, useToast, errorMessage } from "../../components/Feedback";
 import { formatToman } from "../../lib/format";
 import { resolveMediaUrl } from "../../lib/api";
@@ -105,9 +105,9 @@ function MenuBlock({ menu, businessId }: { menu: Menu; businessId: number }) {
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [deletingProduct, setDeletingProduct] = useState<Product | null>(null);
 
-  const { data: products, isLoading } = useQuery({
-    queryKey: ["products", "menu", menu.id],
-    queryFn: () => productApi.listForMenu(menu.id),
+  const { data: products, isLoading, isError, error, refetch } = useQuery({
+    queryKey: ["products", "mine", menu.id],
+    queryFn: () => productApi.listMine(menu.id),
   });
   const queryClient = useQueryClient();
   const { notify } = useToast();
@@ -137,14 +137,14 @@ function MenuBlock({ menu, businessId }: { menu: Menu; businessId: number }) {
   const toggleAvailability = useMutation({
     mutationFn: ({ id, isAvailable }: { id: number; isAvailable: boolean }) =>
       productApi.update(id, { isAvailable }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["products", "menu", menu.id] }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["products"] }),
     onError: (err) => notify(errorMessage(err), "danger"),
   });
 
   const deleteProduct = useMutation({
     mutationFn: (id: number) => productApi.remove(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["products", "menu", menu.id] });
+      queryClient.invalidateQueries({ queryKey: ["products"] });
       notify("محصول حذف شد", "ok");
       setDeletingProduct(null);
     },
@@ -153,6 +153,8 @@ function MenuBlock({ menu, businessId }: { menu: Menu; businessId: number }) {
       setDeletingProduct(null);
     },
   });
+
+  if (isError) return <ErrorState error={error} onRetry={() => refetch()} />;
 
   return (
     <div>
@@ -375,7 +377,7 @@ function NewProductForm({ menuId, onDone }: { menuId: number; onDone: () => void
         imageUrl: imageUrl || undefined,
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["products", "menu", menuId] });
+      queryClient.invalidateQueries({ queryKey: ["products"] });
       notify("محصول اضافه شد", "ok");
       onDone();
     },
@@ -413,7 +415,6 @@ function NewProductForm({ menuId, onDone }: { menuId: number; onDone: () => void
 
 function EditProductModal({
   product,
-  menuId,
   onClose,
 }: {
   product: Product;
@@ -438,7 +439,7 @@ function EditProductModal({
         isAvailable,
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["products", "menu", menuId] });
+      queryClient.invalidateQueries({ queryKey: ["products"] });
       notify("محصول به‌روزرسانی شد", "ok");
       onClose();
     },

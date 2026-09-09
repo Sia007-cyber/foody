@@ -66,7 +66,7 @@ export function CustomerHome({ nearbyBusinesses, search, onSearchChange }: Custo
     },
     {
       key: "topup",
-      label: "شارژ کیف پول",
+      label: "کیف پول‌های شما",
       icon: <WalletIcon size={20} />,
       onClick: () => navigate("/wallet"),
       accent: "pistachio",
@@ -75,7 +75,7 @@ export function CustomerHome({ nearbyBusinesses, search, onSearchChange }: Custo
       key: "offers",
       label: "پیشنهادها",
       icon: <span className="quick-action-emoji">🎁</span>,
-      onClick: () => comingSoon("پیشنهادهای ویژه"),
+      onClick: () => navigate("/offers"),
       accent: "violet",
     },
   ];
@@ -95,7 +95,7 @@ export function CustomerHome({ nearbyBusinesses, search, onSearchChange }: Custo
         <div className="home-hero-content">
           <span className="home-hero-kicker">{firstName ? `سلام ${firstName} 👋` : "سلام 👋"}</span>
           <h1 className="home-hero-title">امروز هوس چی کردی؟</h1>
-          <p className="home-hero-subtitle">کافه و فست‌فودای اطرافت رو پیدا کن، سفارش بده یا میز رزرو کن.</p>
+          <p className="home-hero-subtitle">کافه و فست‌فودها رو پیدا کن، سفارش بده یا میز رزرو کن.</p>
           <div className="home-hero-search">
             <input
               className="input"
@@ -146,7 +146,7 @@ export function CustomerHome({ nearbyBusinesses, search, onSearchChange }: Custo
           <div className="nearby-section-head">
             <div>
               <span className="section-eyebrow">کشف کنید</span>
-              <h2>کافه و فست‌فودهای نزدیک</h2>
+              <h2>کافه و فست‌فودها</h2>
             </div>
           </div>
           <div className="nearby-scroll">

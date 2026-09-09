@@ -1,6 +1,7 @@
 package com.foody.products.dto;
 
 import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.Size;
 import java.math.BigDecimal;
 
@@ -8,6 +9,7 @@ import java.math.BigDecimal;
 public record UpdateProductRequest(
         @Size(max = 255) String name,
         @Size(max = 2000) String description,
+        @Digits(integer = 8, fraction = 2)
         @DecimalMin(value = "0.0", inclusive = true, message = "price cannot be negative") BigDecimal price,
         @Size(max = 512) String imageUrl,
         Boolean isAvailable,

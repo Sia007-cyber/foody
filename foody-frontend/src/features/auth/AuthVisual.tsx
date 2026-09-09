@@ -5,7 +5,7 @@ import { ChevronStartIcon, MapPinIcon, CalendarCheckIcon, WalletIcon } from "../
 const FEATURES = [
   {
     icon: <MapPinIcon size={16} />,
-    title: "کشف کافه و رستوران‌های اطراف",
+    title: "کشف کافه و رستوران‌ها",
   },
   {
     icon: <CalendarCheckIcon size={16} />,
@@ -13,7 +13,7 @@ const FEATURES = [
   },
   {
     icon: <WalletIcon size={16} />,
-    title: "پرداخت سریع با کیف پول فودی",
+    title: "مدیریت اعتبار کیف پول‌های کسب‌وکارها",
   },
 ] as const;
 

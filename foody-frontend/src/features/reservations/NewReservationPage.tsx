@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { businessApi } from "../businesses/businessApi";
 import { reservationApi } from "./reservationApi";
 import { Input } from "../../components/Field";
@@ -12,6 +12,7 @@ export function NewReservationPage() {
   const { id } = useParams<{ id: string }>();
   const businessId = Number(id);
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { notify } = useToast();
 
   const {
@@ -43,6 +44,7 @@ export function NewReservationPage() {
     setSubmitting(true);
     try {
       await reservationApi.create({ businessId, date, time, guestCount });
+      void queryClient.invalidateQueries({ queryKey: ["reservations"] });
       notify("رزرو با موفقیت ثبت شد", "ok");
       navigate("/reservations");
     } catch (err) {

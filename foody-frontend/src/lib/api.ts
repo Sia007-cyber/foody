@@ -1,10 +1,11 @@
+import { apiBaseUrl } from "./apiBaseUrl.ts";
 import {
   assertSession, captureSession, getAccessToken, getRefreshToken,
   invalidateSession, refreshSessionTokens, type SessionTicket, type Tokens,
 } from "./session.ts";
 
 export { getAccessToken, getRefreshToken } from "./session.ts";
-export const BASE_URL = import.meta.env?.VITE_API_BASE_URL ?? "http://localhost:8080";
+export const BASE_URL = apiBaseUrl(import.meta.env?.VITE_API_BASE_URL, import.meta.env?.PROD ?? false);
 
 export class ApiError extends Error {
   status: number;

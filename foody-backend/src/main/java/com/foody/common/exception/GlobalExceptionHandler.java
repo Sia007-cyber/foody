@@ -77,6 +77,19 @@ public class GlobalExceptionHandler {
                 "A resource with these details already exists", req, null);
     }
 
+    @ExceptionHandler({org.springframework.http.converter.HttpMessageNotReadableException.class,
+            org.springframework.web.method.annotation.MethodArgumentTypeMismatchException.class,
+            org.springframework.web.bind.MissingServletRequestParameterException.class,
+            org.springframework.web.multipart.support.MissingServletRequestPartException.class})
+    public ResponseEntity<ErrorResponse> handleMalformedRequest(Exception ex, HttpServletRequest req) {
+        return build(HttpStatus.BAD_REQUEST, "INVALID_REQUEST", "The request is malformed or incomplete", req, null);
+    }
+
+    @ExceptionHandler(org.springframework.web.multipart.MaxUploadSizeExceededException.class)
+    public ResponseEntity<ErrorResponse> handleUploadTooLarge(Exception ex, HttpServletRequest req) {
+        return build(HttpStatus.PAYLOAD_TOO_LARGE, "UPLOAD_TOO_LARGE", "The upload exceeds the allowed size", req, null);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleUnexpected(Exception ex, HttpServletRequest req) {
         // Log server-side; do not expose internals to the client.

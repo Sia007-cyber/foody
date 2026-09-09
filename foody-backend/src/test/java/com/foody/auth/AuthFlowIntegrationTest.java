@@ -345,12 +345,15 @@ class AuthFlowIntegrationTest extends AbstractContainerBaseTest {
     }
 
     @Test
-    void seededBusiness_isViewable() throws Exception {
-        // V2 migration seeds business id=1 (APPROVED). It is publicly readable.
+    void seededBusiness_isNotPublic() throws Exception {
         mockMvc.perform(get("/api/businesses/1"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.name").value("کافه سان‌رایز"))
-                .andExpect(jsonPath("$.businessType").value("CAFE"));
+                .andExpect(status().isNotFound());
+        for (String email : java.util.List.of("owner@foody.test", "admin@foody.test")) {
+            mockMvc.perform(post("/api/auth/login").contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(java.util.Map.of(
+                            "email", email, "password", "password123"))))
+                    .andExpect(status().isUnauthorized());
+        }
     }
 
     @Test

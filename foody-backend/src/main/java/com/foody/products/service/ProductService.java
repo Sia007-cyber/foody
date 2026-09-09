@@ -15,6 +15,8 @@ public interface ProductService {
 
     List<Product> findByMenuId(Long menuId);
 
+    List<Product> findMyProducts(Long ownerUserId, Long menuId);
+
     // Business panel: creates/updates a product on a menu that belongs to the
     // calling owner's own business.
     Product createProduct(Long ownerUserId, CreateProductRequest request);

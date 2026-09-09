@@ -29,6 +29,12 @@ public class ProductOwnerController {
         this.productService = productService;
     }
 
+    @org.springframework.web.bind.annotation.GetMapping
+    public java.util.List<ProductResponse> listProducts(@AuthenticationPrincipal FoodyUserPrincipal principal,
+            @org.springframework.web.bind.annotation.RequestParam Long menuId) {
+        return productService.findMyProducts(principal.getUserId(), menuId).stream().map(ProductResponse::from).toList();
+    }
+
     @PostMapping
     public ProductResponse createProduct(@AuthenticationPrincipal FoodyUserPrincipal principal,
                                          @Valid @RequestBody CreateProductRequest request) {

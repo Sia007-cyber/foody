@@ -20,6 +20,7 @@ export const menuApi = {
 };
 
 export const productApi = {
+  listMine: (menuId: number) => apiRequest<Product[]>("/api/business/products", { query: { menuId } }),
   listForMenu: (menuId: number) =>
     apiRequest<Product[]>(`/api/menus/${menuId}/products`, { auth: false }),
 

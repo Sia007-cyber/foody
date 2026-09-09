@@ -1,3 +1,5 @@
+> Current deployment instructions and release prerequisites: [Production guide](../PRODUCTION.md). Production builds require an explicit HTTPS `VITE_API_BASE_URL`; localhost is development-only.
+
 # Foody Frontend
 
 رابط فارسی و RTL پروژهٔ Foody، شامل پنل‌های مشتری، مالک کسب‌وکار و ادمین. وضعیت کامل پروژه و اولویت‌های توسعه در [README اصلی](../README.md) آمده است؛ اصول ظاهری در [DESIGN.md](DESIGN.md) قرار دارند.

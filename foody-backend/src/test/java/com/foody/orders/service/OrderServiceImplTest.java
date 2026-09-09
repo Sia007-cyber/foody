@@ -79,6 +79,20 @@ class OrderServiceImplTest {
     }
 
     @Test
+    void oversizedOrderIsRejectedBeforePersistence() {
+        when(businessService.findByIdAndStatus(BUSINESS_ID, BusinessStatus.APPROVED))
+                .thenReturn(Optional.of(approvedBusiness()));
+        Product product = availableProduct(); product.setPrice(new BigDecimal("99999999.99"));
+        when(productService.findById(PRODUCT_ID)).thenReturn(Optional.of(product));
+        when(menuService.findById(MENU_ID)).thenReturn(Optional.of(menuForBusiness(BUSINESS_ID)));
+        var request = new CreateOrderRequest(BUSINESS_ID, FulfillmentType.PICKUP,
+                List.of(new OrderItemRequest(PRODUCT_ID, 2)), null);
+        assertThatThrownBy(() -> orderService.createOrder(CUSTOMER_ID, request))
+                .isInstanceOf(InvalidRequestException.class);
+        org.mockito.Mockito.verifyNoInteractions(orderRepository, notificationService);
+    }
+
+    @Test
     void createOrder_pickup_computesTotalAndSaves() {
         when(businessService.findByIdAndStatus(BUSINESS_ID, BusinessStatus.APPROVED))
                 .thenReturn(Optional.of(approvedBusiness()));

@@ -42,6 +42,13 @@ class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public List<Product> findMyProducts(Long ownerUserId, Long menuId) {
+        requireOwnedMenu(ownerUserId, menuId);
+        return productRepository.findByMenuIdOrderByDisplayOrderAsc(menuId);
+    }
+
+    @Override
     @Transactional
     public Product createProduct(Long ownerUserId, CreateProductRequest request) {
         Menu menu = requireOwnedMenu(ownerUserId, request.menuId());

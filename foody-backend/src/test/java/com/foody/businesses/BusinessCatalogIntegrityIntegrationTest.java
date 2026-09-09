@@ -40,6 +40,20 @@ class BusinessCatalogIntegrityIntegrationTest extends AbstractContainerBaseTest 
     @Autowired JdbcTemplate jdbc;
 
     @Test
+    void ownerCanReadPendingCatalogButOtherOwnerCannot() {
+        User owner = user(UserRole.BUSINESS_OWNER);
+        businessService.createForOwner(owner.getId(), new CreateBusinessRequest("Pending cafe", "CAFE", null, null, null));
+        Menu menu = menuService.createMenu(owner.getId(), new CreateMenuRequest("Menu", 0));
+        Product product = productService.createProduct(owner.getId(),
+                new CreateProductRequest(menu.getId(), "Coffee", null, new BigDecimal("12.00"), null, 0));
+        assertThat(productService.findMyProducts(owner.getId(), menu.getId())).extracting(Product::getId).containsExactly(product.getId());
+        User other = user(UserRole.BUSINESS_OWNER);
+        businessService.createForOwner(other.getId(), new CreateBusinessRequest("Other cafe", "CAFE", null, null, null));
+        assertThatThrownBy(() -> productService.findMyProducts(other.getId(), menu.getId()))
+                .isInstanceOf(org.springframework.security.access.AccessDeniedException.class);
+    }
+
+    @Test
     void staleModerationDecisionCannotOverwriteNewerDecision() {
         User owner = user(UserRole.BUSINESS_OWNER);
         Business created = businessService.createForOwner(owner.getId(),

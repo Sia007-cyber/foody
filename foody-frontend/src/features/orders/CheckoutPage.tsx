@@ -1,3 +1,4 @@
+import { useQueryClient } from "@tanstack/react-query";
 import { useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "../cart/CartContext";
@@ -18,6 +19,7 @@ const fulfillmentOptions: { value: FulfillmentType; label: string }[] = [
 export function CheckoutPage() {
   const { lines, businessId, totalAmount, clear } = useCart();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { notify } = useToast();
   const [fulfillmentType, setFulfillmentType] = useState<FulfillmentType>("PICKUP");
   const [address, setAddress] = useState("");
@@ -43,6 +45,7 @@ export function CheckoutPage() {
         items: lines.map((l) => ({ productId: l.product.id, quantity: l.quantity })),
         deliveryAddress: fulfillmentType === "DELIVERY" ? address : undefined,
       });
+      void queryClient.invalidateQueries({ queryKey: ["orders"] });
       clear();
       notify("سفارش با موفقیت ثبت شد", "ok");
       navigate(`/orders/${order.id}`);

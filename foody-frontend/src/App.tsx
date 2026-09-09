@@ -61,6 +61,7 @@ export default function App() {
                   <Route path="/businesses/:id" element={<BusinessDetailPage />} />
                   <Route path="/offers" element={<OffersPage />} />
                   <Route element={<RequireAuth roles={["CUSTOMER"]} />}>
+                    <Route path="/wallet" element={<WalletPage />} />
                     <Route path="/offers/my-claims" element={<OffersPage />} />
                   </Route>
 
@@ -74,7 +75,7 @@ export default function App() {
 
                   <Route element={<RequireAuth />}>
                     <Route path="/profile" element={<ProfilePage />} />
-                    <Route path="/wallet" element={<WalletPage />} />
+
                   </Route>
                 </Route>
 

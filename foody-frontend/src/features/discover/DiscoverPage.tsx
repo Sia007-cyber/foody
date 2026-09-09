@@ -57,7 +57,7 @@ export function DiscoverPage() {
     queryFn: () => businessApi.discover({ type: type || undefined, search: debouncedSearch || undefined }),
   });
 
-  const isCustomerHome = user?.role === "CUSTOMER" || user?.role === "BUSINESS_OWNER";
+  const isCustomerHome = user?.role === "CUSTOMER";
 
   const businessResults = isLoading ? (
     <PageSpinner />
@@ -114,7 +114,7 @@ export function DiscoverPage() {
           ))}
         </div>
         <h1>هرچی هوس کردی، همین‌جاست</h1>
-        <p>کافه و فست‌فودای اطرافت رو پیدا کن، سفارش بده یا میز رزرو کن.</p>
+        <p>کافه و فست‌فودها رو پیدا کن، سفارش بده یا میز رزرو کن.</p>
         <div className="hero-search">
           <input
             className="input"

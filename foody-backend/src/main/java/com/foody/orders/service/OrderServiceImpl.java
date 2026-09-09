@@ -83,6 +83,9 @@ class OrderServiceImpl implements OrderService {
             order.addItem(item);
             total = total.add(item.getSubtotal());
         }
+        if (total.compareTo(new BigDecimal("99999999.99")) > 0) {
+            throw new InvalidRequestException("Order total exceeds the supported amount");
+        }
         order.setTotalAmount(total);
 
         Order saved = orderRepository.save(order);

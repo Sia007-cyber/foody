@@ -55,11 +55,11 @@ export function PublicNav() {
             رزروهای من
           </NavLink>
           <NavLink
-            to="/wallet"
+            to={user?.role === "BUSINESS_OWNER" ? "/business/wallets" : "/wallet"}
             onClick={() => setDrawerOpen(false)}
             className={({ isActive }) => `nav-link ${isActive ? "active" : ""}`}
           >
-            کیف پول من
+            {user?.role === "BUSINESS_OWNER" ? "کیف پول مشتری‌ها" : "کیف پول من"}
           </NavLink>
         </>
       )}

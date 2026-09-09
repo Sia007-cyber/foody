@@ -6,7 +6,7 @@ const source = await readFile(new URL("../src/features/discover/CustomerHome.tsx
 
 test("customer home uses a neutral discovery label for unranked business results", () => {
   assert.match(source, /کشف کنید/);
-  assert.match(source, /کافه و فست‌فودهای نزدیک/);
+  assert.match(source, /کافه و فست‌فودها/);
   assert.doesNotMatch(source, /کافه‌های محبوب نزدیک شما/);
 });
 
