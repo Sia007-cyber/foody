@@ -2,6 +2,7 @@ package com.foody.offers.service;
 
 import com.foody.businesses.entity.*;
 import com.foody.businesses.repository.BusinessRepository;
+import com.foody.businesses.service.CustomerBusinessAccessPolicy;
 import com.foody.common.exception.*;
 import com.foody.offers.dto.*;
 import com.foody.offers.entity.*;
@@ -39,6 +40,7 @@ class OfferServiceImpl implements OfferService {
         Offer o=offers.findByIdForUpdate(offerId).orElseThrow(()->new ResourceNotFoundException("Offer not found: "+offerId));
         Business b=businesses.findById(o.getBusinessId()).orElseThrow(()->new ResourceNotFoundException("Business not found"));
         if(b.getStatus()!=BusinessStatus.APPROVED) throw new ResourceNotFoundException("Offer not found: "+offerId);
+        CustomerBusinessAccessPolicy.requireNotOwnedBy(customerUserId,b);
         Instant now=Instant.now();
         if(o.getStatus()!=OfferStatus.ACTIVE) throw new InvalidStateTransitionException("Offer is cancelled");
         if(now.isBefore(o.getStartsAt())) throw new InvalidStateTransitionException("Offer has not started");

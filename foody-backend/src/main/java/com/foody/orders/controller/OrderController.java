@@ -7,6 +7,7 @@ import com.foody.orders.service.OrderService;
 import jakarta.validation.Valid;
 import java.util.List;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -22,6 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @RequestMapping("/api/orders")
+@PreAuthorize("hasAnyRole('CUSTOMER', 'BUSINESS_OWNER')")
 public class OrderController {
 
     private final OrderService orderService;

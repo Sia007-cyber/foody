@@ -34,6 +34,7 @@ import { AdminBusinessesPage } from "./features/admin/AdminBusinessesPage";
 import { AdminUsersPage } from "./features/admin/AdminUsersPage";
 import { AdminOrdersPage } from "./features/admin/AdminOrdersPage";
 import { AdminWalletPage } from "./features/admin/AdminWalletPage";
+import { AdminReviewsPage } from "./features/admin/AdminReviewsPage";
 import { ComingSoonFeaturePage } from "./pages/ComingSoonFeaturePage";
 import { adminNavItems } from "./features/admin/adminNav";
 import {
@@ -62,7 +63,6 @@ export default function App() {
                   <Route path="/offers" element={<OffersPage />} />
                   <Route element={<RequireAuth roles={["CUSTOMER"]} />}>
                     <Route path="/wallet" element={<WalletPage />} />
-                    <Route path="/offers/my-claims" element={<OffersPage />} />
                   </Route>
 
                   <Route element={<RequireAuth roles={["CUSTOMER", "BUSINESS_OWNER"]} />}>
@@ -71,6 +71,7 @@ export default function App() {
                     <Route path="/orders/:id" element={<OrderDetailPage />} />
                     <Route path="/reservations" element={<MyReservationsPage />} />
                     <Route path="/businesses/:id/reserve" element={<NewReservationPage />} />
+                    <Route path="/offers/my-claims" element={<OffersPage />} />
                   </Route>
 
                   <Route element={<RequireAuth />}>
@@ -171,17 +172,7 @@ export default function App() {
                       />
                     }
                   />
-                  <Route
-                    path="/admin/reviews"
-                    element={
-                      <ComingSoonFeaturePage
-                        navItems={adminNavItems}
-                        title="نظرات و بازخوردها"
-                        icon={<ChatIcon size={40} />}
-                        description="مدیریت و پاسخ‌دهی به نظرات کاربران به‌زودی اضافه خواهد شد."
-                      />
-                    }
-                  />
+                  <Route path="/admin/reviews" element={<AdminReviewsPage />} />
                   <Route
                     path="/admin/violations"
                     element={

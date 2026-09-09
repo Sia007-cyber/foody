@@ -113,8 +113,10 @@ function ReviewForm({ businessId, existing, onDone }: { businessId: number; exis
   );
 }
 
-export function ReviewsSection({ businessId }: { businessId: number }) {
+export function ReviewsSection({ businessId, ownerUserId }: { businessId: number; ownerUserId: number }) {
   const { user, isLoading: authLoading } = useAuth();
+  const queryClient = useQueryClient();
+  const { notify } = useToast();
   const reviews = useQuery({ queryKey: reviewsKey(businessId), queryFn: () => reviewApi.list(businessId), enabled: Number.isFinite(businessId) });
   const mine = useQuery({
     queryKey: mineKey(businessId),
@@ -122,7 +124,13 @@ export function ReviewsSection({ businessId }: { businessId: number }) {
       try { return await reviewApi.mine(businessId); }
       catch (error) { if (error instanceof ApiError && error.status === 404) return null; throw error; }
     },
-    enabled: Number.isFinite(businessId) && !authLoading && user?.role === "CUSTOMER",
+    enabled: Number.isFinite(businessId) && !authLoading && (user?.role === "CUSTOMER" || (user?.role === "BUSINESS_OWNER" && user.id !== ownerUserId)),
+  });
+  const canWrite = user?.role === "CUSTOMER" || (user?.role === "BUSINESS_OWNER" && user.id !== ownerUserId);
+  const adminDelete = useMutation({
+    mutationFn: reviewApi.adminRemove,
+    onSuccess: () => { void queryClient.invalidateQueries({ queryKey: reviewsKey(businessId) }); notify("نظر حذف شد", "ok"); },
+    onError: (error) => notify(errorMessage(error), "danger"),
   });
 
   return (
@@ -137,9 +145,9 @@ export function ReviewsSection({ businessId }: { businessId: number }) {
       {reviews.isLoading && <div className="reviews-loading"><Spinner /></div>}
       {reviews.isError && <ErrorState error={reviews.error} onRetry={() => reviews.refetch()} title="نظرات لود نشد" />}
       {reviews.data && reviews.data.reviews.length === 0 && <EmptyState title="هنوز نظری ثبت نشده" description="اولین نفری باشید که تجربه‌اش را ثبت می‌کند." />}
-      {reviews.data && reviews.data.reviews.length > 0 && <div className="reviews-list">{reviews.data.reviews.map((review) => <article className="review-card" key={review.id}><div className="review-card-header"><div><h3>{review.reviewerDisplayName}</h3><time dateTime={review.createdAt}>{formatDate(review.createdAt)}</time></div><ReviewStars rating={review.rating} /></div>{review.comment && <p className="review-card-comment">{review.comment}</p>}</article>)}</div>}
-      {!authLoading && user?.role === "CUSTOMER" && mine.isError && <ErrorState error={mine.error} onRetry={() => mine.refetch()} title="نظر شما لود نشد" />}
-      {!authLoading && user?.role === "CUSTOMER" && !mine.isLoading && !mine.isError && <ReviewForm businessId={businessId} existing={mine.data ?? null} onDone={() => mine.refetch()} />}
+      {reviews.data && reviews.data.reviews.length > 0 && <div className="reviews-list">{reviews.data.reviews.map((review) => <article className="review-card" key={review.id}><div className="review-card-header"><div><h3>{review.reviewerDisplayName}</h3><time dateTime={review.createdAt}>{formatDate(review.createdAt)}</time></div><ReviewStars rating={review.rating} /></div>{review.comment && <p className="review-card-comment">{review.comment}</p>}{user?.role === "ADMIN" && <Button type="button" size="sm" variant="danger" loading={adminDelete.isPending && adminDelete.variables === review.id} onClick={() => adminDelete.mutate(review.id)}>حذف توسط مدیر</Button>}</article>)}</div>}
+      {!authLoading && canWrite && mine.isError && <ErrorState error={mine.error} onRetry={() => mine.refetch()} title="نظر شما لود نشد" />}
+      {!authLoading && canWrite && !mine.isLoading && !mine.isError && <ReviewForm businessId={businessId} existing={mine.data ?? null} onDone={() => mine.refetch()} />}
       {!authLoading && !user && <div className="review-login-prompt"><p>برای ثبت نظر وارد حساب مشتری خود شوید.</p><Link to="/login" className="btn btn-secondary btn-sm">ورود به حساب</Link></div>}
     </section>
   );

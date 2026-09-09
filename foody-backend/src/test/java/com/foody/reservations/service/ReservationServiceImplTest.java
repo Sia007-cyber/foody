@@ -12,6 +12,7 @@ import com.foody.businesses.service.BusinessService;
 import com.foody.common.exception.InvalidRequestException;
 import com.foody.common.exception.InvalidStateTransitionException;
 import com.foody.common.exception.ResourceNotFoundException;
+import org.springframework.security.access.AccessDeniedException;
 import com.foody.notifications.service.NotificationService;
 import com.foody.reservations.dto.CreateReservationRequest;
 import com.foody.reservations.dto.ReservationAvailabilityResponse;
@@ -77,6 +78,17 @@ class ReservationServiceImplTest {
         assertThat(response.status()).isEqualTo(ReservationStatus.PENDING);
         assertThat(response.guestCount()).isEqualTo(4);
         assertThat(response.businessId()).isEqualTo(BUSINESS_ID);
+    }
+
+    @Test
+    void businessOwnerCannotReserveOwnBusiness() {
+        Business business = approvedBusiness();
+        business.setOwnerUserId(CUSTOMER_ID);
+        when(businessService.findByIdAndStatus(BUSINESS_ID, BusinessStatus.APPROVED))
+                .thenReturn(Optional.of(business));
+        assertThatThrownBy(() -> reservationService.createReservation(CUSTOMER_ID,
+                new CreateReservationRequest(BUSINESS_ID, TODAY.plusDays(1), LocalTime.of(19, 0), 2)))
+                .isInstanceOf(AccessDeniedException.class);
     }
 
     @Test

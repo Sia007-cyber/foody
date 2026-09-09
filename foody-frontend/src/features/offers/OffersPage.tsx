@@ -9,6 +9,7 @@ import { formatDateTime } from "../../lib/format";
 import { useAuth } from "../auth/AuthContext";
 import type { Offer, OfferClaim } from "../../types/api";
 import { customerOffersApi } from "./customerOffersApi";
+import { businessApi } from "../businesses/businessApi";
 import "./offers.css";
 
 export const CUSTOMER_OFFERS_QUERY_KEY = ["offers", "claimable"] as const;
@@ -29,8 +30,15 @@ export function OffersPage() {
   const historyMode = location.pathname.endsWith("/my-claims");
   const queryClient = useQueryClient();
   const { notify } = useToast();
+  const isCustomerActor = user?.role === "CUSTOMER" || user?.role === "BUSINESS_OWNER";
+  const ownerBusinessQuery = useQuery({
+    queryKey: ["business", "profile"],
+    queryFn: businessApi.myProfile,
+    enabled: user?.role === "BUSINESS_OWNER",
+    retry: false,
+  });
   const offersQuery = useQuery({ queryKey: CUSTOMER_OFFERS_QUERY_KEY, queryFn: customerOffersApi.getClaimableOffers });
-  const claimsQuery = useQuery({ queryKey: CUSTOMER_CLAIMS_QUERY_KEY, queryFn: customerOffersApi.getMyClaims, enabled: user?.role === "CUSTOMER" });
+  const claimsQuery = useQuery({ queryKey: CUSTOMER_CLAIMS_QUERY_KEY, queryFn: customerOffersApi.getMyClaims, enabled: isCustomerActor });
   const claimMutation = useMutation({
     mutationFn: customerOffersApi.claimOffer,
     onSuccess: () => {
@@ -50,14 +58,14 @@ export function OffersPage() {
       </header>
       <nav className="offers-tabs" aria-label="بخش‌های پیشنهادها">
         <button type="button" className={historyMode ? "" : "active"} aria-current={historyMode ? undefined : "page"} onClick={() => navigate("/offers")}>پیشنهادهای قابل دریافت</button>
-        {user?.role === "CUSTOMER" && <button type="button" className={historyMode ? "active" : ""} aria-current={historyMode ? "page" : undefined} onClick={() => navigate("/offers/my-claims")}>دریافت‌های من</button>}
+        {isCustomerActor && <button type="button" className={historyMode ? "active" : ""} aria-current={historyMode ? "page" : undefined} onClick={() => navigate("/offers/my-claims")}>دریافت‌های من</button>}
       </nav>
       {historyMode ? <ClaimHistory claims={claimsQuery.data} isLoading={claimsQuery.isLoading} isError={claimsQuery.isError} error={claimsQuery.error} onRetry={() => claimsQuery.refetch()} offers={offersQuery.data ?? []} /> : (
         offersQuery.isLoading ? <PageSpinner /> : offersQuery.isError ? <ErrorState error={offersQuery.error} onRetry={() => offersQuery.refetch()} title="پیشنهادها لود نشدند" /> : !offersQuery.data?.length ? (
           <EmptyState title="فعلاً پیشنهاد قابل دریافتی نیست" description="پیشنهادهای فعال کافه‌ها در اینجا نمایش داده می‌شوند." />
         ) : (
           <div className="customer-offer-list" aria-label="پیشنهادهای قابل دریافت">
-            {offersQuery.data.map((offer) => <CustomerOfferCard key={offer.id} offer={offer} claimed={claimedOfferIds.has(offer.id)} canAct={user?.role === "CUSTOMER"} claiming={claimMutation.isPending && claimMutation.variables === offer.id} onClaim={() => claimMutation.mutate(offer.id)} />)}
+            {offersQuery.data.map((offer) => <CustomerOfferCard key={offer.id} offer={offer} claimed={claimedOfferIds.has(offer.id)} canAct={user?.role === "CUSTOMER" || (user?.role === "BUSINESS_OWNER" && ownerBusinessQuery.data?.id != null && ownerBusinessQuery.data.id !== offer.businessId)} claiming={claimMutation.isPending && claimMutation.variables === offer.id} onClaim={() => claimMutation.mutate(offer.id)} />)}
           </div>
         )
       )}

@@ -7,6 +7,7 @@ import { Input } from "../../components/Field";
 import { Button } from "../../components/Button";
 import { PageSpinner, EmptyState, ErrorState } from "../../components/Controls";
 import { useToast, errorMessage } from "../../components/Feedback";
+import { useAuth } from "../auth/AuthContext";
 
 export function NewReservationPage() {
   const { id } = useParams<{ id: string }>();
@@ -14,6 +15,7 @@ export function NewReservationPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { notify } = useToast();
+  const { user } = useAuth();
 
   const {
     data: business,
@@ -37,6 +39,9 @@ export function NewReservationPage() {
   if (isBusinessError)
     return <ErrorState error={businessError} onRetry={() => refetchBusiness()} title="اطلاعات کسب‌وکار لود نشد" />;
   if (!business) return <EmptyState title="کسب‌وکار پیدا نشد" />;
+  if (user?.role === "BUSINESS_OWNER" && business.ownerUserId === user.id) {
+    return <EmptyState title="رزرو برای کسب‌وکار خودتان مجاز نیست" />;
+  }
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();

@@ -12,8 +12,8 @@ import org.springframework.web.bind.annotation.*;
 public class OfferController {
     private final OfferService service; public OfferController(OfferService service){this.service=service;}
     @GetMapping public List<OfferResponse> list(){return service.claimableOffers();}
-    @PostMapping("/{id}/claim") @PreAuthorize("hasRole('CUSTOMER')")
+    @PostMapping("/{id}/claim") @PreAuthorize("hasAnyRole('CUSTOMER', 'BUSINESS_OWNER')")
     public OfferClaimResponse claim(@AuthenticationPrincipal FoodyUserPrincipal p,@PathVariable Long id){return service.claim(p.getUserId(),id);}
-    @GetMapping("/my-claims") @PreAuthorize("hasRole('CUSTOMER')")
+    @GetMapping("/my-claims") @PreAuthorize("hasAnyRole('CUSTOMER', 'BUSINESS_OWNER')")
     public List<OfferClaimResponse> myClaims(@AuthenticationPrincipal FoodyUserPrincipal p){return service.myClaims(p.getUserId());}
 }

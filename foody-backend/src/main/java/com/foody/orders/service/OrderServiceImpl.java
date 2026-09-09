@@ -3,6 +3,7 @@ package com.foody.orders.service;
 import com.foody.businesses.entity.Business;
 import com.foody.businesses.entity.BusinessStatus;
 import com.foody.businesses.service.BusinessService;
+import com.foody.businesses.service.CustomerBusinessAccessPolicy;
 import com.foody.common.exception.InvalidRequestException;
 import com.foody.common.exception.InvalidStateTransitionException;
 import com.foody.common.exception.ResourceNotFoundException;
@@ -62,6 +63,7 @@ class OrderServiceImpl implements OrderService {
     public OrderResponse createOrder(Long customerUserId, CreateOrderRequest request) {
         Business business = businessService.findByIdAndStatus(request.businessId(), BusinessStatus.APPROVED)
                 .orElseThrow(() -> new ResourceNotFoundException("Business not found: " + request.businessId()));
+        CustomerBusinessAccessPolicy.requireNotOwnedBy(customerUserId, business);
 
         if (request.fulfillmentType() == FulfillmentType.DELIVERY
                 && (request.deliveryAddress() == null || request.deliveryAddress().isBlank())) {

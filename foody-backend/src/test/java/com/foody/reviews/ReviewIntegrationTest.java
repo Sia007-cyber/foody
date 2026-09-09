@@ -36,6 +36,7 @@ class ReviewIntegrationTest extends AbstractContainerBaseTest {
 
     User customer;
     User otherCustomer;
+    User otherOwner;
     Business approved;
 
     @BeforeEach
@@ -43,6 +44,7 @@ class ReviewIntegrationTest extends AbstractContainerBaseTest {
         User owner = user(UserRole.BUSINESS_OWNER, "Review Owner");
         customer = user(UserRole.CUSTOMER, "Alice Reviewer");
         otherCustomer = user(UserRole.CUSTOMER, "Bob Reviewer");
+        otherOwner = user(UserRole.BUSINESS_OWNER, "Other Owner Reviewer");
         approved = business(owner, BusinessStatus.APPROVED);
     }
 
@@ -56,6 +58,14 @@ class ReviewIntegrationTest extends AbstractContainerBaseTest {
         assertThat(listed.reviews()).extracting(ReviewResponse::id).containsExactly(created.id());
         assertThat(listed.averageRating()).isEqualByComparingTo("5.00");
         assertThat(listed.reviewCount()).isEqualTo(1);
+    }
+
+    @Test
+    void businessOwnerCanReviewAnotherBusinessButNotOwnBusiness() {
+        assertThat(service.create(approved.getId(), otherOwner.getId(), new ReviewRequest(5, "Good")).rating())
+                .isEqualTo(5);
+        assertThatThrownBy(() -> service.create(approved.getId(), approved.getOwnerUserId(), new ReviewRequest(5, null)))
+                .isInstanceOf(org.springframework.security.access.AccessDeniedException.class);
     }
 
     @Test
@@ -150,8 +160,8 @@ class ReviewIntegrationTest extends AbstractContainerBaseTest {
     }
 
     @Test
-    @WithMockUser(roles = "BUSINESS_OWNER")
-    void nonCustomerCannotUseCustomerWriteEndpoint() throws Exception {
+    @WithMockUser(roles = "ADMIN")
+    void adminCannotUseCustomerWriteEndpoint() throws Exception {
         mockMvc.perform(post("/api/businesses/{id}/reviews", approved.getId())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"rating\":5,\"comment\":\"No\"}"))

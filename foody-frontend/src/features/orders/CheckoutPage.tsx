@@ -1,4 +1,4 @@
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "../cart/CartContext";
@@ -10,6 +10,8 @@ import { Textarea } from "../../components/Field";
 import { Button } from "../../components/Button";
 import { useToast, errorMessage } from "../../components/Feedback";
 import type { FulfillmentType } from "../../types/api";
+import { businessApi } from "../businesses/businessApi";
+import { useAuth } from "../auth/AuthContext";
 
 const fulfillmentOptions: { value: FulfillmentType; label: string }[] = [
   { value: "PICKUP", label: "دریافت حضوری" },
@@ -21,6 +23,12 @@ export function CheckoutPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { notify } = useToast();
+  const { user } = useAuth();
+  const businessQuery = useQuery({
+    queryKey: ["businesses", businessId],
+    queryFn: () => businessApi.getById(businessId!),
+    enabled: Boolean(businessId) && user?.role === "BUSINESS_OWNER",
+  });
   const [fulfillmentType, setFulfillmentType] = useState<FulfillmentType>("PICKUP");
   const [address, setAddress] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -32,6 +40,9 @@ export function CheckoutPage() {
         <EmptyState title="سبد خریدت خالیه" description="اول یه چیزی به سبدت اضافه کن." />
       </div>
     );
+  }
+  if (user?.role === "BUSINESS_OWNER" && businessQuery.data?.ownerUserId === user.id) {
+    return <div className="container" style={{ paddingTop: 40 }}><EmptyState title="سفارش از کسب‌وکار خودتان مجاز نیست" /></div>;
   }
 
   async function handleSubmit(e: FormEvent) {

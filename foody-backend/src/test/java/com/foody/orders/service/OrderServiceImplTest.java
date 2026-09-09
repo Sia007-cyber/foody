@@ -11,6 +11,7 @@ import com.foody.businesses.service.BusinessService;
 import com.foody.common.exception.InvalidRequestException;
 import com.foody.common.exception.InvalidStateTransitionException;
 import com.foody.common.exception.ResourceNotFoundException;
+import org.springframework.security.access.AccessDeniedException;
 import com.foody.menus.entity.Menu;
 import com.foody.menus.service.MenuService;
 import com.foody.notifications.service.NotificationService;
@@ -111,6 +112,18 @@ class OrderServiceImplTest {
         assertThat(response.deliveryAddress()).isNull();
         assertThat(response.items()).hasSize(1);
         assertThat(response.items().get(0).productName()).isEqualTo("Latte");
+    }
+
+    @Test
+    void businessOwnerCannotOrderFromOwnBusiness() {
+        Business business = approvedBusiness();
+        business.setOwnerUserId(CUSTOMER_ID);
+        when(businessService.findByIdAndStatus(BUSINESS_ID, BusinessStatus.APPROVED))
+                .thenReturn(Optional.of(business));
+        CreateOrderRequest request = new CreateOrderRequest(BUSINESS_ID, FulfillmentType.PICKUP,
+                List.of(new OrderItemRequest(PRODUCT_ID, 1)), null);
+        assertThatThrownBy(() -> orderService.createOrder(CUSTOMER_ID, request))
+                .isInstanceOf(AccessDeniedException.class);
     }
 
     @Test

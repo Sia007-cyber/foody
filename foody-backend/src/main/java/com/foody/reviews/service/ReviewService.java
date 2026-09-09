@@ -8,4 +8,5 @@ public interface ReviewService {
     ReviewResponse create(Long businessId, Long customerUserId, ReviewRequest request);
     ReviewResponse update(Long businessId, Long customerUserId, ReviewRequest request);
     void delete(Long businessId, Long customerUserId);
+    void deleteForAdmin(Long reviewId);
 }

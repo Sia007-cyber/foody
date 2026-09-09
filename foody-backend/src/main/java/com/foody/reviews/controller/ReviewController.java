@@ -20,7 +20,7 @@ public class ReviewController {
     public ReviewListResponse list(@PathVariable Long businessId) { return reviews.list(businessId); }
 
     @GetMapping("/mine")
-    @PreAuthorize("hasRole('CUSTOMER')")
+    @PreAuthorize("hasAnyRole('CUSTOMER', 'BUSINESS_OWNER')")
     public ReviewResponse mine(@PathVariable Long businessId,
                                @AuthenticationPrincipal FoodyUserPrincipal principal) {
         return reviews.mine(businessId, principal.getUserId());
@@ -28,7 +28,7 @@ public class ReviewController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    @PreAuthorize("hasRole('CUSTOMER')")
+    @PreAuthorize("hasAnyRole('CUSTOMER', 'BUSINESS_OWNER')")
     public ReviewResponse create(@PathVariable Long businessId,
                                  @AuthenticationPrincipal FoodyUserPrincipal principal,
                                  @Valid @RequestBody ReviewRequest request) {
@@ -36,7 +36,7 @@ public class ReviewController {
     }
 
     @PatchMapping("/mine")
-    @PreAuthorize("hasRole('CUSTOMER')")
+    @PreAuthorize("hasAnyRole('CUSTOMER', 'BUSINESS_OWNER')")
     public ReviewResponse update(@PathVariable Long businessId,
                                  @AuthenticationPrincipal FoodyUserPrincipal principal,
                                  @Valid @RequestBody ReviewRequest request) {
@@ -45,7 +45,7 @@ public class ReviewController {
 
     @DeleteMapping("/mine")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    @PreAuthorize("hasRole('CUSTOMER')")
+    @PreAuthorize("hasAnyRole('CUSTOMER', 'BUSINESS_OWNER')")
     public void delete(@PathVariable Long businessId,
                        @AuthenticationPrincipal FoodyUserPrincipal principal) {
         reviews.delete(businessId, principal.getUserId());

@@ -63,7 +63,7 @@ export function PublicNav() {
           </NavLink>
         </>
       )}
-      {user?.role === "CUSTOMER" && (
+      {(user?.role === "CUSTOMER" || user?.role === "BUSINESS_OWNER") && (
         <>
           <NavLink to="/offers" onClick={() => setDrawerOpen(false)} className={({ isActive }) => `nav-link ${isActive ? "active" : ""}`}>
             پیشنهادها

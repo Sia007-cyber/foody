@@ -5,7 +5,7 @@ import { formatToman } from "../../lib/format";
 import { Spinner } from "../../components/Controls";
 import type { Menu } from "../../types/api";
 
-export function MenuSection({ menu, businessId }: { menu: Menu; businessId: number }) {
+export function MenuSection({ menu, businessId, canOrder }: { menu: Menu; businessId: number; canOrder: boolean }) {
   const { lines, addItem, setQuantity } = useCart();
   const { data: products, isLoading } = useQuery({
     queryKey: ["products", "menu", menu.id],
@@ -42,7 +42,7 @@ export function MenuSection({ menu, businessId }: { menu: Menu; businessId: numb
               <div className="product-row-actions">
                 {!product.isAvailable ? (
                   <span className="product-row-desc">ناموجود</span>
-                ) : line ? (
+                ) : !canOrder ? null : line ? (
                   <div className="qty-control">
                     <button
                       type="button"

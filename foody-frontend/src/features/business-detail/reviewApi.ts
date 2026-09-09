@@ -16,4 +16,5 @@ export const reviewApi = {
   update: (businessId: number, payload: ReviewPayload) =>
     apiRequest<Review>(`${base(businessId)}/mine`, { method: "PATCH", body: payload }),
   remove: (businessId: number) => apiRequest<void>(`${base(businessId)}/mine`, { method: "DELETE" }),
+  adminRemove: (reviewId: number) => apiRequest<void>(`/api/admin/reviews/${reviewId}`, { method: "DELETE" }),
 };

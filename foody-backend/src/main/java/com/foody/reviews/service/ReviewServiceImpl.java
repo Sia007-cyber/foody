@@ -1,7 +1,9 @@
 package com.foody.reviews.service;
 
 import com.foody.businesses.entity.BusinessStatus;
+import com.foody.businesses.entity.Business;
 import com.foody.businesses.service.BusinessService;
+import com.foody.businesses.service.CustomerBusinessAccessPolicy;
 import com.foody.common.exception.DuplicateResourceException;
 import com.foody.common.exception.InvalidRequestException;
 import com.foody.common.exception.ResourceNotFoundException;
@@ -52,14 +54,14 @@ class ReviewServiceImpl implements ReviewService {
     @Override
     @Transactional(readOnly = true)
     public ReviewResponse mine(Long businessId, Long customerUserId) {
-        requireApprovedBusiness(businessId);
+        requireCustomerTarget(businessId, customerUserId);
         return response(ownedReview(businessId, customerUserId));
     }
 
     @Override
     @Transactional
     public ReviewResponse create(Long businessId, Long customerUserId, ReviewRequest request) {
-        requireApprovedBusiness(businessId);
+        requireCustomerTarget(businessId, customerUserId);
         validate(request);
         if (reviews.existsByBusinessIdAndCustomerUserId(businessId, customerUserId)) {
             throw duplicate();
@@ -78,7 +80,7 @@ class ReviewServiceImpl implements ReviewService {
     @Override
     @Transactional
     public ReviewResponse update(Long businessId, Long customerUserId, ReviewRequest request) {
-        requireApprovedBusiness(businessId);
+        requireCustomerTarget(businessId, customerUserId);
         validate(request);
         Review review = ownedReview(businessId, customerUserId);
         apply(review, request);
@@ -88,13 +90,27 @@ class ReviewServiceImpl implements ReviewService {
     @Override
     @Transactional
     public void delete(Long businessId, Long customerUserId) {
-        requireApprovedBusiness(businessId);
+        requireCustomerTarget(businessId, customerUserId);
         reviews.delete(ownedReview(businessId, customerUserId));
+    }
+
+    @Override
+    @Transactional
+    public void deleteForAdmin(Long reviewId) {
+        Review review = reviews.findById(reviewId)
+                .orElseThrow(() -> new ResourceNotFoundException("Review not found: " + reviewId));
+        reviews.delete(review);
     }
 
     private void requireApprovedBusiness(Long businessId) {
         businesses.findByIdAndStatus(businessId, BusinessStatus.APPROVED)
                 .orElseThrow(() -> new ResourceNotFoundException("Business not found: " + businessId));
+    }
+
+    private void requireCustomerTarget(Long businessId, Long customerUserId) {
+        Business business = businesses.findByIdAndStatus(businessId, BusinessStatus.APPROVED)
+                .orElseThrow(() -> new ResourceNotFoundException("Business not found: " + businessId));
+        CustomerBusinessAccessPolicy.requireNotOwnedBy(customerUserId, business);
     }
 
     private Review ownedReview(Long businessId, Long customerUserId) {

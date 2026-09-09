@@ -9,6 +9,7 @@ import { useCart } from "../cart/CartContext";
 import { PageSpinner, EmptyState, ErrorState } from "../../components/Controls";
 import { Button } from "../../components/Button";
 import "./business-detail.css";
+import { useAuth } from "../auth/AuthContext";
 
 const typeLabel: Record<string, string> = { CAFE: "کافه", FAST_FOOD: "فست‌فود" };
 
@@ -17,6 +18,7 @@ export function BusinessDetailPage() {
   const businessId = Number(id);
   const navigate = useNavigate();
   const { totalItems, totalAmount } = useCart();
+  const { user } = useAuth();
 
   const {
     data: business,
@@ -40,6 +42,8 @@ export function BusinessDetailPage() {
   if (businessIsError)
     return <ErrorState error={businessError} onRetry={() => refetchBusiness()} title="کسب‌وکار لود نشد" />;
   if (!business) return <EmptyState title="کسب‌وکار پیدا نشد" />;
+  const canUseCustomerActions = user?.role === "CUSTOMER"
+    || (user?.role === "BUSINESS_OWNER" && business.ownerUserId !== user.id);
 
   return (
     <div>
@@ -51,27 +55,25 @@ export function BusinessDetailPage() {
           {business.phone && <span dir="ltr">{business.phone}</span>}
         </div>
         {business.description && <p className="biz-header-desc">{business.description}</p>}
-        <Link to={`/businesses/${business.id}/reserve`} className="btn btn-secondary btn-sm">
-          رزرو میز
-        </Link>
+        {canUseCustomerActions && <Link to={`/businesses/${business.id}/reserve`} className="btn btn-secondary btn-sm">رزرو میز</Link>}
       </div>
 
-      <ReviewsSection businessId={business.id} />
+      <ReviewsSection businessId={business.id} ownerUserId={business.ownerUserId} />
 
       <div className="container biz-layout">
         <div>
           {menusLoading ? (
             <PageSpinner />
           ) : menus && menus.length > 0 ? (
-            menus.map((menu) => <MenuSection key={menu.id} menu={menu} businessId={business.id} />)
+            menus.map((menu) => <MenuSection key={menu.id} menu={menu} businessId={business.id} canOrder={canUseCustomerActions} />)
           ) : (
             <EmptyState title="این کسب‌وکار هنوز منویی ثبت نکرده" />
           )}
         </div>
-        <CartPanel />
+        {canUseCustomerActions && <CartPanel />}
       </div>
 
-      {totalItems > 0 && (
+      {canUseCustomerActions && totalItems > 0 && (
         <div className="cart-fab">
           <Button onClick={() => navigate("/checkout")}>
             مشاهده سبد ({totalItems}) — {new Intl.NumberFormat("en-US").format(totalAmount)} تومان

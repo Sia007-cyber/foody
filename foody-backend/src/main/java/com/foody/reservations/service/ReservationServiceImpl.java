@@ -3,6 +3,7 @@ package com.foody.reservations.service;
 import com.foody.businesses.entity.Business;
 import com.foody.businesses.entity.BusinessStatus;
 import com.foody.businesses.service.BusinessService;
+import com.foody.businesses.service.CustomerBusinessAccessPolicy;
 import com.foody.common.exception.InvalidRequestException;
 import com.foody.common.exception.InvalidStateTransitionException;
 import com.foody.common.exception.ResourceNotFoundException;
@@ -64,6 +65,7 @@ class ReservationServiceImpl implements ReservationService {
     public ReservationResponse createReservation(Long customerUserId, CreateReservationRequest request) {
         Business business = businessService.findByIdAndStatus(request.businessId(), BusinessStatus.APPROVED)
                 .orElseThrow(() -> new ResourceNotFoundException("Business not found: " + request.businessId()));
+        CustomerBusinessAccessPolicy.requireNotOwnedBy(customerUserId, business);
 
         validateReservationTime(business.getId(), request.date(), request.time());
 

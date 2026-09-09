@@ -67,17 +67,17 @@ The implementation does S3 `PutObject` to generated `profiles/`, `business-cover
 
 Do not use Render disk for production images. Existing `/uploads/...` database URLs are retained but need a separate content migration if they must stay visible after cutover.
 
-## First real production administrator
+## Real administrator for the current staging/client-demo deployment
 
 There is intentionally no public admin-registration or permanent bootstrap endpoint. Registration rejects `ADMIN`, so the supported one-time procedure is normal registration followed by a narrowly targeted, audited database promotion. This is an explicit operator-controlled mechanism; no code change is needed.
 
-1. On deployed HTTPS, register the real operator's unique email with an operator-chosen password. Verify login and record its numeric ID from `/api/users/me`.
+1. On the deployed HTTPS staging site, register a normal `CUSTOMER` account using `<REAL_ADMIN_EMAIL>` and a new private operator-chosen password. Never place that password in SQL, source, migrations, tests, tickets, or this document. Verify login and record `<REAL_ADMIN_USER_ID>` from `/api/users/me`.
 2. In a trusted Aiven administration session, inspect the exact account:
 
    ```sql
    SELECT id, email, role, status, public_id
    FROM users
-   WHERE id = <real-user-id> AND email = '<real-admin-email>';
+   WHERE id = <REAL_ADMIN_USER_ID> AND email = '<REAL_ADMIN_EMAIL>';
    ```
 
 3. Confirm it is the intended ACTIVE account, then promote exactly that row. `public_id` is cleared because it is a customer-only identifier.
@@ -87,20 +87,22 @@ There is intentionally no public admin-registration or permanent bootstrap endpo
 
    UPDATE users
    SET role = 'ADMIN', public_id = NULL
-   WHERE id = <real-user-id>
-     AND email = '<real-admin-email>'
+   WHERE id = <REAL_ADMIN_USER_ID>
+     AND email = '<REAL_ADMIN_EMAIL>'
      AND role = 'CUSTOMER'
      AND status = 'ACTIVE';
 
    SELECT id, email, role, status, public_id
    FROM users
-   WHERE id = <real-user-id> AND email = '<real-admin-email>';
+   WHERE id = <REAL_ADMIN_USER_ID> AND email = '<REAL_ADMIN_EMAIL>';
 
    COMMIT;
    ```
 
    Commit only if precisely one row changed and the returned row is correct; otherwise `ROLLBACK`. Do not alter password hashes, status, IDs, or related records—this preserves referential integrity. Log out and sign in again after promotion to receive an ADMIN token.
 4. Verify `/api/users/me` reports `ADMIN` and an admin-only screen works. Never reactivate a demo account and do not convert this SQL into a startup migration or public API.
+
+The wallet domain remains intentionally role-specific: customer-wallet records and `public_id` lookup support only `CUSTOMER` users. This role correction does not create BUSINESS_OWNER customer wallets. Existing owner/admin business-wallet operations remain unchanged, including immutable ledger entries, actor tracking, and immediate ADMIN credit/debit without customer confirmation.
 
 ## Demo seed verification
 

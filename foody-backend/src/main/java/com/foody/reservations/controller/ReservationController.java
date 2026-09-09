@@ -10,6 +10,7 @@ import java.time.LocalDate;
 import java.util.List;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -43,23 +44,27 @@ public class ReservationController {
     }
 
     @PostMapping("/reservations")
+    @PreAuthorize("hasAnyRole('CUSTOMER', 'BUSINESS_OWNER')")
     public ReservationResponse createReservation(@AuthenticationPrincipal FoodyUserPrincipal principal,
                                                   @Valid @RequestBody CreateReservationRequest request) {
         return reservationService.createReservation(principal.getUserId(), request);
     }
 
     @GetMapping("/reservations/my")
+    @PreAuthorize("hasAnyRole('CUSTOMER', 'BUSINESS_OWNER')")
     public List<ReservationResponse> myReservations(@AuthenticationPrincipal FoodyUserPrincipal principal) {
         return reservationService.getMyReservations(principal.getUserId());
     }
 
     @GetMapping("/reservations/{id}")
+    @PreAuthorize("hasAnyRole('CUSTOMER', 'BUSINESS_OWNER')")
     public ReservationResponse getById(@AuthenticationPrincipal FoodyUserPrincipal principal,
                                        @PathVariable Long id) {
         return reservationService.getReservationForCustomer(id, principal.getUserId());
     }
 
     @PatchMapping("/reservations/{id}/cancel")
+    @PreAuthorize("hasAnyRole('CUSTOMER', 'BUSINESS_OWNER')")
     public ReservationResponse cancel(@AuthenticationPrincipal FoodyUserPrincipal principal,
                                       @PathVariable Long id) {
         return reservationService.cancelReservation(id, principal.getUserId());
