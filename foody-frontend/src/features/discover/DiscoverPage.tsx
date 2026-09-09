@@ -57,7 +57,9 @@ export function DiscoverPage() {
     queryFn: () => businessApi.discover({ type: type || undefined, search: debouncedSearch || undefined }),
   });
 
-  const isCustomerHome = user?.role === "CUSTOMER";
+  // Signed-in users share one marketplace discovery experience. Actions that are
+  // not available to a role are handled inside the shared home component.
+  const isMarketplaceUser = user != null;
 
   const businessResults = isLoading ? (
     <PageSpinner />
@@ -73,7 +75,7 @@ export function DiscoverPage() {
     <EmptyState title="چیزی پیدا نشد" description="فیلترها رو عوض کن یا اسم دیگه‌ای رو امتحان کن." />
   );
 
-  if (isCustomerHome) {
+  if (isMarketplaceUser) {
     return (
       <div>
         <CustomerHome nearbyBusinesses={(businesses ?? []).slice(0, 8)} search={search} onSearchChange={setSearch} />

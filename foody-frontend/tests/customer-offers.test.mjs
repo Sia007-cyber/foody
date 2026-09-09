@@ -6,6 +6,7 @@ const page = await readFile(new URL("../src/features/offers/OffersPage.tsx", imp
 const api = await readFile(new URL("../src/features/offers/customerOffersApi.ts", import.meta.url), "utf8");
 const nav = await readFile(new URL("../src/components/PublicNav.tsx", import.meta.url), "utf8");
 const app = await readFile(new URL("../src/App.tsx", import.meta.url), "utf8");
+const profile = await readFile(new URL("../src/features/profile/ProfilePage.tsx", import.meta.url), "utf8");
 
 test("customer offer discovery renders API-backed offer information", () => {
   assert.match(api, /getClaimableOffers: \(\) => apiRequest<Offer\[\]>\("\/api\/offers", \{ auth: false \}\)/);
@@ -48,10 +49,13 @@ test("my claims renders API-backed history and preserves empty history", () => {
   assert.match(page, /پیشنهاد شماره \$\{claim\.offerId\}/);
 });
 
-test("customer navigation and protected history route are wired", () => {
-  assert.match(nav, /user\?\.role === "CUSTOMER"/);
+test("Special Offers is the primary marketplace destination and claim history is secondary", () => {
   assert.match(nav, /to="\/offers"/);
-  assert.match(nav, /to="\/offers\/my-claims"/);
+  assert.match(nav, /پیشنهادهای ویژه/);
+  assert.doesNotMatch(nav, /offers\/my-claims/);
+  assert.doesNotMatch(page, /offers-tabs/);
+  assert.match(profile, /to="\/offers\/my-claims"/);
+  assert.match(nav, /to="\/offers"/);
   assert.match(app, /path="\/offers" element=\{<OffersPage \/>\}/);
   assert.match(app, /path="\/offers\/my-claims" element=\{<OffersPage \/>\}/);
 });

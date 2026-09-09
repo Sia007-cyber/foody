@@ -1,4 +1,5 @@
 import { useRef, useState, type FormEvent } from "react";
+import { Link } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
 import { usersApi } from "./usersApi";
 import { Input, PasswordInput, Textarea } from "../../components/Field";
@@ -144,6 +145,16 @@ export function ProfilePage() {
             <p>این شناسه را برای دریافت اعتبار با کافه به اشتراک بگذارید.</p>
           </div>
           <Button type="button" size="sm" variant="secondary" onClick={copyPublicId} aria-label="کپی شناسه فودی">کپی شناسه</Button>
+        </section>
+      )}
+
+      {(user.role === "CUSTOMER" || user.role === "BUSINESS_OWNER") && (
+        <section className="profile-public-id" aria-labelledby="offer-history-title">
+          <div>
+            <span id="offer-history-title" className="profile-section-label">سابقه پیشنهادهای ویژه</span>
+            <p>پیشنهادهایی که دریافت کرده‌ای را در این بخش ببین.</p>
+          </div>
+          <Link to="/offers/my-claims" className="btn btn-secondary btn-sm">مشاهده سابقه</Link>
         </section>
       )}
 

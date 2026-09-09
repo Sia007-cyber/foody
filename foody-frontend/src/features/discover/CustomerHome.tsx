@@ -42,10 +42,15 @@ export function CustomerHome({ nearbyBusinesses, search, onSearchChange }: Custo
   const { user } = useAuth();
   const { notify } = useToast();
   const navigate = useNavigate();
+  const hasCustomerWallet = user?.role === "CUSTOMER";
   const comingSoon = (label: string) => notify(`${label} — این قابلیت به‌زودی فعال می‌شه.`);
   const firstName = user?.fullName?.trim().split(/\s+/)[0];
 
-  const walletsQuery = useQuery({ queryKey: ["wallet", "wallets"], queryFn: walletApi.getWallets });
+  const walletsQuery = useQuery({
+    queryKey: ["wallet", "wallets"],
+    queryFn: walletApi.getWallets,
+    enabled: hasCustomerWallet,
+  });
   const wallets = walletsQuery.data ?? [];
   const totalBalance = wallets.reduce((sum, w) => sum + Number(w.balance), 0);
 
@@ -64,16 +69,16 @@ export function CustomerHome({ nearbyBusinesses, search, onSearchChange }: Custo
       onClick: () => document.getElementById("nearby-businesses")?.scrollIntoView({ behavior: "smooth" }),
       accent: "ember",
     },
-    {
+    ...(hasCustomerWallet ? [{
       key: "topup",
       label: "کیف پول‌های شما",
       icon: <WalletIcon size={20} />,
       onClick: () => navigate("/wallet"),
-      accent: "pistachio",
-    },
+      accent: "pistachio" as const,
+    }] : []),
     {
       key: "offers",
-      label: "پیشنهادها",
+      label: "پیشنهادهای ویژه",
       icon: <span className="quick-action-emoji">🎁</span>,
       onClick: () => navigate("/offers"),
       accent: "violet",
@@ -108,7 +113,7 @@ export function CustomerHome({ nearbyBusinesses, search, onSearchChange }: Custo
         </div>
       </section>
 
-      <button type="button" className="wallet-preview" onClick={() => navigate("/wallet")}>
+      {hasCustomerWallet && <button type="button" className="wallet-preview" onClick={() => navigate("/wallet")}>
         <span className="wallet-preview-left">
           <span className="wallet-preview-icon">
             <WalletIcon size={22} />
@@ -130,7 +135,7 @@ export function CustomerHome({ nearbyBusinesses, search, onSearchChange }: Custo
           )}
           <ChevronStartIcon size={18} className="wallet-preview-chevron" />
         </span>
-      </button>
+      </button>}
 
       <section className="quick-actions">
         {quickActions.map((a) => (

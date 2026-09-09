@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "../../components/Button";
 import { EmptyState, ErrorState, PageSpinner } from "../../components/Controls";
@@ -25,7 +25,6 @@ function claimableState(offer: Offer, now = new Date()) {
 
 export function OffersPage() {
   const location = useLocation();
-  const navigate = useNavigate();
   const { user } = useAuth();
   const historyMode = location.pathname.endsWith("/my-claims");
   const queryClient = useQueryClient();
@@ -54,12 +53,8 @@ export function OffersPage() {
     <main className="offers-page container">
       <header className="offers-page-hero">
         <div className="offers-page-hero-icon"><MegaphoneIcon size={26} /></div>
-        <div><span className="section-eyebrow">پیشنهادهای فودی</span><h1>پیشنهادهای محدود</h1><p>ظرفیت‌های محدود کافه‌ها را ببین و اگر مناسب توست، دریافتش کن.</p></div>
+        <div><span className="section-eyebrow">بازار فودی</span><h1>{historyMode ? "سابقه پیشنهادهای من" : "پیشنهادهای ویژه"}</h1><p>{historyMode ? "پیشنهادهایی که قبلاً دریافت کرده‌ای اینجا هستند." : "پیشنهادهای عمومی و فعال کسب‌وکارها را ببین و اگر مناسب توست، دریافتش کن."}</p></div>
       </header>
-      <nav className="offers-tabs" aria-label="بخش‌های پیشنهادها">
-        <button type="button" className={historyMode ? "" : "active"} aria-current={historyMode ? undefined : "page"} onClick={() => navigate("/offers")}>پیشنهادهای قابل دریافت</button>
-        {isCustomerActor && <button type="button" className={historyMode ? "active" : ""} aria-current={historyMode ? "page" : undefined} onClick={() => navigate("/offers/my-claims")}>دریافت‌های من</button>}
-      </nav>
       {historyMode ? <ClaimHistory claims={claimsQuery.data} isLoading={claimsQuery.isLoading} isError={claimsQuery.isError} error={claimsQuery.error} onRetry={() => claimsQuery.refetch()} offers={offersQuery.data ?? []} /> : (
         offersQuery.isLoading ? <PageSpinner /> : offersQuery.isError ? <ErrorState error={offersQuery.error} onRetry={() => offersQuery.refetch()} title="پیشنهادها لود نشدند" /> : !offersQuery.data?.length ? (
           <EmptyState title="فعلاً پیشنهاد قابل دریافتی نیست" description="پیشنهادهای فعال کافه‌ها در اینجا نمایش داده می‌شوند." />

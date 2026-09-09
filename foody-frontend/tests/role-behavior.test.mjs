@@ -7,11 +7,14 @@ const detail = await readFile(new URL("../src/features/business-detail/BusinessD
 const reviews = await readFile(new URL("../src/features/business-detail/ReviewsSection.tsx", import.meta.url), "utf8");
 const offers = await readFile(new URL("../src/features/offers/OffersPage.tsx", import.meta.url), "utf8");
 const nav = await readFile(new URL("../src/components/PublicNav.tsx", import.meta.url), "utf8");
+const discover = await readFile(new URL("../src/features/discover/DiscoverPage.tsx", import.meta.url), "utf8");
 
-test("business owners retain marketplace routes and customer history", () => {
+test("business owners retain the unified marketplace routes and customer history", () => {
   assert.match(app, /roles=\{\["CUSTOMER", "BUSINESS_OWNER"\]\}/);
   assert.match(nav, /کشـف|کشف کسب‌وکارها/);
   assert.match(nav, /user\?\.role === "BUSINESS_OWNER"/);
+  assert.match(discover, /const isMarketplaceUser = user != null/);
+  assert.doesNotMatch(discover, /const isCustomerHome/);
 });
 
 test("customer actions are enabled for customers and owners viewing another business", () => {

@@ -54,25 +54,18 @@ export function PublicNav() {
           >
             رزروهای من
           </NavLink>
-          <NavLink
-            to={user?.role === "BUSINESS_OWNER" ? "/business/wallets" : "/wallet"}
+          {user?.role === "CUSTOMER" && <NavLink
+            to="/wallet"
             onClick={() => setDrawerOpen(false)}
             className={({ isActive }) => `nav-link ${isActive ? "active" : ""}`}
           >
-            {user?.role === "BUSINESS_OWNER" ? "کیف پول مشتری‌ها" : "کیف پول من"}
-          </NavLink>
+            کیف پول من
+          </NavLink>}
         </>
       )}
-      {(user?.role === "CUSTOMER" || user?.role === "BUSINESS_OWNER") && (
-        <>
-          <NavLink to="/offers" onClick={() => setDrawerOpen(false)} className={({ isActive }) => `nav-link ${isActive ? "active" : ""}`}>
-            پیشنهادها
-          </NavLink>
-          <NavLink to="/offers/my-claims" onClick={() => setDrawerOpen(false)} className={({ isActive }) => `nav-link ${isActive ? "active" : ""}`}>
-            دریافت‌های من
-          </NavLink>
-        </>
-      )}
+      {user && <NavLink to="/offers" onClick={() => setDrawerOpen(false)} className={({ isActive }) => `nav-link ${isActive ? "active" : ""}`}>
+        پیشنهادهای ویژه
+      </NavLink>}
       {user?.role === "BUSINESS_OWNER" && (
         <NavLink
           to="/business"
