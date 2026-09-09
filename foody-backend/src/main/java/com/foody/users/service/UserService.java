@@ -17,6 +17,8 @@ public interface UserService {
 
     Optional<User> findByEmail(String email);
 
+    List<User> findAllById(Iterable<Long> ids);
+
     boolean existsByEmail(String email);
 
     User create(User user);

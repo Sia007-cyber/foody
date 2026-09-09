@@ -62,6 +62,7 @@ public class WebSecurityConfig {
             .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(HttpMethod.GET, "/api/offers").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/businesses/*/reviews").permitAll()
                 .requestMatchers(PUBLIC_MATCHERS).permitAll()
                 .anyRequest().authenticated())
             .exceptionHandling(ex -> ex.authenticationEntryPoint((request, response, authException) ->
