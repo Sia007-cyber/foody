@@ -49,7 +49,7 @@ class BusinessServiceImplTest {
     @Test
     void updateStatus_allowsPendingToApproved() {
         when(businessRepository.findById(BUSINESS_ID)).thenReturn(Optional.of(businessWithStatus(BusinessStatus.PENDING)));
-        when(businessRepository.save(any(Business.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(businessRepository.saveAndFlush(any(Business.class))).thenAnswer(inv -> inv.getArgument(0));
 
         Business result = businessService.updateStatus(BUSINESS_ID, BusinessStatus.APPROVED);
 
@@ -59,7 +59,7 @@ class BusinessServiceImplTest {
     @Test
     void updateStatus_allowsPendingToRejected() {
         when(businessRepository.findById(BUSINESS_ID)).thenReturn(Optional.of(businessWithStatus(BusinessStatus.PENDING)));
-        when(businessRepository.save(any(Business.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(businessRepository.saveAndFlush(any(Business.class))).thenAnswer(inv -> inv.getArgument(0));
 
         Business result = businessService.updateStatus(BUSINESS_ID, BusinessStatus.REJECTED);
 
@@ -69,7 +69,7 @@ class BusinessServiceImplTest {
     @Test
     void updateStatus_allowsApprovedToSuspended() {
         when(businessRepository.findById(BUSINESS_ID)).thenReturn(Optional.of(businessWithStatus(BusinessStatus.APPROVED)));
-        when(businessRepository.save(any(Business.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(businessRepository.saveAndFlush(any(Business.class))).thenAnswer(inv -> inv.getArgument(0));
 
         Business result = businessService.updateStatus(BUSINESS_ID, BusinessStatus.SUSPENDED);
 

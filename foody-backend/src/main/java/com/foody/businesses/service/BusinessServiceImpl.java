@@ -132,7 +132,9 @@ class BusinessServiceImpl implements BusinessService {
                     "Cannot move business " + businessId + " from " + business.getStatus() + " to " + newStatus);
         }
         business.setStatus(newStatus);
-        Business saved = businessRepository.save(business);
+        // Flush inside the service transaction so a stale moderation decision is
+        // surfaced as the API's standard concurrency conflict before side effects.
+        Business saved = businessRepository.saveAndFlush(business);
 
         notificationService.notify(saved.getOwnerUserId(), NotificationType.BUSINESS_STATUS_CHANGED,
                 "به‌روزرسانی وضعیت کسب‌وکار",

@@ -8,7 +8,6 @@ import static org.mockito.Mockito.when;
 
 import com.foody.businesses.entity.Business;
 import com.foody.businesses.service.BusinessService;
-import com.foody.common.exception.InvalidRequestException;
 import com.foody.menus.entity.Menu;
 import com.foody.menus.service.MenuService;
 import com.foody.products.dto.CreateProductRequest;
@@ -23,6 +22,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.access.AccessDeniedException;
 
 @ExtendWith(MockitoExtension.class)
 class ProductServiceImplTest {
@@ -84,7 +84,7 @@ class ProductServiceImplTest {
                 MENU_ID, "Latte", null, new BigDecimal("4.50"), null, null);
 
         assertThatThrownBy(() -> productService.createProduct(OWNER_ID, request))
-                .isInstanceOf(InvalidRequestException.class);
+                .isInstanceOf(AccessDeniedException.class);
     }
 
     @Test
@@ -179,7 +179,7 @@ class ProductServiceImplTest {
         when(menuService.findById(MENU_ID)).thenReturn(Optional.of(foreignMenu));
 
         assertThatThrownBy(() -> productService.deleteProduct(OWNER_ID, 30L))
-                .isInstanceOf(InvalidRequestException.class);
+                .isInstanceOf(AccessDeniedException.class);
         verify(productRepository, never()).delete(org.mockito.ArgumentMatchers.any());
     }
 }

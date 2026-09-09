@@ -2,7 +2,6 @@ package com.foody.products.service;
 
 import com.foody.businesses.entity.Business;
 import com.foody.businesses.service.BusinessService;
-import com.foody.common.exception.InvalidRequestException;
 import com.foody.common.exception.ResourceNotFoundException;
 import com.foody.menus.entity.Menu;
 import com.foody.menus.service.MenuService;
@@ -13,6 +12,7 @@ import com.foody.products.repository.ProductRepository;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.stereotype.Service;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
@@ -97,7 +97,7 @@ class ProductServiceImpl implements ProductService {
                 .orElseThrow(() -> new ResourceNotFoundException("Menu not found: " + menuId));
 
         if (!menu.getBusinessId().equals(business.getId())) {
-            throw new InvalidRequestException("Menu " + menuId + " does not belong to your business");
+            throw new AccessDeniedException("Menu does not belong to the authenticated owner's business");
         }
         return menu;
     }

@@ -28,7 +28,8 @@ public class OrderItem {
     @JoinColumn(name = "order_id", nullable = false)
     private Order order;
 
-    @Column(name = "product_id", nullable = false)
+    // Nullable after catalog deletion; name and price remain immutable snapshots.
+    @Column(name = "product_id")
     private Long productId;
 
     @Column(name = "product_name", nullable = false)

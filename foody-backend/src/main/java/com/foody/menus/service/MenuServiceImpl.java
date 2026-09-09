@@ -3,7 +3,6 @@ package com.foody.menus.service;
 import com.foody.businesses.entity.Business;
 import com.foody.businesses.service.BusinessService;
 import com.foody.common.exception.DuplicateResourceException;
-import com.foody.common.exception.InvalidRequestException;
 import com.foody.common.exception.ResourceNotFoundException;
 import com.foody.menus.dto.CreateMenuRequest;
 import com.foody.menus.dto.UpdateMenuRequest;
@@ -12,6 +11,7 @@ import com.foody.menus.repository.MenuRepository;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.stereotype.Service;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
@@ -88,7 +88,7 @@ class MenuServiceImpl implements MenuService {
                 .orElseThrow(() -> new ResourceNotFoundException("Menu not found: " + menuId));
 
         if (!menu.getBusinessId().equals(business.getId())) {
-            throw new InvalidRequestException("Menu " + menuId + " does not belong to your business");
+            throw new AccessDeniedException("Menu does not belong to the authenticated owner's business");
         }
         return menu;
     }

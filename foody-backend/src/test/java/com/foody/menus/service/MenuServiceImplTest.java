@@ -9,7 +9,6 @@ import static org.mockito.Mockito.when;
 import com.foody.businesses.entity.Business;
 import com.foody.businesses.service.BusinessService;
 import com.foody.common.exception.DuplicateResourceException;
-import com.foody.common.exception.InvalidRequestException;
 import com.foody.menus.dto.CreateMenuRequest;
 import com.foody.menus.dto.UpdateMenuRequest;
 import com.foody.menus.entity.Menu;
@@ -21,6 +20,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.access.AccessDeniedException;
 
 @ExtendWith(MockitoExtension.class)
 class MenuServiceImplTest {
@@ -149,7 +149,7 @@ class MenuServiceImplTest {
         when(menuRepository.findById(1L)).thenReturn(Optional.of(foreignMenu));
 
         assertThatThrownBy(() -> menuService.updateMenu(1L, 1L, new UpdateMenuRequest("Brunch")))
-                .isInstanceOf(InvalidRequestException.class);
+                .isInstanceOf(AccessDeniedException.class);
     }
 
     @Test
@@ -180,7 +180,7 @@ class MenuServiceImplTest {
         when(menuRepository.findById(1L)).thenReturn(Optional.of(foreignMenu));
 
         assertThatThrownBy(() -> menuService.deleteMenu(1L, 1L))
-                .isInstanceOf(InvalidRequestException.class);
+                .isInstanceOf(AccessDeniedException.class);
         verify(menuRepository, never()).delete(org.mockito.ArgumentMatchers.any());
     }
 }
