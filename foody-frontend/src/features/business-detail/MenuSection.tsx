@@ -4,6 +4,7 @@ import { useCart } from "../cart/CartContext";
 import { formatToman } from "../../lib/format";
 import { Spinner } from "../../components/Controls";
 import type { Menu } from "../../types/api";
+import { ProductReviews } from "./ProductReviews";
 
 export function MenuSection({ menu, businessId, canOrder }: { menu: Menu; businessId: number; canOrder: boolean }) {
   const { lines, addItem, setQuantity } = useCart();
@@ -38,6 +39,7 @@ export function MenuSection({ menu, businessId, canOrder }: { menu: Menu; busine
                 <span className="product-row-name">{product.name}</span>
                 {product.description && <span className="product-row-desc">{product.description}</span>}
                 <span className="product-row-price">{formatToman(product.price)}</span>
+                <ProductReviews productId={product.id} canReview={canOrder} />
               </div>
               <div className="product-row-actions">
                 {!product.isAvailable ? (

@@ -61,6 +61,9 @@ export interface ReviewListResponse {
   reviewCount: number;
 }
 
+export interface OwnerProductReview extends Review { productId: number; productName: string; }
+export interface OwnerReviews { businessReviews: Review[]; productReviews: OwnerProductReview[]; }
+
 export interface Menu {
   id: number;
   businessId: number;

@@ -30,7 +30,7 @@ type Accent = "ember" | "violet" | "pistachio";
 
 const QUICK_ACTIONS: { to: string; label: string; icon: ReactNode; accent: Accent }[] = [
   { to: "/business/discounts", label: "ایجاد تخفیف", icon: <MegaphoneIcon size={20} />, accent: "violet" },
-  { to: "/business/messages", label: "ارسال پیام", icon: <ChatIcon size={20} />, accent: "ember" },
+  { to: "/business/reviews", label: "مشاهده نظرات", icon: <ChatIcon size={20} />, accent: "ember" },
   { to: "/business/menus", label: "مدیریت منو", icon: <MenuBookIcon size={20} />, accent: "pistachio" },
   { to: "/business/reports", label: "گزارش فروش", icon: <ChartIcon size={20} />, accent: "violet" },
   { to: "/business/manual-order", label: "ثبت سفارش دستی", icon: <ReceiptIcon size={20} />, accent: "pistachio" },
@@ -103,7 +103,7 @@ export function OwnerDashboardPage() {
           </div>
           <div className="owner-topbar-right">
             <span className="admin-topbar-period">۳۰ روز گذشته</span>
-            <Link to="/business/messages" className="notif-bell" aria-label="پیام‌ها">
+            <Link to="/business/reviews" className="notif-bell" aria-label="نظرات">
               <ChatIcon size={18} />
             </Link>
           </div>

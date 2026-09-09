@@ -21,7 +21,7 @@ test("customer actions are enabled for customers and owners viewing another busi
   assert.match(detail, /user\?\.role === "CUSTOMER"/);
   assert.match(detail, /business\.ownerUserId !== user\.id/);
   assert.match(detail, /canOrder=\{canUseCustomerActions\}/);
-  assert.match(reviews, /user\.id !== ownerUserId/);
+  assert.match(reviews, /user\.id!==ownerUserId/);
 });
 
 test("owner self-dealing controls are hidden", () => {
@@ -34,6 +34,6 @@ test("admin can browse but receives no customer transaction controls", () => {
   assert.match(nav, /user\?\.role === "ADMIN"/);
   assert.match(nav, /to="\/admin"/);
   assert.doesNotMatch(detail, /user\?\.role === "ADMIN".*canUseCustomerActions/);
-  assert.match(reviews, /user\?\.role === "ADMIN".*حذف توسط مدیر/);
+  assert.match(reviews, /user\?\.role==="ADMIN".*حذف توسط مدیر/);
   assert.match(offers, /const isCustomerActor = user\?\.role === "CUSTOMER" \|\| user\?\.role === "BUSINESS_OWNER"/);
 });

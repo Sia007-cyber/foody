@@ -20,6 +20,6 @@ export const ownerNavItems: DashboardNavItem[] = [
   { to: "/business/wallets", label: "مدیریت اعتبار", icon: <WalletIcon size={17} /> },
   { to: "/business/offers", label: "پیشنهادهای محدود", icon: <MegaphoneIcon size={17} /> },
   { to: "/business/discounts", label: "تخفیف‌ها", icon: <MegaphoneIcon size={17} /> },
-  { to: "/business/messages", label: "پیام‌ها", icon: <ChatIcon size={17} /> },
+  { to: "/business/reviews", label: "نظرات", icon: <ChatIcon size={17} /> },
   { to: "/business/reports", label: "گزارش فروش", icon: <ChartIcon size={17} /> },
 ];

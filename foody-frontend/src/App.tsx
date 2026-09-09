@@ -25,6 +25,7 @@ import { OwnerOrdersPage } from "./features/owner/OwnerOrdersPage";
 import { OwnerReservationsPage } from "./features/owner/OwnerReservationsPage";
 import { OwnerWalletPage } from "./features/owner/OwnerWalletPage";
 import { OwnerOffersPage } from "./features/owner/OwnerOffersPage";
+import { OwnerReviewsPage } from "./features/owner/OwnerReviewsPage";
 import { ProfilePage } from "./features/profile/ProfilePage";
 import { WalletPage } from "./features/wallet/WalletPage";
 import { RequireOwnerBusiness } from "./components/RequireOwnerBusiness";
@@ -41,7 +42,6 @@ import {
   ReceiptIcon,
   WalletIcon,
   MegaphoneIcon,
-  ChatIcon,
   ShieldIcon,
   ChartIcon,
   SettingsIcon,
@@ -97,6 +97,7 @@ export default function App() {
                     <Route path="/business/reservations" element={<OwnerReservationsPage />} />
                     <Route path="/business/wallets" element={<OwnerWalletPage />} />
                     <Route path="/business/offers" element={<OwnerOffersPage />} />
+                    <Route path="/business/reviews" element={<OwnerReviewsPage />} />
                     <Route
                       path="/business/discounts"
                       element={
@@ -105,17 +106,6 @@ export default function App() {
                           title="تخفیف‌ها"
                           icon={<MegaphoneIcon size={40} />}
                           description="ایجاد و مدیریت کدهای تخفیف برای مشتری‌های کافه‌ات به‌زودی اضافه خواهد شد."
-                        />
-                      }
-                    />
-                    <Route
-                      path="/business/messages"
-                      element={
-                        <ComingSoonFeaturePage
-                          navItems={ownerNavItems}
-                          title="پیام‌ها"
-                          icon={<ChatIcon size={40} />}
-                          description="ارسال پیام به مشتری‌ها و مشاهده‌ی گفتگوها به‌زودی اضافه خواهد شد."
                         />
                       }
                     />

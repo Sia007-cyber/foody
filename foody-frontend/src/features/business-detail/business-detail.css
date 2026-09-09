@@ -88,6 +88,18 @@
 .review-card-header h3 { font-size: 14px; font-weight: 750; }
 .review-card-header time { display: block; color: var(--ink-faint); font-size: 11px; margin-top: 4px; }
 .review-card-comment { color: var(--ink-soft); font-size: 13px; line-height: 1.8; margin-top: 14px; white-space: pre-wrap; }
+.review-card-mine { border-color: var(--ember); }
+.review-mine-label { margin-inline-start: 8px; color: var(--ember-deep); font-size: 11px; }
+.review-card-actions { display: flex; gap: 6px; margin-top: 12px; }
+.review-icon-button { width: 30px; height: 30px; display: grid; place-items: center; border: 1px solid var(--line); border-radius: 50%; background: var(--paper); }
+.review-icon-danger { color: var(--danger); }
+.review-write-button, .product-review-panel { margin-top: 14px; }
+.review-form-compact { max-width: 600px; padding: 16px; }
+.product-review-toggle { border: 0; background: transparent; color: var(--ember-deep); font-size: 12px; padding: 4px 0; }
+.product-review-panel { min-width: min(580px, 80vw); }
+.owner-review-sections { display: grid; gap: 32px; }
+.owner-review-sections h2 { margin-bottom: 14px; }
+.owner-product-review > strong { display: block; margin-bottom: 6px; color: var(--ember-deep); }
 .reviews-loading { min-height: 100px; display: grid; place-items: center; }
 .review-form {
   margin-top: 24px;
