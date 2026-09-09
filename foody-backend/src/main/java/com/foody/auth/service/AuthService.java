@@ -14,5 +14,7 @@ public interface AuthService {
 
     TokenResponse refresh(String refreshToken);
 
-    void logout();
+    void logout(String refreshToken);
+
+    void revokeAllRefreshSessions(Long userId);
 }

@@ -100,7 +100,8 @@ export function logout(): Promise<void> {
   const ticket = captureSession();
   // Dispatch using the captured token, outside the aborting session. Completion
   // cannot invalidate a later login and cannot trigger a refresh.
-  const request = authApi.logout(getAccessToken());
+  const refreshToken = getRefreshToken();
+  const request = refreshToken ? authApi.logout(refreshToken) : Promise.resolve();
   invalidateSession(ticket);
   void request.catch(() => { /* Best-effort server notification. */ });
   // Let existing logout navigation complete now, never after a later login.

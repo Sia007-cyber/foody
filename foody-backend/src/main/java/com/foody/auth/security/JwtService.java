@@ -7,6 +7,7 @@ import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import java.time.Instant;
 import java.util.Date;
+import java.util.UUID;
 import javax.crypto.SecretKey;
 import org.springframework.stereotype.Service;
 
@@ -16,8 +17,7 @@ import org.springframework.stereotype.Service;
  *  - access : short-lived (default 15 min), grants API access
  *  - refresh: long-lived (default 7 days), used only to mint a new access token
  *
- * Stateless by design: no token store. /logout is handled client-side (token drop).
- * Revocation of a single refresh token requires state (Phase 2+ work).
+ * Access tokens remain stateless. Refresh tokens are tracked by hash server-side.
  */
 @Service
 public class JwtService {
@@ -49,6 +49,7 @@ public class JwtService {
                 .claim(CLAIM_USER_ID, user.getId())
                 .claim(CLAIM_ROLE, user.getRole().name())
                 .claim(CLAIM_TYPE, type)
+                .id(UUID.randomUUID().toString())
                 .issuedAt(Date.from(now))
                 .expiration(Date.from(now.plusSeconds(ttlSeconds)))
                 .signWith(key)

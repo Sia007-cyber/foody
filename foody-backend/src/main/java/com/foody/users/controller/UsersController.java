@@ -10,12 +10,14 @@ import com.foody.users.repository.UserRepository;
 import com.foody.users.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import com.foody.auth.service.AuthService;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.transaction.annotation.Transactional;
 
 @RestController
 @RequestMapping("/api/users")
@@ -24,11 +26,14 @@ public class UsersController {
     private final UserService userService;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final AuthService authService;
 
-    public UsersController(UserService userService, UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public UsersController(UserService userService, UserRepository userRepository, PasswordEncoder passwordEncoder,
+                           AuthService authService) {
         this.userService = userService;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.authService = authService;
     }
 
     @GetMapping("/me")
@@ -38,6 +43,7 @@ public class UsersController {
     }
 
     @PatchMapping("/me")
+    @Transactional
     public UserResponse updateMe(@AuthenticationPrincipal FoodyUserPrincipal principal,
                                  @Valid @RequestBody UpdateProfileRequest request) {
         User user = userService.findById(principal.getUserId())
@@ -68,6 +74,7 @@ public class UsersController {
         }
         if (request.password() != null) {
             user.setPasswordHash(passwordEncoder.encode(request.password()));
+            authService.revokeAllRefreshSessions(user.getId());
         }
         user = userService.save(user);
         return UserResponse.from(user);

@@ -11,6 +11,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.foody.auth.security.FoodyUserPrincipal;
+import com.foody.auth.service.AuthService;
 import com.foody.common.exception.GlobalExceptionHandler;
 import com.foody.users.entity.User;
 import com.foody.users.entity.UserRole;
@@ -49,7 +50,8 @@ class UsersControllerTest {
 
     @BeforeEach
     void setUp() {
-        UsersController controller = new UsersController(userService, userRepository, passwordEncoder);
+        UsersController controller = new UsersController(userService, userRepository, passwordEncoder,
+                org.mockito.Mockito.mock(AuthService.class));
 
         principalUser = new User();
         principalUser.setId(USER_ID);

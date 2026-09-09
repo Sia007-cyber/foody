@@ -13,6 +13,8 @@ import com.foody.auth.dto.LoginRequest;
 import com.foody.auth.dto.RegisterRequest;
 import com.foody.auth.dto.TokenResponse;
 import com.foody.auth.security.JwtService;
+import com.foody.auth.repository.RefreshTokenSessionRepository;
+import com.foody.auth.entity.RefreshTokenSession;
 import com.foody.common.exception.DuplicateResourceException;
 import com.foody.common.exception.InvalidCredentialsException;
 import com.foody.common.exception.InvalidRequestException;
@@ -22,6 +24,8 @@ import com.foody.users.entity.UserStatus;
 import com.foody.users.service.UserService;
 import io.jsonwebtoken.Claims;
 import java.util.Optional;
+import java.time.Instant;
+import java.util.Date;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -36,6 +40,7 @@ class AuthServiceImplTest {
     @Mock JwtService jwtService;
     @Mock PasswordEncoder passwordEncoder;
     @Mock JwtProperties jwtProperties;
+    @Mock RefreshTokenSessionRepository refreshTokenRepository;
 
     AuthServiceImpl authService;
     final String ACCESS = "access.jwt.token";
@@ -43,11 +48,16 @@ class AuthServiceImplTest {
 
     @BeforeEach
     void setUp() {
-        authService = new AuthServiceImpl(userService, jwtService, passwordEncoder, jwtProperties);
+        authService = new AuthServiceImpl(userService, jwtService, passwordEncoder, jwtProperties,
+                refreshTokenRepository);
         // lenient: not every test exercises token issuance.
         org.mockito.Mockito.lenient().when(jwtProperties.getAccessTokenTtlMinutes()).thenReturn(15L);
         org.mockito.Mockito.lenient().when(jwtService.generateAccessToken(any())).thenReturn(ACCESS);
         org.mockito.Mockito.lenient().when(jwtService.generateRefreshToken(any())).thenReturn(REFRESH);
+        Claims generatedClaims = org.mockito.Mockito.mock(Claims.class);
+        org.mockito.Mockito.lenient().when(generatedClaims.getExpiration())
+                .thenReturn(Date.from(Instant.now().plusSeconds(3600)));
+        org.mockito.Mockito.lenient().when(jwtService.parse(REFRESH)).thenReturn(generatedClaims);
     }
 
     @Test
@@ -140,7 +150,12 @@ class AuthServiceImplTest {
         when(jwtService.isRefreshToken(claims)).thenReturn(true);
         when(jwtService.getUserId(claims)).thenReturn(1L);
         User user = makeUser(1L, UserStatus.ACTIVE);
-        when(userService.findById(1L)).thenReturn(Optional.of(user));
+        when(claims.getExpiration()).thenReturn(Date.from(Instant.now().plusSeconds(3600)));
+        RefreshTokenSession session = new RefreshTokenSession();
+        session.setUser(user);
+        session.setTokenHash("stored");
+        session.setExpiresAt(Instant.now().plusSeconds(3600));
+        when(refreshTokenRepository.findByTokenHashForUpdate(any())).thenReturn(Optional.of(session));
 
         TokenResponse resp = authService.refresh(REFRESH);
 
@@ -163,8 +178,9 @@ class AuthServiceImplTest {
         Claims claims = org.mockito.Mockito.mock(Claims.class);
         when(jwtService.parse(REFRESH)).thenReturn(claims);
         when(jwtService.isRefreshToken(claims)).thenReturn(true);
+        RefreshTokenSession session = sessionFor(makeUser(1L, UserStatus.SUSPENDED));
+        when(refreshTokenRepository.findByTokenHashForUpdate(any())).thenReturn(Optional.of(session));
         when(jwtService.getUserId(claims)).thenReturn(1L);
-        when(userService.findById(1L)).thenReturn(Optional.of(makeUser(1L, UserStatus.SUSPENDED)));
 
         assertThatThrownBy(() -> authService.refresh(REFRESH))
                 .isInstanceOf(InvalidCredentialsException.class);
@@ -177,8 +193,6 @@ class AuthServiceImplTest {
         Claims claims = org.mockito.Mockito.mock(Claims.class);
         when(jwtService.parse(REFRESH)).thenReturn(claims);
         when(jwtService.isRefreshToken(claims)).thenReturn(true);
-        when(jwtService.getUserId(claims)).thenReturn(1L);
-        when(userService.findById(1L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> authService.refresh(REFRESH))
                 .isInstanceOf(InvalidCredentialsException.class);
@@ -191,6 +205,8 @@ class AuthServiceImplTest {
         Claims claims = org.mockito.Mockito.mock(Claims.class);
         when(jwtService.parse(REFRESH)).thenReturn(claims);
         when(jwtService.isRefreshToken(claims)).thenReturn(true);
+        when(refreshTokenRepository.findByTokenHashForUpdate(any()))
+                .thenReturn(Optional.of(sessionFor(makeUser(1L, UserStatus.ACTIVE))));
         when(jwtService.getUserId(claims)).thenReturn(null);
 
         assertThatThrownBy(() -> authService.refresh(REFRESH))
@@ -209,5 +225,13 @@ class AuthServiceImplTest {
         u.setRole(UserRole.CUSTOMER);
         u.setStatus(status);
         return u;
+    }
+
+    private RefreshTokenSession sessionFor(User user) {
+        RefreshTokenSession session = new RefreshTokenSession();
+        session.setUser(user);
+        session.setTokenHash("stored");
+        session.setExpiresAt(Instant.now().plusSeconds(3600));
+        return session;
     }
 }

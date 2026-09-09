@@ -37,7 +37,7 @@ public class AuthController {
     }
 
     @PostMapping("/logout")
-    public void logout() {
-        authService.logout();
+    public void logout(@Valid @RequestBody RefreshRequest request) {
+        authService.logout(request.refreshToken());
     }
 }

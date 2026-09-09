@@ -238,13 +238,14 @@ for (const kind of ['login', 'register']) {
   });
 }
 
-test('logout clears immediately, calls server with A token, and late completion cannot log out B', async () => {
+test('logout clears immediately, revokes A refresh token, and late completion cannot log out B', async () => {
   establish();
   queryClient.setQueryData(['orders'], { owner: 1 });
   const server = deferred();
   globalThis.fetch = async (url, options) => {
     assert.ok(url.endsWith('/logout'));
-    assert.equal(options.headers.Authorization, 'Bearer 1-access');
+    assert.equal(options.headers.Authorization, undefined);
+    assert.deepEqual(JSON.parse(options.body), { refreshToken: '1-refresh' });
     assert.equal(options.signal, undefined);
     return server.promise;
   };

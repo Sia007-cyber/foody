@@ -24,8 +24,8 @@ export const authApi = {
   register: (payload: RegisterPayload, signal?: AbortSignal) =>
     apiRequest<TokenResponse>("/api/auth/register", { method: "POST", body: payload, auth: false, signal }),
 
-  logout: (accessToken: string | null) =>
-    apiRequest<void>("/api/auth/logout", { method: "POST", auth: false, bearerToken: accessToken }),
+  logout: (refreshToken: string) =>
+    apiRequest<void>("/api/auth/logout", { method: "POST", auth: false, body: { refreshToken } }),
 
   me: () => apiRequest<User>("/api/users/me"),
 
