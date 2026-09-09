@@ -13,8 +13,13 @@ import com.foody.reservations.dto.ReservationAvailabilityResponse;
 import com.foody.reservations.dto.ReservationResponse;
 import com.foody.reservations.entity.Reservation;
 import com.foody.reservations.entity.ReservationStatus;
+import com.foody.reservations.repository.BusinessHoursRepository;
+import com.foody.reservations.repository.BusinessHoursView;
 import com.foody.reservations.repository.ReservationRepository;
+import java.time.Clock;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -38,14 +43,20 @@ class ReservationServiceImpl implements ReservationService {
     );
 
     private final ReservationRepository reservationRepository;
+    private final BusinessHoursRepository businessHoursRepository;
     private final BusinessService businessService;
     private final NotificationService notificationService;
+    private final Clock clock;
 
-    ReservationServiceImpl(ReservationRepository reservationRepository, BusinessService businessService,
-                           NotificationService notificationService) {
+    ReservationServiceImpl(ReservationRepository reservationRepository,
+                           BusinessHoursRepository businessHoursRepository,
+                           BusinessService businessService, NotificationService notificationService,
+                           Clock clock) {
         this.reservationRepository = reservationRepository;
+        this.businessHoursRepository = businessHoursRepository;
         this.businessService = businessService;
         this.notificationService = notificationService;
+        this.clock = clock;
     }
 
     @Override
@@ -54,9 +65,7 @@ class ReservationServiceImpl implements ReservationService {
         Business business = businessService.findByIdAndStatus(request.businessId(), BusinessStatus.APPROVED)
                 .orElseThrow(() -> new ResourceNotFoundException("Business not found: " + request.businessId()));
 
-        if (request.date().isBefore(LocalDate.now())) {
-            throw new InvalidRequestException("Reservation date cannot be in the past");
-        }
+        validateReservationTime(business.getId(), request.date(), request.time());
 
         Reservation reservation = new Reservation();
         reservation.setBusinessId(business.getId());
@@ -74,6 +83,27 @@ class ReservationServiceImpl implements ReservationService {
                 "RESERVATION", saved.getId());
 
         return ReservationResponse.from(saved);
+    }
+
+    private void validateReservationTime(Long businessId, LocalDate date, LocalTime time) {
+        LocalDateTime requestedAt = LocalDateTime.of(date, time);
+        if (requestedAt.isBefore(LocalDateTime.now(clock))) {
+            throw new InvalidRequestException("Reservation date and time cannot be in the past");
+        }
+
+        List<BusinessHoursView> hours = businessHoursRepository.findForDay(
+                businessId, date.getDayOfWeek().getValue());
+        // The existing owner flow does not configure hours. Preserve reservations for
+        // such businesses, while enforcing every hours record that is present.
+        if (hours.isEmpty()) {
+            return;
+        }
+        boolean withinOpenHours = hours.stream().anyMatch(day -> !day.getClosed()
+                && day.getOpenTime() != null && day.getCloseTime() != null
+                && !time.isBefore(day.getOpenTime()) && time.isBefore(day.getCloseTime()));
+        if (!withinOpenHours) {
+            throw new InvalidRequestException("Reservation time is outside the business's opening hours");
+        }
     }
 
     @Override

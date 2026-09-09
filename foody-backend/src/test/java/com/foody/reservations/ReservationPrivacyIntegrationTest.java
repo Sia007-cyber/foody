@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -30,6 +31,7 @@ import org.junit.jupiter.params.provider.EnumSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
@@ -46,6 +48,7 @@ class ReservationPrivacyIntegrationTest extends AbstractContainerBaseTest {
     @Autowired UserRepository userRepository;
     @Autowired BusinessRepository businessRepository;
     @Autowired ReservationRepository reservationRepository;
+    @Autowired JdbcTemplate jdbcTemplate;
 
     User customer;
     User otherCustomer;
@@ -114,6 +117,28 @@ class ReservationPrivacyIntegrationTest extends AbstractContainerBaseTest {
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
         assertThat(objectMapper.readTree(emptyResponse)).isEqualTo(objectMapper.readTree(response));
+    }
+
+    @Test
+    void customerCanCreateReservationWithinConfiguredBusinessHours() throws Exception {
+        jdbcTemplate.update("""
+                INSERT INTO business_hours (business_id, day_of_week, open_time, close_time, is_closed)
+                VALUES (?, ?, '08:00', '20:00', FALSE)
+                """, business.getId(), date.getDayOfWeek().getValue());
+
+        mockMvc.perform(post("/api/reservations")
+                        .header("Authorization", bearer(customer))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(Map.of(
+                                "businessId", business.getId(),
+                                "date", date.toString(),
+                                "time", "18:00",
+                                "guestCount", 2))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.businessId").value(business.getId()))
+                .andExpect(jsonPath("$.date").value(date.toString()))
+                .andExpect(jsonPath("$.time").value("18:00:00"))
+                .andExpect(jsonPath("$.status").value("PENDING"));
     }
 
     @Test

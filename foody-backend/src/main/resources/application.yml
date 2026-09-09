@@ -26,6 +26,10 @@ server:
   port: ${PORT:8080}
 
 foody:
+  reservations:
+    # Reservation date/time values are local business time. Keep validation independent
+    # of the host (including Render), while allowing an explicit deployment override.
+    time-zone: ${FOODY_BUSINESS_TIME_ZONE:Asia/Tehran}
   jwt:
     # Development/test fallback only. The prod profile overrides this with no fallback,
     # and JwtConfig rejects this known value if it is supplied explicitly in production.

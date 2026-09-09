@@ -18,9 +18,15 @@ import com.foody.reservations.dto.ReservationAvailabilityResponse;
 import com.foody.reservations.dto.ReservationResponse;
 import com.foody.reservations.entity.Reservation;
 import com.foody.reservations.entity.ReservationStatus;
+import com.foody.reservations.repository.BusinessHoursRepository;
+import com.foody.reservations.repository.BusinessHoursView;
 import com.foody.reservations.repository.ReservationRepository;
+import java.time.Clock;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.ZoneId;
+import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -32,6 +38,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class ReservationServiceImplTest {
 
     @Mock ReservationRepository reservationRepository;
+    @Mock BusinessHoursRepository businessHoursRepository;
     @Mock BusinessService businessService;
     @Mock NotificationService notificationService;
 
@@ -39,10 +46,14 @@ class ReservationServiceImplTest {
 
     static final Long CUSTOMER_ID = 1L;
     static final Long BUSINESS_ID = 10L;
+    static final ZoneId BUSINESS_ZONE = ZoneId.of("Asia/Tehran");
+    static final Clock FIXED_CLOCK = Clock.fixed(Instant.parse("2026-09-09T08:30:00Z"), BUSINESS_ZONE);
+    static final LocalDate TODAY = LocalDate.of(2026, 9, 9);
 
     @BeforeEach
     void setUp() {
-        reservationService = new ReservationServiceImpl(reservationRepository, businessService, notificationService);
+        reservationService = new ReservationServiceImpl(
+                reservationRepository, businessHoursRepository, businessService, notificationService, FIXED_CLOCK);
     }
 
     private Business approvedBusiness() {
@@ -59,7 +70,7 @@ class ReservationServiceImplTest {
         when(reservationRepository.save(any(Reservation.class))).thenAnswer(inv -> inv.getArgument(0));
 
         CreateReservationRequest request = new CreateReservationRequest(
-                BUSINESS_ID, LocalDate.now().plusDays(1), LocalTime.of(19, 0), 4);
+                BUSINESS_ID, TODAY.plusDays(1), LocalTime.of(19, 0), 4);
 
         ReservationResponse response = reservationService.createReservation(CUSTOMER_ID, request);
 
@@ -74,10 +85,101 @@ class ReservationServiceImplTest {
                 .thenReturn(Optional.of(approvedBusiness()));
 
         CreateReservationRequest request = new CreateReservationRequest(
-                BUSINESS_ID, LocalDate.now().minusDays(1), LocalTime.of(19, 0), 2);
+                BUSINESS_ID, TODAY.minusDays(1), LocalTime.of(19, 0), 2);
 
         assertThatThrownBy(() -> reservationService.createReservation(CUSTOMER_ID, request))
                 .isInstanceOf(InvalidRequestException.class);
+    }
+
+    @Test
+    void createReservation_rejectsSameDayPastTime() {
+        when(businessService.findByIdAndStatus(BUSINESS_ID, BusinessStatus.APPROVED))
+                .thenReturn(Optional.of(approvedBusiness()));
+
+        CreateReservationRequest request = new CreateReservationRequest(
+                BUSINESS_ID, TODAY, LocalTime.of(11, 59), 2);
+
+        assertThatThrownBy(() -> reservationService.createReservation(CUSTOMER_ID, request))
+                .isInstanceOf(InvalidRequestException.class);
+    }
+
+    @Test
+    void createReservation_acceptsSameDayFutureTimeWhenOtherwiseValid() {
+        stubSuccessfulCreation();
+        when(businessHoursRepository.findForDay(BUSINESS_ID, TODAY.getDayOfWeek().getValue()))
+                .thenReturn(List.of(hours(LocalTime.of(8, 0), LocalTime.of(20, 0), false)));
+
+        ReservationResponse response = reservationService.createReservation(CUSTOMER_ID,
+                new CreateReservationRequest(BUSINESS_ID, TODAY, LocalTime.of(13, 0), 2));
+
+        assertThat(response.date()).isEqualTo(TODAY);
+        assertThat(response.time()).isEqualTo(LocalTime.of(13, 0));
+    }
+
+    @Test
+    void createReservation_acceptsFutureDateWhenOtherwiseValid() {
+        LocalDate futureDate = TODAY.plusDays(2);
+        stubSuccessfulCreation();
+        when(businessHoursRepository.findForDay(BUSINESS_ID, futureDate.getDayOfWeek().getValue()))
+                .thenReturn(List.of(hours(LocalTime.of(8, 0), LocalTime.of(20, 0), false)));
+
+        ReservationResponse response = reservationService.createReservation(CUSTOMER_ID,
+                new CreateReservationRequest(BUSINESS_ID, futureDate, LocalTime.of(19, 0), 2));
+
+        assertThat(response.date()).isEqualTo(futureDate);
+    }
+
+    @Test
+    void createReservation_rejectsClosedBusinessDay() {
+        when(businessService.findByIdAndStatus(BUSINESS_ID, BusinessStatus.APPROVED))
+                .thenReturn(Optional.of(approvedBusiness()));
+        LocalDate futureDate = TODAY.plusDays(1);
+        when(businessHoursRepository.findForDay(BUSINESS_ID, futureDate.getDayOfWeek().getValue()))
+                .thenReturn(List.of(hours(LocalTime.MIDNIGHT, LocalTime.MIDNIGHT, true)));
+
+        assertThatThrownBy(() -> reservationService.createReservation(CUSTOMER_ID,
+                new CreateReservationRequest(BUSINESS_ID, futureDate, LocalTime.NOON, 2)))
+                .isInstanceOf(InvalidRequestException.class);
+    }
+
+    @Test
+    void createReservation_rejectsOutsideBusinessHours() {
+        when(businessService.findByIdAndStatus(BUSINESS_ID, BusinessStatus.APPROVED))
+                .thenReturn(Optional.of(approvedBusiness()));
+        LocalDate futureDate = TODAY.plusDays(1);
+        when(businessHoursRepository.findForDay(BUSINESS_ID, futureDate.getDayOfWeek().getValue()))
+                .thenReturn(List.of(hours(LocalTime.of(8, 0), LocalTime.of(20, 0), false)));
+
+        assertThatThrownBy(() -> reservationService.createReservation(CUSTOMER_ID,
+                new CreateReservationRequest(BUSINESS_ID, futureDate, LocalTime.of(20, 0), 2)))
+                .isInstanceOf(InvalidRequestException.class);
+    }
+
+    @Test
+    void createReservation_succeedsWithinBusinessHours() {
+        LocalDate futureDate = TODAY.plusDays(1);
+        stubSuccessfulCreation();
+        when(businessHoursRepository.findForDay(BUSINESS_ID, futureDate.getDayOfWeek().getValue()))
+                .thenReturn(List.of(hours(LocalTime.of(8, 0), LocalTime.of(20, 0), false)));
+
+        ReservationResponse response = reservationService.createReservation(CUSTOMER_ID,
+                new CreateReservationRequest(BUSINESS_ID, futureDate, LocalTime.of(19, 0), 2));
+
+        assertThat(response.status()).isEqualTo(ReservationStatus.PENDING);
+    }
+
+    private void stubSuccessfulCreation() {
+        when(businessService.findByIdAndStatus(BUSINESS_ID, BusinessStatus.APPROVED))
+                .thenReturn(Optional.of(approvedBusiness()));
+        when(reservationRepository.save(any(Reservation.class))).thenAnswer(inv -> inv.getArgument(0));
+    }
+
+    private BusinessHoursView hours(LocalTime open, LocalTime close, boolean closed) {
+        return new BusinessHoursView() {
+            public LocalTime getOpenTime() { return open; }
+            public LocalTime getCloseTime() { return close; }
+            public boolean getClosed() { return closed; }
+        };
     }
 
     @Test
@@ -86,7 +188,7 @@ class ReservationServiceImplTest {
                 .thenReturn(Optional.empty());
 
         CreateReservationRequest request = new CreateReservationRequest(
-                BUSINESS_ID, LocalDate.now().plusDays(1), LocalTime.of(19, 0), 2);
+                BUSINESS_ID, TODAY.plusDays(1), LocalTime.of(19, 0), 2);
 
         assertThatThrownBy(() -> reservationService.createReservation(CUSTOMER_ID, request))
                 .isInstanceOf(ResourceNotFoundException.class);
