@@ -104,12 +104,35 @@ There is intentionally no public admin-registration or permanent bootstrap endpo
 
 The wallet domain remains intentionally role-specific: customer-wallet records and `public_id` lookup support only `CUSTOMER` users. This role correction does not create BUSINESS_OWNER customer wallets. Existing owner/admin business-wallet operations remain unchanged, including immutable ledger entries, actor tracking, and immediate ADMIN credit/debit without customer confirmation.
 
+## Temporary Render/Vercel Client Demo
+
+This temporary client-demo mechanism is explicitly opt-in and must never be enabled for the final VPS production deployment. The historical migrations remain unchanged: V2 seeded only the owner and Cafe Sunrise; V5 seeded only the admin; there is no seeded CUSTOMER account to restore.
+
+Set these Render backend environment variables only for the temporary client-demo deployment:
+
+| Variable | Value |
+| --- | --- |
+| `FOODY_DEMO_ACCOUNTS_ENABLED` | `true` |
+| `FOODY_DEMO_OWNER_PASSWORD` | `Owner123!` |
+| `FOODY_DEMO_ADMIN_PASSWORD` | `Admin123!` |
+
+Temporary demo logins:
+
+| Role | Email | Password |
+| --- | --- | --- |
+| BUSINESS_OWNER | `owner@foody.test` | `Owner123!` |
+| ADMIN | `admin@foody.test` | `Admin123!` |
+
+On startup with all three variables above, Foody verifies the original IDs, email addresses, roles, and the V8-updated `کافه سان‌رایز` identity before restoring only those two accounts. It uses the application password encoder, revokes active refresh sessions before reuse, and changes that existing business record back to `APPROVED`. It never creates an admin endpoint, changes V19, or creates duplicate users/businesses.
+
+If `FOODY_DEMO_ACCOUNTS_ENABLED` is absent, false, or lacks either required password variable, the two accounts remain suspended with disabled hashes and Cafe Sunrise remains suspended/non-public. Before the final VPS deployment, remove `FOODY_DEMO_ACCOUNTS_ENABLED`, remove both demo password variables, and create the real administrator through the guarded procedure above.
+
 ## Demo seed verification
 
 V2/V5 initially inserted `owner@foody.test` and `admin@foody.test`. V19 deliberately keeps their rows for historical/FK reasons, but targets the original ID-and-email pairs, sets `status='SUSPENDED'`, replaces the password hash with a disabled marker, revokes unrevoked refresh sessions, and suspends the seeded owner business.
 
 - **Record existence:** expected for referential integrity.
-- **Authentication capability:** unavailable; the disabled hash and suspended status both prevent authentication. `AuthFlowIntegrationTest.seededBusiness_isNotPublic` verifies both known credential pairs return 401.
+- **Authentication capability:** unavailable by default; the disabled hash and suspended status both prevent authentication. The temporary Render/Vercel mechanism above is the sole explicit exception. `AuthFlowIntegrationTest.seededBusiness_isNotPublic` verifies the default 401 behavior.
 - **Public visibility:** the seeded business is absent from public browse/detail APIs because only `APPROVED` businesses are public; that test verifies `GET /api/businesses/1` is 404. There is no public user-directory endpoint.
 
 Before cutover, inspect for renamed/copied demo accounts or other fabricated data; V19 cannot identify records no longer matching its original ID/email predicate.
