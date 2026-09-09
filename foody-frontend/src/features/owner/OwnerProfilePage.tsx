@@ -73,9 +73,8 @@ export function OwnerProfilePage() {
     const ticket = captureSession();
     setUploadingCover(true);
     try {
-      const { url } = await businessApi.uploadCoverImage(file);
+      await businessApi.uploadCoverImage(file);
       assertSession(ticket);
-      await businessApi.updateMyProfile({ coverImageUrl: url });
       queryClient.invalidateQueries({ queryKey: ["business", "profile"] });
       notify("عکس کسب‌وکار به‌روز شد", "ok");
     } catch (err) {

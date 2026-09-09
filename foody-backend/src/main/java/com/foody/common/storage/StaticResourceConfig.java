@@ -3,11 +3,13 @@ package com.foody.common.storage;
 import java.nio.file.Paths;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 /** Exposes uploaded files (profile pictures, later business cover images) at /uploads/**. */
 @Configuration
+@Profile({"local", "tc"})
 public class StaticResourceConfig implements WebMvcConfigurer {
 
     private final String uploadDir;

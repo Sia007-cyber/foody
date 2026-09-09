@@ -9,6 +9,7 @@ import com.foody.products.dto.CreateProductRequest;
 import com.foody.products.dto.UpdateProductRequest;
 import com.foody.products.entity.Product;
 import com.foody.products.repository.ProductRepository;
+import com.foody.common.storage.ImageReplacement;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.stereotype.Service;
@@ -77,7 +78,10 @@ class ProductServiceImpl implements ProductService {
         if (request.name() != null) product.setName(request.name());
         if (request.description() != null) product.setDescription(request.description());
         if (request.price() != null) product.setPrice(request.price());
-        if (request.imageUrl() != null) product.setImageUrl(request.imageUrl());
+        if (request.imageUrl() != null) {
+            throw new com.foody.common.exception.InvalidRequestException(
+                    "Use /api/business/products/{id}/image to replace the product image");
+        }
         if (request.isAvailable() != null) product.setIsAvailable(request.isAvailable());
         if (request.displayOrder() != null) product.setDisplayOrder(request.displayOrder());
 
@@ -86,7 +90,18 @@ class ProductServiceImpl implements ProductService {
 
     @Override
     @Transactional
-    public void deleteProduct(Long ownerUserId, Long productId) {
+    public ImageReplacement<Product> replaceProductImage(Long ownerUserId, Long productId, String imageUrl) {
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new ResourceNotFoundException("Product not found: " + productId));
+        requireOwnedMenu(ownerUserId, product.getMenuId());
+        String previous = product.getImageUrl();
+        product.setImageUrl(imageUrl);
+        return new ImageReplacement<>(productRepository.saveAndFlush(product), previous);
+    }
+
+    @Override
+    @Transactional
+    public String deleteProduct(Long ownerUserId, Long productId) {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new ResourceNotFoundException("Product not found: " + productId));
 
@@ -94,6 +109,8 @@ class ProductServiceImpl implements ProductService {
         requireOwnedMenu(ownerUserId, product.getMenuId());
 
         productRepository.delete(product);
+        productRepository.flush();
+        return product.getImageUrl();
     }
 
     private Menu requireOwnedMenu(Long ownerUserId, Long menuId) {

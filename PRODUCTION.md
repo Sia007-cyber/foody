@@ -24,7 +24,11 @@ Set these environment variables explicitly:
 | `DB_USERNAME`, `DB_PASSWORD` | Database credentials with migration DDL and runtime DML permissions |
 | `FOODY_JWT_SECRET` | Unique random Base64 secret decoding to at least 32 bytes; generate with `openssl rand -base64 32` |
 | `FOODY_CORS_ALLOWED_ORIGINS` | Exact HTTPS frontend origins, comma-separated, no trailing slashes or wildcard |
-| `FOODY_UPLOAD_DIR` | Absolute path inside an externally provisioned persistent mount |
+| `FOODY_STORAGE_BUCKET` | S3-compatible bucket name |
+| `FOODY_STORAGE_REGION` | Provider region; use the provider's documented value (R2 commonly uses `auto`) |
+| `FOODY_STORAGE_ENDPOINT` | Optional custom HTTPS S3 endpoint; leave empty for AWS S3 |
+| `FOODY_STORAGE_ACCESS_KEY`, `FOODY_STORAGE_SECRET_KEY` | S3-compatible API credentials stored only as Render secrets |
+| `FOODY_STORAGE_PUBLIC_BASE_URL` | Public HTTPS bucket/custom-domain prefix used in persisted image URLs |
 | `FOODY_BUSINESS_TIME_ZONE` | Optional; defaults to `Asia/Tehran` for reservation validation |
 
 The JDBC URL enforces `sslMode=VERIFY_IDENTITY`: encrypted transport, trusted certificate,
@@ -37,7 +41,8 @@ cannot establish that live TLS configuration is correct.
 
 The browser uses an explicit HTTPS API origin. No application-generated absolute redirects,
 cookie auth, or request-scheme-dependent URLs currently require forwarded-header handling.
-Uploaded image responses use relative `/uploads/...` paths; the frontend resolves them against the API origin.
+Production image responses are stable absolute URLs under `FOODY_STORAGE_PUBLIC_BASE_URL`.
+Development/test local image responses remain relative `/uploads/...` paths, which the frontend resolves against the API origin.
 
 There is no Actuator dependency: `/actuator/health` is not implemented, despite its security allowlist.
 Use the existing public database-backed `GET /api/businesses` as the Render HTTP health-check path.
@@ -63,18 +68,35 @@ This is an operator task; no administrator password is committed or auto-generat
 
 ## Uploaded images
 
-Uploads are actively used by profile, business cover, and product forms. The implementation writes
-only to local disk and serves the files publicly. Render's default filesystem loses those files on
-replacement/redeployment. Setting an absolute path does not provision a persistent disk.
+Production requires an S3-compatible public-image bucket and never creates a local-storage fallback.
+Missing or invalid production storage values fail startup. Standard AWS S3 works without a custom
+endpoint; R2, B2, and other compatible services use `FOODY_STORAGE_ENDPOINT`. Objects are stored under
+generated `profiles/`, `business-covers/`, and `products/` keys. The application never uses client filenames.
 
-Before production, attach and back up a persistent Render disk mounted at `FOODY_UPLOAD_DIR`, or
-choose and implement durable object storage in a separate authorized infrastructure task. No new
-provider has been introduced. Copy any existing files that must survive into the durable store.
-The current disk approach assumes one backend instance with that mount; it is not shared object storage.
+Example Cloudflare R2 shape (placeholders only):
+
+```text
+FOODY_STORAGE_BUCKET=foody-public-images
+FOODY_STORAGE_REGION=auto
+FOODY_STORAGE_ENDPOINT=https://<account-id>.r2.cloudflarestorage.com
+FOODY_STORAGE_ACCESS_KEY=<render-secret>
+FOODY_STORAGE_SECRET_KEY=<render-secret>
+FOODY_STORAGE_PUBLIC_BASE_URL=https://media.example.com
+```
+
+Configure the bucket/custom domain for public reads and restrict the credentials to the required object
+operations for this bucket. Profile, cover, and existing-product replacements commit the new URL before
+removing the prior managed object. Failed database replacements retain the prior URL and clean up the new object.
+Deleting a product also removes its directly associated managed image after the database deletion commits.
+Unknown legacy/external URLs are never deleted automatically.
+
+The `local` and `tc` profiles use `FOODY_UPLOAD_DIR` (default `./uploads`) and serve `/uploads/**` from disk.
+Local storage is intentionally unavailable under `prod`. Existing local `/uploads/...` database URLs are
+preserved but must be migrated operationally if those images need to remain visible after production cutover.
 
 ## Before PWA/mobile
 
-Complete the storage, administrator and live HTTPS/CORS/database verification above, then perform
+Complete bucket provisioning, administrator and live HTTPS/CORS/database verification above, then perform
 customer/owner/admin browser acceptance on the deployed web app. No present SPA architecture issue
 requires a redesign before PWA work. Offline behavior, private-data caching, installability, service
 workers, push delivery, and native packaging require separate decisions and implementation.

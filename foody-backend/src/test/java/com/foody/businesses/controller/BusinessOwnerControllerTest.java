@@ -5,6 +5,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -15,6 +16,8 @@ import com.foody.businesses.entity.Business;
 import com.foody.businesses.entity.BusinessStatus;
 import com.foody.businesses.service.BusinessService;
 import com.foody.common.exception.GlobalExceptionHandler;
+import com.foody.common.storage.ImageUploadService;
+import com.foody.common.storage.ImageReplacement;
 import com.foody.users.entity.User;
 import com.foody.users.entity.UserRole;
 import com.foody.users.entity.UserStatus;
@@ -26,6 +29,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.bind.support.WebDataBinderFactory;
@@ -44,13 +48,14 @@ class BusinessOwnerControllerTest {
     static final Long OWNER_ID = 1L;
 
     @Mock BusinessService businessService;
+    @Mock ImageUploadService imageUploadService;
 
     MockMvc mockMvc;
     ObjectMapper objectMapper = new ObjectMapper();
 
     @BeforeEach
     void setUp() {
-        BusinessOwnerController controller = new BusinessOwnerController(businessService);
+        BusinessOwnerController controller = new BusinessOwnerController(businessService, imageUploadService);
 
         User user = new User();
         user.setId(OWNER_ID);
@@ -121,5 +126,25 @@ class BusinessOwnerControllerTest {
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.name").value("Renamed Cafe"));
+    }
+
+    @Test
+    void coverReplacementUpdatesUrlAndDeletesOldOnlyAfterSuccess() throws Exception {
+        String next = "https://media.example/business-covers/new.jpg";
+        Business updated = sampleBusiness();
+        updated.setCoverImageUrl(next);
+        when(imageUploadService.store(any(), any())).thenReturn(
+                new ImageUploadService.StoredUpload("business-covers/new.jpg", next));
+        when(businessService.replaceCoverImage(OWNER_ID, next)).thenReturn(
+                new ImageReplacement<>(updated, "https://media.example/business-covers/old.jpg"));
+
+        mockMvc.perform(multipart("/api/business/profile/cover-image").file(
+                        new MockMultipartFile("file", "cover.jpg", "image/jpeg",
+                                new byte[]{(byte) 0xff, (byte) 0xd8, (byte) 0xff, 1})))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.coverImageUrl").value(next));
+
+        var ordered = org.mockito.Mockito.inOrder(businessService, imageUploadService);
+        ordered.verify(businessService).replaceCoverImage(OWNER_ID, next);
+        ordered.verify(imageUploadService).deleteManagedUrl("https://media.example/business-covers/old.jpg");
     }
 }

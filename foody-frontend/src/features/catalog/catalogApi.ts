@@ -30,7 +30,8 @@ export const productApi = {
   // the caller still needs to send that URL as imageUrl on create/update. Reuses
   // the same generic image-upload endpoint the profile picture and business
   // cover photo use.
-  uploadImage: (file: File) => apiUpload<{ url: string }>("/api/uploads/image", file),
+  uploadImage: (file: File) => apiUpload<{ url: string }>("/api/uploads/product-image", file),
+  replaceImage: (id: number, file: File) => apiUpload<Product>(`/api/business/products/${id}/image`, file),
 
   create: (payload: {
     menuId: number;

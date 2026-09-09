@@ -300,9 +300,11 @@ function MenuBlock({ menu, businessId }: { menu: Menu; businessId: number }) {
 function ProductImagePicker({
   imageUrl,
   onChange,
+  upload = productApi.uploadImage,
 }: {
   imageUrl: string;
   onChange: (url: string) => void;
+  upload?: (file: File) => Promise<{ url: string }>;
 }) {
   const { notify } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -316,7 +318,7 @@ function ProductImagePicker({
 
     setUploading(true);
     try {
-      const { url } = await productApi.uploadImage(file);
+      const { url } = await upload(file);
       onChange(url);
     } catch (err) {
       notify(errorMessage(err), "danger");
@@ -435,7 +437,6 @@ function EditProductModal({
         name,
         description,
         price: Number(price),
-        imageUrl,
         isAvailable,
       }),
     onSuccess: () => {
@@ -463,7 +464,15 @@ function EditProductModal({
 
         <Input label="نام محصول" required value={name} onChange={(e) => setName(e.target.value)} />
         <Textarea label="توضیحات" value={description} onChange={(e) => setDescription(e.target.value)} />
-        <ProductImagePicker imageUrl={imageUrl} onChange={setImageUrl} />
+        <ProductImagePicker
+          imageUrl={imageUrl}
+          onChange={setImageUrl}
+          upload={async (file) => {
+            const updated = await productApi.replaceImage(product.id, file);
+            queryClient.invalidateQueries({ queryKey: ["products"] });
+            return { url: updated.imageUrl ?? "" };
+          }}
+        />
         <Input
           label="قیمت (تومان)"
           type="number"

@@ -6,6 +6,7 @@ import com.foody.users.entity.User;
 import com.foody.users.entity.UserRole;
 import com.foody.users.entity.UserStatus;
 import com.foody.users.repository.UserRepository;
+import com.foody.common.storage.ImageReplacement;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.stereotype.Service;
@@ -54,6 +55,16 @@ class UserServiceImpl implements UserService {
     @Transactional
     public User save(User user) {
         return userRepository.save(user);
+    }
+
+    @Override
+    @Transactional
+    public ImageReplacement<User> replaceProfileImage(Long userId, String imageUrl) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        String previous = user.getProfileImageUrl();
+        user.setProfileImageUrl(imageUrl);
+        return new ImageReplacement<>(userRepository.saveAndFlush(user), previous);
     }
 
     @Override

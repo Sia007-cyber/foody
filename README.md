@@ -13,6 +13,7 @@ Wallets are business credit ledgers, not an online payment gateway or checkout p
 Offers are capacity-limited claims, not discount codes. Reservation capacity/table allocation
 is not calculated. Additional dashboard tools labelled “coming soon” remain outside this scope.
 
+Production uploads require configured S3-compatible object storage; local/test profiles use disk storage.
 See [production setup and release prerequisites](PRODUCTION.md) and
 [final audit results](PRODUCTION-AUDIT.md). Historical phase notes are not deployment instructions.
 

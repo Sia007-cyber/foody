@@ -18,7 +18,5 @@ export const usersApi = {
   updateMe: (payload: UpdateProfilePayload) =>
     apiRequest<User>("/api/users/me", { method: "PATCH", body: payload }),
 
-  /** Uploads a profile picture and returns its public URL; caller still needs to
-   *  PATCH /api/users/me with profileImageUrl to actually attach it to the account. */
-  uploadPhoto: (file: File) => apiUpload<{ url: string }>("/api/uploads/image", file),
+  uploadPhoto: (file: File) => apiUpload<User>("/api/users/me/profile-image", file),
 };

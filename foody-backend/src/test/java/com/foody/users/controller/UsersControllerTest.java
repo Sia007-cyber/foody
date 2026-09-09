@@ -6,6 +6,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -13,6 +14,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.foody.auth.security.FoodyUserPrincipal;
 import com.foody.auth.service.AuthService;
 import com.foody.common.exception.GlobalExceptionHandler;
+import com.foody.common.storage.ImageUploadService;
+import com.foody.common.storage.ImageReplacement;
 import com.foody.users.entity.User;
 import com.foody.users.entity.UserRole;
 import com.foody.users.entity.UserStatus;
@@ -27,6 +30,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -43,6 +47,7 @@ class UsersControllerTest {
     @Mock UserService userService;
     @Mock UserRepository userRepository;
     @Mock PasswordEncoder passwordEncoder;
+    @Mock ImageUploadService imageUploadService;
 
     MockMvc mockMvc;
     ObjectMapper objectMapper = new ObjectMapper();
@@ -51,7 +56,7 @@ class UsersControllerTest {
     @BeforeEach
     void setUp() {
         UsersController controller = new UsersController(userService, userRepository, passwordEncoder,
-                org.mockito.Mockito.mock(AuthService.class));
+                org.mockito.Mockito.mock(AuthService.class), imageUploadService);
 
         principalUser = new User();
         principalUser.setId(USER_ID);
@@ -111,18 +116,52 @@ class UsersControllerTest {
     }
 
     @Test
-    void updateMe_updatesAddressAndProfileImage() throws Exception {
+    void profileReplacementUpdatesUrlThenRemovesPreviousManagedObject() throws Exception {
+        String next = "https://media.example/profiles/new.jpg";
+        when(imageUploadService.store(any(), any())).thenReturn(
+                new ImageUploadService.StoredUpload("profiles/new.jpg", next));
+        principalUser.setProfileImageUrl(next);
+        when(userService.replaceProfileImage(USER_ID, next)).thenReturn(
+                new ImageReplacement<>(principalUser, "https://media.example/profiles/old.jpg"));
+
+        mockMvc.perform(multipart("/api/users/me/profile-image").file(jpeg()))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.profileImageUrl").value(next));
+
+        var ordered = org.mockito.Mockito.inOrder(userService, imageUploadService);
+        ordered.verify(userService).replaceProfileImage(USER_ID, next);
+        ordered.verify(imageUploadService).deleteManagedUrl("https://media.example/profiles/old.jpg");
+    }
+
+    @Test
+    void failedProfileReplacementPreservesPreviousAndCleansOnlyNewUpload() throws Exception {
+        String next = "https://media.example/profiles/new.jpg";
+        when(imageUploadService.store(any(), any())).thenReturn(
+                new ImageUploadService.StoredUpload("profiles/new.jpg", next));
+        when(userService.replaceProfileImage(USER_ID, next)).thenThrow(new IllegalStateException("database failed"));
+
+        mockMvc.perform(multipart("/api/users/me/profile-image").file(jpeg()))
+                .andExpect(status().isInternalServerError());
+
+        verify(imageUploadService).deleteManagedUrl(next);
+        verify(imageUploadService, never()).deleteManagedUrl("https://media.example/profiles/old.jpg");
+    }
+
+    private MockMultipartFile jpeg() {
+        return new MockMultipartFile("file", "unsafe/../../avatar.jpg", "image/jpeg",
+                new byte[]{(byte) 0xff, (byte) 0xd8, (byte) 0xff, 1});
+    }
+
+    @Test
+    void updateMe_rejectsDirectProfileImageUrlChanges() throws Exception {
         when(userService.findById(USER_ID)).thenReturn(Optional.of(principalUser));
-        when(userService.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
 
         String body = "{\"address\":\"تهران، خیابان آزادی، پلاک ۱۲\",\"profileImageUrl\":\"/uploads/abc.jpg\"}";
 
         mockMvc.perform(patch("/api/users/me")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(body))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.address").value("تهران، خیابان آزادی، پلاک ۱۲"))
-                .andExpect(jsonPath("$.profileImageUrl").value("/uploads/abc.jpg"));
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("INVALID_REQUEST"));
     }
 
     @Test

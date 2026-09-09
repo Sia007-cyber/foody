@@ -17,6 +17,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
+import com.foody.common.storage.ImageUploadService;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -29,9 +33,27 @@ import org.springframework.web.bind.annotation.RestController;
 public class BusinessOwnerController {
 
     private final BusinessService businessService;
+    private final ImageUploadService imageUploadService;
 
-    public BusinessOwnerController(BusinessService businessService) {
+    public BusinessOwnerController(BusinessService businessService, ImageUploadService imageUploadService) {
         this.businessService = businessService;
+        this.imageUploadService = imageUploadService;
+    }
+
+    @PostMapping(value = "/profile/cover-image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public BusinessResponse replaceCoverImage(@AuthenticationPrincipal FoodyUserPrincipal principal,
+                                              @RequestParam("file") MultipartFile file) {
+        var upload = imageUploadService.store(ImageUploadService.UploadCategory.BUSINESS_COVER, file);
+        try {
+            var replacement = businessService.replaceCoverImage(principal.getUserId(), upload.publicUrl());
+            try { imageUploadService.deleteManagedUrl(replacement.previousUrl()); }
+            catch (RuntimeException ignored) { /* committed replacement remains valid */ }
+            return BusinessResponse.from(replacement.value());
+        } catch (RuntimeException ex) {
+            try { imageUploadService.deleteManagedUrl(upload.publicUrl()); }
+            catch (RuntimeException cleanup) { ex.addSuppressed(cleanup); }
+            throw ex;
+        }
     }
 
     @PostMapping

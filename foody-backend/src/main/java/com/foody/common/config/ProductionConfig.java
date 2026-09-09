@@ -1,7 +1,6 @@
 package com.foody.common.config;
 
 import java.net.URI;
-import java.nio.file.Path;
 import java.util.Arrays;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
@@ -22,10 +21,6 @@ public class ProductionConfig {
                     || uri.getFragment() != null || "localhost".equals(uri.getHost())) {
                 throw new IllegalStateException("FOODY_CORS_ALLOWED_ORIGINS must contain explicit HTTPS origins without trailing slashes");
             }
-        }
-        String uploadDir = env.getRequiredProperty("foody.storage.upload-dir");
-        if (uploadDir.isBlank() || !Path.of(uploadDir).isAbsolute()) {
-            throw new IllegalStateException("FOODY_UPLOAD_DIR must be an absolute persistent mount path");
         }
     }
 }

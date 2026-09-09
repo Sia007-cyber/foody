@@ -3,6 +3,7 @@ package com.foody.users.service;
 import com.foody.users.entity.User;
 import com.foody.users.entity.UserRole;
 import com.foody.users.entity.UserStatus;
+import com.foody.common.storage.ImageReplacement;
 import java.util.List;
 import java.util.Optional;
 
@@ -24,6 +25,8 @@ public interface UserService {
     User create(User user);
 
     User save(User user);
+
+    ImageReplacement<User> replaceProfileImage(Long userId, String imageUrl);
 
     // Admin dashboard summary.
     long count();

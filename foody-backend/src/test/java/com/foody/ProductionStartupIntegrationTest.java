@@ -15,7 +15,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @TestPropertySource(properties = {
     "FOODY_JWT_SECRET=AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8=",
     "FOODY_CORS_ALLOWED_ORIGINS=https://foody.example.com",
-    "FOODY_UPLOAD_DIR=/tmp/foody-production-test"
+    "FOODY_STORAGE_BUCKET=test-bucket",
+    "FOODY_STORAGE_REGION=auto",
+    "FOODY_STORAGE_ENDPOINT=https://account.example.r2.cloudflarestorage.com",
+    "FOODY_STORAGE_ACCESS_KEY=test-access-key",
+    "FOODY_STORAGE_SECRET_KEY=test-secret-key",
+    "FOODY_STORAGE_PUBLIC_BASE_URL=https://media.foody.example"
 })
 @AutoConfigureMockMvc
 class ProductionStartupIntegrationTest extends AbstractContainerBaseTest {

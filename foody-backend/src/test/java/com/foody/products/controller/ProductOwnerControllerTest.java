@@ -13,6 +13,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.foody.auth.security.FoodyUserPrincipal;
 import com.foody.common.exception.GlobalExceptionHandler;
 import com.foody.common.exception.ResourceNotFoundException;
+import com.foody.common.storage.ImageUploadService;
+import com.foody.common.storage.ImageReplacement;
 import com.foody.products.dto.CreateProductRequest;
 import com.foody.products.dto.UpdateProductRequest;
 import com.foody.products.entity.Product;
@@ -28,6 +30,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.bind.support.WebDataBinderFactory;
@@ -46,13 +49,14 @@ class ProductOwnerControllerTest {
     static final Long OWNER_ID = 1L;
 
     @Mock ProductService productService;
+    @Mock ImageUploadService imageUploadService;
 
     MockMvc mockMvc;
     ObjectMapper objectMapper = new ObjectMapper();
 
     @BeforeEach
     void setUp() {
-        ProductOwnerController controller = new ProductOwnerController(productService);
+        ProductOwnerController controller = new ProductOwnerController(productService, imageUploadService);
 
         User user = new User();
         user.setId(OWNER_ID);
@@ -106,6 +110,24 @@ class ProductOwnerControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.name").value("Latte"))
                 .andExpect(jsonPath("$.price").value(4.50));
+    }
+
+    @Test
+    void imageReplacementUpdatesUrlAndDeletesOldAfterSuccess() throws Exception {
+        String next = "https://media.example/products/new.jpg";
+        Product updated = sampleProduct(); updated.setImageUrl(next);
+        when(imageUploadService.store(any(), any())).thenReturn(
+                new ImageUploadService.StoredUpload("products/new.jpg", next));
+        when(productService.replaceProductImage(OWNER_ID, 30L, next)).thenReturn(
+                new ImageReplacement<>(updated, "https://media.example/products/old.jpg"));
+
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders
+                        .multipart("/api/business/products/30/image")
+                        .file(new MockMultipartFile("file", "photo.jpg", "image/jpeg", new byte[]{1})))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.imageUrl").value(next));
+        var ordered = org.mockito.Mockito.inOrder(productService, imageUploadService);
+        ordered.verify(productService).replaceProductImage(OWNER_ID, 30L, next);
+        ordered.verify(imageUploadService).deleteManagedUrl("https://media.example/products/old.jpg");
     }
 
     @Test

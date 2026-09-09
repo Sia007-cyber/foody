@@ -3,6 +3,7 @@ package com.foody.products.service;
 import com.foody.products.dto.CreateProductRequest;
 import com.foody.products.dto.UpdateProductRequest;
 import com.foody.products.entity.Product;
+import com.foody.common.storage.ImageReplacement;
 import java.util.List;
 import java.util.Optional;
 
@@ -23,6 +24,8 @@ public interface ProductService {
 
     Product updateProduct(Long ownerUserId, Long productId, UpdateProductRequest request);
 
+    ImageReplacement<Product> replaceProductImage(Long ownerUserId, Long productId, String imageUrl);
+
     // Business panel: deletes a product from a menu owned by the calling owner.
-    void deleteProduct(Long ownerUserId, Long productId);
+    String deleteProduct(Long ownerUserId, Long productId);
 }

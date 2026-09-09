@@ -10,6 +10,7 @@ import com.foody.common.exception.DuplicateResourceException;
 import com.foody.common.exception.InvalidRequestException;
 import com.foody.common.exception.InvalidStateTransitionException;
 import com.foody.common.exception.ResourceNotFoundException;
+import com.foody.common.storage.ImageReplacement;
 import com.foody.notifications.entity.NotificationType;
 import com.foody.notifications.service.NotificationService;
 import java.util.List;
@@ -106,9 +107,21 @@ class BusinessServiceImpl implements BusinessService {
         if (request.latitude() != null) business.setLatitude(request.latitude());
         if (request.longitude() != null) business.setLongitude(request.longitude());
         if (request.phone() != null) business.setPhone(request.phone());
-        if (request.coverImageUrl() != null) business.setCoverImageUrl(request.coverImageUrl());
+        if (request.coverImageUrl() != null) {
+            throw new InvalidRequestException("Use /api/business/profile/cover-image to replace the cover image");
+        }
 
         return businessRepository.save(business);
+    }
+
+    @Override
+    @Transactional
+    public ImageReplacement<Business> replaceCoverImage(Long ownerUserId, String imageUrl) {
+        Business business = businessRepository.findByOwnerUserId(ownerUserId)
+                .orElseThrow(() -> new ResourceNotFoundException("No business found for this owner"));
+        String previous = business.getCoverImageUrl();
+        business.setCoverImageUrl(imageUrl);
+        return new ImageReplacement<>(businessRepository.saveAndFlush(business), previous);
     }
 
     @Override

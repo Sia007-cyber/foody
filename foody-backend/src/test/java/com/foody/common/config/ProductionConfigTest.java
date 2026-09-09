@@ -6,8 +6,7 @@ import static org.assertj.core.api.Assertions.*;
 
 class ProductionConfigTest {
     private MockEnvironment valid() {
-        return new MockEnvironment().withProperty("foody.cors.allowed-origins", "https://foody.example.com")
-                .withProperty("foody.storage.upload-dir", "/tmp/foody-production-test");
+        return new MockEnvironment().withProperty("foody.cors.allowed-origins", "https://foody.example.com");
     }
     @Test void acceptsExplicitConfig() { assertThatCode(() -> new ProductionConfig(valid())).doesNotThrowAnyException(); }
     @Test void rejectsUnsafeOrigins() {
@@ -15,10 +14,6 @@ class ProductionConfigTest {
             assertThatThrownBy(() -> new ProductionConfig(valid().withProperty("foody.cors.allowed-origins", value)))
                     .isInstanceOf(IllegalStateException.class);
         }
-    }
-    @Test void requiresAbsoluteUploadPath() {
-        assertThatThrownBy(() -> new ProductionConfig(valid().withProperty("foody.storage.upload-dir", "./uploads")))
-                .isInstanceOf(IllegalStateException.class);
     }
     @Test void rejectsMixedDevelopmentProfiles() {
         MockEnvironment env = valid(); env.setActiveProfiles("prod", "tc");

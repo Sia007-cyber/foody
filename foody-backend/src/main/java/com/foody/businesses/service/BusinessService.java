@@ -4,6 +4,7 @@ import com.foody.businesses.dto.CreateBusinessRequest;
 import com.foody.businesses.dto.UpdateBusinessProfileRequest;
 import com.foody.businesses.entity.Business;
 import com.foody.businesses.entity.BusinessStatus;
+import com.foody.common.storage.ImageReplacement;
 import java.util.List;
 import java.util.Optional;
 
@@ -28,6 +29,8 @@ public interface BusinessService {
     List<Business> search(String type, String search);
 
     Business updateProfile(Long ownerUserId, UpdateBusinessProfileRequest request);
+
+    ImageReplacement<Business> replaceCoverImage(Long ownerUserId, String imageUrl);
 
     // Admin panel: list businesses by approval status. Pass null for all statuses.
     List<Business> findAll(BusinessStatus statusFilter);

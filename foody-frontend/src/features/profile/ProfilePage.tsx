@@ -57,9 +57,8 @@ export function ProfilePage() {
     const ticket = captureSession();
     setUploadingPhoto(true);
     try {
-      const { url } = await usersApi.uploadPhoto(file);
+      const updated = await usersApi.uploadPhoto(file);
       assertSession(ticket);
-      const updated = await usersApi.updateMe({ profileImageUrl: url });
       updateUser(updated);
       notify("عکس پروفایل به‌روز شد", "ok");
     } catch (err) {

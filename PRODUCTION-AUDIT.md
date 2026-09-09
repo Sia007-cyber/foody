@@ -1,7 +1,8 @@
 # Final production-readiness audit — 2026-09-09
 
-**Decision: not yet ready for production deployment within the current web scope.**
-Repository verification passes; durable uploads and live deployment prerequisites remain unresolved.
+**Decision at audit time: not yet ready for production deployment within the current web scope.**
+The durable-upload code blocker was subsequently resolved with mandatory production S3-compatible storage;
+provider provisioning and live deployment verification remain external prerequisites.
 No live deployment was changed, and no PWA/mobile implementation was started.
 
 ## Verification
@@ -47,9 +48,8 @@ were not exercised against live infrastructure.
 
 ## BLOCKER
 
-- **Durable upload storage is not provisioned or verified.** Profile, business-cover and product uploads
-  write only to local disk. Default Render storage is ephemeral. An absolute path alone does not make it
-  durable. Provision a persistent mount and backups, or separately select/implement object storage.
+- **Object storage is not provisioned or verified live.** Production code now requires S3-compatible storage
+  and has no local fallback. Create/configure the public-image bucket and verify credentials and public delivery.
 - **Release configuration still needs operator verification:** real administrator provisioning after demo
   retirement; Aiven CA trust/hostname validation; actual secrets and exact Vercel CORS/API origins; deployed
   customer/owner/admin acceptance. Renamed/copied demo accounts require inspection of the existing database.

@@ -16,6 +16,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
+import com.foody.common.storage.ImageUploadService;
 
 /** Business panel — create/update products on the calling owner's own menus. */
 @RestController
@@ -24,9 +28,28 @@ import org.springframework.web.bind.annotation.RestController;
 public class ProductOwnerController {
 
     private final ProductService productService;
+    private final ImageUploadService imageUploadService;
 
-    public ProductOwnerController(ProductService productService) {
+    public ProductOwnerController(ProductService productService, ImageUploadService imageUploadService) {
         this.productService = productService;
+        this.imageUploadService = imageUploadService;
+    }
+
+    @PostMapping(value = "/{id}/image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ProductResponse replaceProductImage(@AuthenticationPrincipal FoodyUserPrincipal principal,
+                                               @PathVariable Long id,
+                                               @RequestParam("file") MultipartFile file) {
+        var upload = imageUploadService.store(ImageUploadService.UploadCategory.PRODUCT, file);
+        try {
+            var replacement = productService.replaceProductImage(principal.getUserId(), id, upload.publicUrl());
+            try { imageUploadService.deleteManagedUrl(replacement.previousUrl()); }
+            catch (RuntimeException ignored) { /* committed replacement remains valid */ }
+            return ProductResponse.from(replacement.value());
+        } catch (RuntimeException ex) {
+            try { imageUploadService.deleteManagedUrl(upload.publicUrl()); }
+            catch (RuntimeException cleanup) { ex.addSuppressed(cleanup); }
+            throw ex;
+        }
     }
 
     @org.springframework.web.bind.annotation.GetMapping
@@ -51,7 +74,9 @@ public class ProductOwnerController {
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteProduct(@AuthenticationPrincipal FoodyUserPrincipal principal,
                                               @PathVariable Long id) {
-        productService.deleteProduct(principal.getUserId(), id);
+        String deletedImageUrl = productService.deleteProduct(principal.getUserId(), id);
+        try { imageUploadService.deleteManagedUrl(deletedImageUrl); }
+        catch (RuntimeException ignored) { /* the database deletion has committed */ }
         return ResponseEntity.noContent().build();
     }
 }

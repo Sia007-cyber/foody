@@ -41,8 +41,6 @@ foody:
     # dev server by default). Override via env FOODY_CORS_ALLOWED_ORIGINS in deployments.
     allowed-origins: ${FOODY_CORS_ALLOWED_ORIGINS:http://localhost:5173}
   storage:
-    # Local-disk folder for uploaded images (profile pictures, business covers later).
-    # Override via env FOODY_UPLOAD_DIR in real deployments (should be a persistent volume).
     upload-dir: ${FOODY_UPLOAD_DIR:./uploads}
 
 ---
@@ -75,8 +73,12 @@ foody:
   cors:
     allowed-origins: ${FOODY_CORS_ALLOWED_ORIGINS}
   storage:
-    # Must point at an externally provisioned persistent mount; a path alone is not durability.
-    upload-dir: ${FOODY_UPLOAD_DIR}
+    bucket: ${FOODY_STORAGE_BUCKET:}
+    region: ${FOODY_STORAGE_REGION:}
+    endpoint: ${FOODY_STORAGE_ENDPOINT:}
+    access-key: ${FOODY_STORAGE_ACCESS_KEY:}
+    secret-key: ${FOODY_STORAGE_SECRET_KEY:}
+    public-base-url: ${FOODY_STORAGE_PUBLIC_BASE_URL:}
   jwt:
     # Required in production. Startup validation also checks Base64, decoded key
     # length, and rejects the committed development fallback.
