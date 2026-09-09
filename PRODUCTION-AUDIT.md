@@ -1,5 +1,13 @@
 # Final production-readiness audit — 2026-09-09
 
+## Production deployment handoff
+
+The repository has no remaining web-production code/configuration blocker. The definitive
+operator contract, exact consumed environment variables, storage setup, first-real-admin
+procedure, deployment order, and manual live acceptance checklist are in
+[PRODUCTION.md](PRODUCTION.md). All remaining prerequisites are external production
+configuration or live verification; they have not been performed by this repository audit.
+
 **Decision at audit time: not yet ready for production deployment within the current web scope.**
 The durable-upload code blocker was subsequently resolved with mandatory production S3-compatible storage;
 provider provisioning and live deployment verification remain external prerequisites.
