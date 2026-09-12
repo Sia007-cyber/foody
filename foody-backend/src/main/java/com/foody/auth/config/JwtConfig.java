@@ -22,7 +22,7 @@ public class JwtConfig {
     @Bean
     public SecretKey jwtSecretKey(JwtProperties props, Environment environment) {
         String configuredSecret = props.getSecret();
-        boolean production = environment.acceptsProfiles(Profiles.of("prod"));
+        boolean production = environment.acceptsProfiles(Profiles.of("prod", "sharedhost"));
 
         if (configuredSecret == null || configuredSecret.isBlank()) {
             String message = production

@@ -9,7 +9,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 /** Exposes uploaded files (profile pictures, later business cover images) at /uploads/**. */
 @Configuration
-@Profile({"local", "tc"})
+@Profile({"local", "tc", "sharedhost"})
 public class StaticResourceConfig implements WebMvcConfigurer {
 
     private final String uploadDir;

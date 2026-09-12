@@ -10,7 +10,7 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 @Component
-@Profile({"local", "tc"})
+@Profile({"local", "tc", "sharedhost"})
 public class LocalUploadStorage implements UploadStorage {
     private static final String PUBLIC_PREFIX = "/uploads/";
     private final Path root;

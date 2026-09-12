@@ -1,0 +1,32 @@
+spring:
+  datasource:
+    url: ${FOODY_DB_URL}
+    username: ${FOODY_DB_USERNAME}
+    password: ${FOODY_DB_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      maximum-pool-size: 4
+      minimum-idle: 1
+      connection-timeout: 30000
+      idle-timeout: 300000
+      max-lifetime: 1800000
+  flyway:
+    enabled: true
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 6MB
+
+foody:
+  cors:
+    allowed-origins: ${FOODY_CORS_ALLOWED_ORIGINS}
+  jwt:
+    secret: ${FOODY_JWT_SECRET}
+  storage:
+    upload-dir: ${FOODY_STORAGE_LOCAL_PATH}
+
+logging:
+  level:
+    root: WARN
+    com.foody: INFO
+    org.hibernate.SQL: WARN
