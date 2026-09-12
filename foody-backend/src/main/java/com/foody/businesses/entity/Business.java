@@ -33,6 +33,9 @@ public class Business {
     @Column(name = "owner_user_id", nullable = false)
     private Long ownerUserId;
 
+    @Column(name = "manager_national_id", length = 255)
+    private String managerNationalId;
+
     @Column(nullable = false)
     private String name;
 
@@ -81,6 +84,8 @@ public class Business {
     public void setId(Long id) { this.id = id; }
     public Long getOwnerUserId() { return ownerUserId; }
     public void setOwnerUserId(Long ownerUserId) { this.ownerUserId = ownerUserId; }
+    public String getManagerNationalId() { return managerNationalId; }
+    public void setManagerNationalId(String managerNationalId) { this.managerNationalId = managerNationalId; }
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
     public String getDescription() { return description; }

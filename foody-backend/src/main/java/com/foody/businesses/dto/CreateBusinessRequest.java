@@ -11,7 +11,9 @@ import jakarta.validation.constraints.Size;
 public record CreateBusinessRequest(
         @NotBlank(message = "name is required") @Size(max = 255) String name,
         @NotBlank(message = "businessType is required") @Size(max = 50) String businessType,
+        @NotBlank(message = "managerNationalId is required") @Size(max = 255) String managerNationalId,
         @Size(max = 2000) String description,
         @Size(max = 255) String address,
         @Size(max = 64) String phone) {
+    public CreateBusinessRequest(String name,String businessType,String description,String address,String phone){this(name,businessType,"legacy-onboarding",description,address,phone);}
 }

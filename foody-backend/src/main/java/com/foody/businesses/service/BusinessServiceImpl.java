@@ -85,6 +85,7 @@ class BusinessServiceImpl implements BusinessService {
 
         Business business = new Business();
         business.setOwnerUserId(ownerUserId);
+        business.setManagerNationalId(request.managerNationalId().trim());
         business.setName(request.name());
         business.setBusinessType(request.businessType());
         business.setDescription(request.description());

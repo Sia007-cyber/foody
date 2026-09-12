@@ -49,13 +49,18 @@ class AuthServiceImpl implements AuthService {
         if (request.role() == UserRole.ADMIN) {
             throw new InvalidRequestException("Cannot self-register as ADMIN");
         }
-        if (userService.existsByEmail(request.email())) {
-            throw new DuplicateResourceException("Email already registered: " + request.email());
+        String email = normalizeEmail(request.email());
+        String phone = normalizePhone(request.phone());
+        if (email != null && userService.existsByEmail(email)) {
+            throw new DuplicateResourceException("Email is already registered");
+        }
+        if (userService.existsByPhone(phone)) {
+            throw new DuplicateResourceException("Phone is already registered");
         }
         User user = new User();
-        user.setEmail(request.email());
-        user.setFullName(request.fullName());
-        user.setPhone(request.phone());
+        user.setEmail(email);
+        user.setFullName(request.fullName().trim());
+        user.setPhone(phone);
         user.setPasswordHash(passwordEncoder.encode(request.password()));
         user.setRole(request.role());
         user.setStatus(UserStatus.ACTIVE);
@@ -66,15 +71,31 @@ class AuthServiceImpl implements AuthService {
     @Override
     @Transactional
     public TokenResponse login(LoginRequest request) {
-        User user = userService.findByEmail(request.email())
-                .orElseThrow(() -> new InvalidCredentialsException("Invalid email or password"));
+        String identifier = request.identifier().trim();
+        User user = identifier.matches("09\\d{9}")
+                ? userService.findByPhone(identifier).orElseThrow(this::invalidCredentials)
+                : userService.findByEmail(identifier.toLowerCase(java.util.Locale.ROOT)).orElseThrow(this::invalidCredentials);
         if (!passwordEncoder.matches(request.password(), user.getPasswordHash())) {
-            throw new InvalidCredentialsException("Invalid email or password");
+            throw invalidCredentials();
         }
         if (user.getStatus() == UserStatus.SUSPENDED) {
-            throw new InvalidCredentialsException("Account is suspended");
+            throw invalidCredentials();
         }
         return issueTokens(user);
+    }
+
+    private InvalidCredentialsException invalidCredentials() {
+        return new InvalidCredentialsException("Invalid login identifier or password");
+    }
+
+    private static String normalizeEmail(String value) {
+        return value == null || value.isBlank() ? null : value.trim().toLowerCase(java.util.Locale.ROOT);
+    }
+
+    private static String normalizePhone(String value) {
+        String phone = value == null ? "" : value.trim();
+        if (!phone.matches("09\\d{9}")) throw new InvalidRequestException("Phone must match 09xxxxxxxxx");
+        return phone;
     }
 
     @Override

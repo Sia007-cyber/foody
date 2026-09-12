@@ -22,6 +22,7 @@ export function OwnerRegisterBusinessPage() {
   const navigate = useNavigate();
   const [name, setName] = useState("");
   const [businessType, setBusinessType] = useState("CAFE");
+  const [managerNationalId, setManagerNationalId] = useState("");
   const [address, setAddress] = useState("");
   const [phone, setPhone] = useState("");
   const [description, setDescription] = useState("");
@@ -47,6 +48,7 @@ export function OwnerRegisterBusinessPage() {
       const payload: CreateBusinessPayload = {
         name,
         businessType,
+        managerNationalId: managerNationalId.trim(),
         address: address || undefined,
         phone: phone || undefined,
         description: description || undefined,
@@ -72,6 +74,7 @@ export function OwnerRegisterBusinessPage() {
 
         <form className="auth-form" onSubmit={handleSubmit}>
           <Input label="نام کسب‌وکار" required value={name} onChange={(e) => setName(e.target.value)} />
+          <Input label="کد ملی مدیر کافه" required dir="ltr" value={managerNationalId} onChange={(e) => setManagerNationalId(e.target.value)} />
 
           <Select
             label="نوع کسب‌وکار"

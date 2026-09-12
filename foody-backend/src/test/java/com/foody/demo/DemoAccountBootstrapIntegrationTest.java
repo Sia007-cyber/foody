@@ -110,10 +110,10 @@ class DemoAccountBootstrapIntegrationTest extends AbstractContainerBaseTest {
         String order = "{\"businessId\":1,\"fulfillmentType\":\"PICKUP\",\"items\":[{\"productId\":1,\"quantity\":1}]}";
         mvc.perform(post("/api/orders").header("Authorization", "Bearer " + adminToken)
                         .contentType(MediaType.APPLICATION_JSON).content(order))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isNotFound());
         mvc.perform(post("/api/orders").header("Authorization", "Bearer " + ownerToken)
                         .contentType(MediaType.APPLICATION_JSON).content(order))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isNotFound());
     }
 
     private void enable() {

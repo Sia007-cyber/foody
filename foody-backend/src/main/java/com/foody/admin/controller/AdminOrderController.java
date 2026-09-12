@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/admin/orders")
 @PreAuthorize("hasRole('ADMIN')")
+@org.springframework.context.annotation.Profile("legacy-orders")
 public class AdminOrderController {
 
     private final AdminService adminService;

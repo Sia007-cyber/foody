@@ -42,7 +42,7 @@ export function RegisterPage() {
 
     setLoading(true);
     try {
-      await register({ fullName, email, phone: phone || undefined, password, role });
+      await register({ fullName, email: email.trim() || undefined, phone: phone.trim(), password, role });
       navigate(role === "BUSINESS_OWNER" ? "/business" : "/", { replace: true });
     } catch (err) {
       setError(errorMessage(err));
@@ -94,17 +94,20 @@ export function RegisterPage() {
               label="ایمیل"
               type="email"
               dir="ltr"
-              required
               autoComplete="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
             <Input
-              label="شماره تماس (اختیاری)"
+              label="شماره موبایل"
               type="tel"
               dir="ltr"
+              required
+              pattern="09[0-9]{9}"
+              maxLength={11}
+              helper="مثال: 09123456789"
               value={phone}
-              onChange={(e) => setPhone(e.target.value)}
+              onChange={(e) => setPhone(e.target.value.trim())}
             />
             <PasswordInput
               label="رمز عبور"

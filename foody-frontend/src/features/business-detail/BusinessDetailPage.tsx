@@ -1,13 +1,10 @@
-import { useParams, Link, useNavigate } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { businessApi } from "../businesses/businessApi";
 import { menuApi } from "../catalog/catalogApi";
 import { MenuSection } from "./MenuSection";
-import { CartPanel } from "./CartPanel";
 import { ReviewsSection } from "./ReviewsSection";
-import { useCart } from "../cart/CartContext";
 import { PageSpinner, EmptyState, ErrorState } from "../../components/Controls";
-import { Button } from "../../components/Button";
 import "./business-detail.css";
 import { useAuth } from "../auth/AuthContext";
 
@@ -16,8 +13,6 @@ const typeLabel: Record<string, string> = { CAFE: "کافه", FAST_FOOD: "فست
 export function BusinessDetailPage() {
   const { id } = useParams<{ id: string }>();
   const businessId = Number(id);
-  const navigate = useNavigate();
-  const { totalItems, totalAmount } = useCart();
   const { user } = useAuth();
 
   const {
@@ -65,21 +60,12 @@ export function BusinessDetailPage() {
           {menusLoading ? (
             <PageSpinner />
           ) : menus && menus.length > 0 ? (
-            menus.map((menu) => <MenuSection key={menu.id} menu={menu} businessId={business.id} canOrder={canUseCustomerActions} />)
+            menus.map((menu) => <MenuSection key={menu.id} menu={menu} canReview={canUseCustomerActions} />)
           ) : (
             <EmptyState title="این کسب‌وکار هنوز منویی ثبت نکرده" />
           )}
         </div>
-        {canUseCustomerActions && <CartPanel />}
       </div>
-
-      {canUseCustomerActions && totalItems > 0 && (
-        <div className="cart-fab">
-          <Button onClick={() => navigate("/checkout")}>
-            مشاهده سبد ({totalItems}) — {new Intl.NumberFormat("en-US").format(totalAmount)} تومان
-          </Button>
-        </div>
-      )}
     </div>
   );
 }

@@ -78,9 +78,10 @@ class ReservationPrivacyIntegrationTest extends AbstractContainerBaseTest {
 
     private User createUser(UserRole role) {
         User user = new User();
-        user.setEmail(UUID.randomUUID() + "@foody.test");
+        String email = UUID.randomUUID() + "@foody.test";
+        user.setEmail(email);
         user.setFullName("Private customer name");
-        user.setPhone("09123456789");
+        user.setPhone("09" + String.format("%09d", Math.floorMod(email.hashCode(), 1_000_000_000)));
         user.setPasswordHash("unused-in-jwt-fixture");
         user.setRole(role);
         return userRepository.saveAndFlush(user);

@@ -62,7 +62,7 @@ class AuthServiceImplTest {
 
     @Test
     void register_createsCustomerAndReturnsTokens() {
-        RegisterRequest req = new RegisterRequest("a@b.com", "password123", "Alice", "123", UserRole.CUSTOMER);
+        RegisterRequest req = new RegisterRequest("a@b.com", "password123", "Alice", "09123456789", UserRole.CUSTOMER);
 
         when(userService.existsByEmail("a@b.com")).thenReturn(false);
         when(passwordEncoder.encode("password123")).thenReturn("hashed");
@@ -79,7 +79,7 @@ class AuthServiceImplTest {
     @Test
     void register_createsBusinessOwnerAndReturnsTokens() {
         RegisterRequest req =
-                new RegisterRequest("owner@b.com", "password123", "Bob", null, UserRole.BUSINESS_OWNER);
+                new RegisterRequest("owner@b.com", "password123", "Bob", "09123456788", UserRole.BUSINESS_OWNER);
 
         when(userService.existsByEmail("owner@b.com")).thenReturn(false);
         when(passwordEncoder.encode("password123")).thenReturn("hashed");
@@ -101,7 +101,7 @@ class AuthServiceImplTest {
 
     @Test
     void register_duplicateEmail_throws() {
-        RegisterRequest req = new RegisterRequest("a@b.com", "password123", "Alice", null, UserRole.CUSTOMER);
+        RegisterRequest req = new RegisterRequest("a@b.com", "password123", "Alice", "09123456789", UserRole.CUSTOMER);
         when(userService.existsByEmail("a@b.com")).thenReturn(true);
 
         assertThatThrownBy(() -> authService.register(req))

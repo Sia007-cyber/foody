@@ -2,7 +2,7 @@ import { apiRequest } from "../../lib/api.ts";
 import type { TokenResponse, User } from "../../types/api";
 
 export interface LoginPayload {
-  email: string;
+  identifier: string;
   password: string;
 }
 
@@ -10,10 +10,10 @@ export interface LoginPayload {
 export type RegistrableRole = "CUSTOMER" | "BUSINESS_OWNER";
 
 export interface RegisterPayload {
-  email: string;
+  email?: string;
   password: string;
   fullName: string;
-  phone?: string;
+  phone: string;
   role: RegistrableRole;
 }
 

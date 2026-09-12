@@ -2,7 +2,6 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { queryClient } from "./lib/queryClient";
 import { AuthProvider } from "./features/auth/AuthContext";
-import { CartProvider } from "./features/cart/CartContext";
 import { ToastProvider } from "./components/Feedback";
 import { PublicLayout } from "./components/PublicLayout";
 import { AuthLayout } from "./components/AuthLayout";
@@ -12,16 +11,15 @@ import { LoginPage } from "./features/auth/LoginPage";
 import { RegisterPage } from "./features/auth/RegisterPage";
 import { DiscoverPage } from "./features/discover/DiscoverPage";
 import { BusinessDetailPage } from "./features/business-detail/BusinessDetailPage";
-import { CheckoutPage } from "./features/orders/CheckoutPage";
-import { MyOrdersPage } from "./features/orders/MyOrdersPage";
-import { OrderDetailPage } from "./features/orders/OrderDetailPage";
+import { PurchaseHistoryPage } from "./features/wallet/PurchaseHistoryPage";
 import { MyReservationsPage } from "./features/reservations/MyReservationsPage";
 import { NewReservationPage } from "./features/reservations/NewReservationPage";
 import { OwnerDashboardPage } from "./features/owner/OwnerDashboardPage";
 import { OwnerRegisterBusinessPage } from "./features/owner/OwnerRegisterBusinessPage";
 import { OwnerProfilePage } from "./features/owner/OwnerProfilePage";
 import { OwnerMenusPage } from "./features/owner/OwnerMenusPage";
-import { OwnerOrdersPage } from "./features/owner/OwnerOrdersPage";
+import { OwnerSalesHistoryPage } from "./features/owner/OwnerSalesHistoryPage";
+import { OwnerNewSalePage } from "./features/owner/OwnerNewSalePage";
 import { OwnerReservationsPage } from "./features/owner/OwnerReservationsPage";
 import { OwnerWalletPage } from "./features/owner/OwnerWalletPage";
 import { OwnerOffersPage } from "./features/owner/OwnerOffersPage";
@@ -33,13 +31,11 @@ import { ownerNavItems } from "./features/owner/ownerNav";
 import { AdminDashboardPage } from "./features/admin/AdminDashboardPage";
 import { AdminBusinessesPage } from "./features/admin/AdminBusinessesPage";
 import { AdminUsersPage } from "./features/admin/AdminUsersPage";
-import { AdminOrdersPage } from "./features/admin/AdminOrdersPage";
 import { AdminWalletPage } from "./features/admin/AdminWalletPage";
 import { AdminReviewsPage } from "./features/admin/AdminReviewsPage";
 import { ComingSoonFeaturePage } from "./pages/ComingSoonFeaturePage";
 import { adminNavItems } from "./features/admin/adminNav";
 import {
-  ReceiptIcon,
   WalletIcon,
   MegaphoneIcon,
   ShieldIcon,
@@ -53,7 +49,6 @@ export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
-        <CartProvider>
           <AuthProvider>
             <ToastProvider>
               <Routes>
@@ -66,9 +61,7 @@ export default function App() {
                   </Route>
 
                   <Route element={<RequireAuth roles={["CUSTOMER", "BUSINESS_OWNER"]} />}>
-                    <Route path="/checkout" element={<CheckoutPage />} />
-                    <Route path="/orders" element={<MyOrdersPage />} />
-                    <Route path="/orders/:id" element={<OrderDetailPage />} />
+                    <Route path="/purchase-history" element={<PurchaseHistoryPage />} />
                     <Route path="/reservations" element={<MyReservationsPage />} />
                     <Route path="/businesses/:id/reserve" element={<NewReservationPage />} />
                     <Route path="/offers/my-claims" element={<OffersPage />} />
@@ -93,7 +86,8 @@ export default function App() {
                     <Route path="/business" element={<OwnerDashboardPage />} />
                     <Route path="/business/profile" element={<OwnerProfilePage />} />
                     <Route path="/business/menus" element={<OwnerMenusPage />} />
-                    <Route path="/business/orders" element={<OwnerOrdersPage />} />
+                    <Route path="/business/sales" element={<OwnerSalesHistoryPage />} />
+                    <Route path="/business/new-sale" element={<OwnerNewSalePage />} />
                     <Route path="/business/reservations" element={<OwnerReservationsPage />} />
                     <Route path="/business/wallets" element={<OwnerWalletPage />} />
                     <Route path="/business/offers" element={<OwnerOffersPage />} />
@@ -120,17 +114,6 @@ export default function App() {
                         />
                       }
                     />
-                    <Route
-                      path="/business/manual-order"
-                      element={
-                        <ComingSoonFeaturePage
-                          navItems={ownerNavItems}
-                          title="ثبت سفارش دستی"
-                          icon={<ReceiptIcon size={40} />}
-                          description="ثبت سفارش حضوری برای مشتری‌ها به‌زودی اضافه خواهد شد."
-                        />
-                      }
-                    />
                   </Route>
                 </Route>
 
@@ -138,7 +121,6 @@ export default function App() {
                   <Route path="/admin" element={<AdminDashboardPage />} />
                   <Route path="/admin/businesses" element={<AdminBusinessesPage />} />
                   <Route path="/admin/users" element={<AdminUsersPage />} />
-                  <Route path="/admin/orders" element={<AdminOrdersPage />} />
                   <Route path="/admin/wallets" element={<AdminWalletPage />} />
                   <Route
                     path="/admin/transactions"
@@ -202,7 +184,6 @@ export default function App() {
               </Routes>
             </ToastProvider>
           </AuthProvider>
-        </CartProvider>
       </BrowserRouter>
     </QueryClientProvider>
   );

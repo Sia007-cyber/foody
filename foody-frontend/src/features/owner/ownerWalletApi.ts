@@ -1,5 +1,5 @@
 import { apiRequest } from "../../lib/api";
-import type { CustomerLookup, DebitRequest, OwnerWallet } from "../../types/api";
+import type { CustomerLookup, DebitRequest, OwnerWallet, PurchaseHistory } from "../../types/api";
 
 /** Owner wallet endpoints derive the business exclusively from the authenticated owner. */
 export const ownerWalletApi = {
@@ -19,4 +19,7 @@ export const ownerWalletApi = {
       method: "POST",
       body: { amount },
     }),
+  createPurchase: (publicId: string, items: { productId: number; quantity: number }[]) =>
+    apiRequest<DebitRequest>(`/api/business/wallets/customers/${encodeURIComponent(publicId)}/purchases`, { method: "POST", body: { items } }),
+  getSalesHistory: () => apiRequest<PurchaseHistory[]>("/api/business/wallets/sales-history"),
 };

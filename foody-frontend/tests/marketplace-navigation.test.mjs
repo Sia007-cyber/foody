@@ -35,5 +35,5 @@ test("Special Offers is shared with admins but only customer-side roles can clai
 test("owner customer actions remain unavailable on their own business", () => {
   assert.match(detail, /business\.ownerUserId !== user\.id/);
   assert.match(detail, /canUseCustomerActions && <Link/);
-  assert.match(detail, /canUseCustomerActions && <CartPanel/);
+  assert.doesNotMatch(detail, /CartPanel|checkout|سبد خرید/);
 });

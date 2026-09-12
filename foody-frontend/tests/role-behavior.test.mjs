@@ -20,13 +20,13 @@ test("business owners retain the unified marketplace routes and customer history
 test("customer actions are enabled for customers and owners viewing another business", () => {
   assert.match(detail, /user\?\.role === "CUSTOMER"/);
   assert.match(detail, /business\.ownerUserId !== user\.id/);
-  assert.match(detail, /canOrder=\{canUseCustomerActions\}/);
+  assert.match(detail, /canReview=\{canUseCustomerActions\}/);
   assert.match(reviews, /user\.id!==ownerUserId/);
 });
 
 test("owner self-dealing controls are hidden", () => {
   assert.match(detail, /canUseCustomerActions && <Link/);
-  assert.match(detail, /canUseCustomerActions && <CartPanel/);
+  assert.doesNotMatch(detail, /CartPanel|checkout/);
   assert.match(offers, /ownerBusinessQuery\.data\.id !== offer\.businessId/);
 });
 

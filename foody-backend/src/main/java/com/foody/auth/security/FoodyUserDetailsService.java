@@ -22,9 +22,10 @@ public class FoodyUserDetailsService implements UserDetailsService {
     }
 
     @Override
-    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        User user = userService.findByEmail(email)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + email));
+    public UserDetails loadUserByUsername(String identifier) throws UsernameNotFoundException {
+        String normalized = identifier.trim();
+        User user = (normalized.matches("09\\d{9}") ? userService.findByPhone(normalized) : userService.findByEmail(normalized.toLowerCase(java.util.Locale.ROOT)))
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
         return new FoodyUserPrincipal(user);
     }
 

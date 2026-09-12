@@ -11,7 +11,7 @@ export function LoginPage() {
   const { login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const [email, setEmail] = useState("");
+  const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -21,7 +21,7 @@ export function LoginPage() {
     setError(null);
     setLoading(true);
     try {
-      const user = await login({ email, password });
+      const user = await login({ identifier: identifier.trim(), password });
       const from = (location.state as { from?: string } | null)?.from;
       if (from) {
         navigate(from, { replace: true });
@@ -52,13 +52,14 @@ export function LoginPage() {
 
           <form className="auth-form" onSubmit={handleSubmit}>
             <Input
-              label="ایمیل"
-              type="email"
+              label="ایمیل یا شماره موبایل"
+              type="text"
               dir="ltr"
               required
-              autoComplete="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              autoComplete="username"
+              placeholder="name@example.com یا 09123456789"
+              value={identifier}
+              onChange={(e) => setIdentifier(e.target.value)}
             />
             <PasswordInput
               label="رمز عبور"
@@ -81,4 +82,3 @@ export function LoginPage() {
     </div>
   );
 }
-

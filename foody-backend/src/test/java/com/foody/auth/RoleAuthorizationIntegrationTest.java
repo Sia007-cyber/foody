@@ -31,7 +31,7 @@ class RoleAuthorizationIntegrationTest extends AbstractContainerBaseTest {
         mvc.perform(get("/api/businesses").header("Authorization", auth)).andExpect(status().isOk());
         mvc.perform(post("/api/orders").header("Authorization", auth).contentType(MediaType.APPLICATION_JSON)
                 .content("{\"businessId\":1,\"fulfillmentType\":\"PICKUP\",\"items\":[{\"productId\":1,\"quantity\":1}]}"))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isNotFound());
         mvc.perform(post("/api/reservations").header("Authorization", auth).contentType(MediaType.APPLICATION_JSON)
                 .content("{\"businessId\":1,\"date\":\"2030-01-01\",\"time\":\"19:00:00\",\"guestCount\":2}"))
                 .andExpect(status().isForbidden());

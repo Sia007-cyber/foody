@@ -35,6 +35,10 @@ class UserServiceImpl implements UserService {
 
     @Override
     @Transactional(readOnly = true)
+    public Optional<User> findByPhone(String phone) { return userRepository.findByPhone(phone); }
+
+    @Override
+    @Transactional(readOnly = true)
     public List<User> findAllById(Iterable<Long> ids) {
         return userRepository.findAllById(ids);
     }
@@ -44,6 +48,10 @@ class UserServiceImpl implements UserService {
     public boolean existsByEmail(String email) {
         return userRepository.existsByEmail(email);
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public boolean existsByPhone(String phone) { return userRepository.existsByPhone(phone); }
 
     @Override
     @Transactional

@@ -145,6 +145,7 @@ export function WalletPage() {
                 <div className="wallet-request-main">
                   <div className="wallet-request-title-row"><span className="wallet-request-business">{business?.isLoading ? "در حال دریافت نام کسب‌وکار..." : business?.isError ? "نام کسب‌وکار دریافت نشد" : businessName(request.businessId) ?? "کسب‌وکار فودی"}</span><span className="wallet-request-status"><ClockIcon size={14} />{REQUEST_STATUS_LABEL[request.status]}</span></div>
                   <strong className="wallet-request-amount">{formatToman(request.amount)}</strong>
+                  {request.items.length > 0 && <ul className="wallet-tx-list">{request.items.map((item,index)=><li className="wallet-tx-row" key={`${request.id}-${index}`}><span>{item.productName} · {item.quantity} × {formatToman(item.unitPrice)}</span><strong>{formatToman(item.lineTotal)}</strong></li>)}</ul>}
                   <span className="wallet-tx-date">{formatDateTime(request.createdAt)}</span>
                 </div>
                 <div className="wallet-request-actions">

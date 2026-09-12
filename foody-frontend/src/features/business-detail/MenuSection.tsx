@@ -1,13 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 import { productApi } from "../catalog/catalogApi";
-import { useCart } from "../cart/CartContext";
 import { formatToman } from "../../lib/format";
 import { Spinner } from "../../components/Controls";
 import type { Menu } from "../../types/api";
 import { ProductReviews } from "./ProductReviews";
 
-export function MenuSection({ menu, businessId, canOrder }: { menu: Menu; businessId: number; canOrder: boolean }) {
-  const { lines, addItem, setQuantity } = useCart();
+export function MenuSection({ menu, canReview }: { menu: Menu; canReview: boolean }) {
   const { data: products, isLoading } = useQuery({
     queryKey: ["products", "menu", menu.id],
     queryFn: () => productApi.listForMenu(menu.id),
@@ -29,7 +27,6 @@ export function MenuSection({ menu, businessId, canOrder }: { menu: Menu; busine
       <h2>{menu.name}</h2>
       <div>
         {products.map((product) => {
-          const line = lines.find((l) => l.product.id === product.id);
           return (
             <div
               key={product.id}
@@ -39,40 +36,12 @@ export function MenuSection({ menu, businessId, canOrder }: { menu: Menu; busine
                 <span className="product-row-name">{product.name}</span>
                 {product.description && <span className="product-row-desc">{product.description}</span>}
                 <span className="product-row-price">{formatToman(product.price)}</span>
-                <ProductReviews productId={product.id} canReview={canOrder} />
+                <ProductReviews productId={product.id} canReview={canReview} />
               </div>
               <div className="product-row-actions">
                 {!product.isAvailable ? (
                   <span className="product-row-desc">ناموجود</span>
-                ) : !canOrder ? null : line ? (
-                  <div className="qty-control">
-                    <button
-                      type="button"
-                      className="qty-btn"
-                      onClick={() => setQuantity(product.id, line.quantity - 1)}
-                      aria-label="کم کردن"
-                    >
-                      −
-                    </button>
-                    <span>{line.quantity}</span>
-                    <button
-                      type="button"
-                      className="qty-btn"
-                      onClick={() => setQuantity(product.id, line.quantity + 1)}
-                      aria-label="زیاد کردن"
-                    >
-                      +
-                    </button>
-                  </div>
-                ) : (
-                  <button
-                    type="button"
-                    className="btn btn-secondary btn-sm"
-                    onClick={() => addItem(businessId, product)}
-                  >
-                    افزودن
-                  </button>
-                )}
+                ) : null}
               </div>
             </div>
           );

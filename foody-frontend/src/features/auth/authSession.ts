@@ -8,7 +8,7 @@ import {
 import type { User } from "../../types/api.ts";
 
 function requireUser(user: User): User {
-  if (!user || typeof user.id !== "number" || typeof user.email !== "string" ||
+  if (!user || typeof user.id !== "number" || (user.email !== null && typeof user.email !== "string") ||
       !["CUSTOMER", "BUSINESS_OWNER", "ADMIN"].includes(user.role)) {
     throw new ApiError({ message: "پاسخ پروفایل سرور معتبر نیست" }, 502);
   }
@@ -70,7 +70,7 @@ async function authenticate(kind: "login" | "register", payload: LoginPayload | 
   const ticket = captureSession();
   const attempt = ++authAttempt;
   const response = kind === "login"
-    ? await authApi.login(payload, ticket.signal)
+    ? await authApi.login(payload as LoginPayload, ticket.signal)
     : await authApi.register(payload as RegisterPayload, ticket.signal);
   assertSession(ticket);
   if (attempt !== authAttempt) throw new SessionChangedError();

@@ -29,10 +29,10 @@ public class User {
     @Column(name = "public_id", unique = true, updatable = false, length = 19)
     private String publicId;
 
-    @Column(nullable = false, unique = true)
+    @Column(unique = true)
     private String email;
 
-    @Column(length = 64)
+    @Column(length = 64, unique = true)
     private String phone;
 
     @Column(length = 512)

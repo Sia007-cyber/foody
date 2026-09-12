@@ -14,6 +14,7 @@ export interface UpdateBusinessProfilePayload {
 export interface CreateBusinessPayload {
   name: string;
   businessType: string;
+  managerNationalId: string;
   description?: string;
   address?: string;
   phone?: string;

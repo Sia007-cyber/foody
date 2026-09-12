@@ -3,11 +3,12 @@ import { useState, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttr
 interface FieldWrapperProps {
   label?: string;
   error?: string;
+  helper?: string;
   children: ReactNode;
   htmlFor?: string;
 }
 
-function FieldWrapper({ label, error, children, htmlFor }: FieldWrapperProps) {
+function FieldWrapper({ label, error, helper, children, htmlFor }: FieldWrapperProps) {
   return (
     <div className="field">
       {label && (
@@ -16,6 +17,7 @@ function FieldWrapper({ label, error, children, htmlFor }: FieldWrapperProps) {
         </label>
       )}
       {children}
+      {helper && <span className="field-helper">{helper}</span>}
       {error && <span className="field-error">{error}</span>}
     </div>
   );
@@ -24,11 +26,12 @@ function FieldWrapper({ label, error, children, htmlFor }: FieldWrapperProps) {
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   label?: string;
   error?: string;
+  helper?: string;
 }
 
-export function Input({ label, error, id, className, ...rest }: InputProps) {
+export function Input({ label, error, helper, id, className, ...rest }: InputProps) {
   return (
-    <FieldWrapper label={label} error={error} htmlFor={id}>
+    <FieldWrapper label={label} error={error} helper={helper} htmlFor={id}>
       <input id={id} className={`input ${className ?? ""}`} {...rest} />
     </FieldWrapper>
   );

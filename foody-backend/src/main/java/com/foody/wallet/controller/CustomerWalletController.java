@@ -7,4 +7,6 @@ public class CustomerWalletController {private final WalletService service; publ
  @GetMapping("/{walletId}/transactions") public List<WalletTransactionResponse> transactions(@AuthenticationPrincipal FoodyUserPrincipal p,@PathVariable Long walletId){return service.customerTransactions(p.getUserId(),walletId);}
  @GetMapping("/debit-requests") public List<DebitRequestResponse> pending(@AuthenticationPrincipal FoodyUserPrincipal p){return service.pendingRequests(p.getUserId());}
  @PostMapping("/debit-requests/{id}/approve") public DebitRequestResponse approve(@AuthenticationPrincipal FoodyUserPrincipal p,@PathVariable Long id){return service.approve(p.getUserId(),id);}
- @PostMapping("/debit-requests/{id}/reject") public DebitRequestResponse reject(@AuthenticationPrincipal FoodyUserPrincipal p,@PathVariable Long id){return service.reject(p.getUserId(),id);}}
+ @PostMapping("/debit-requests/{id}/reject") public DebitRequestResponse reject(@AuthenticationPrincipal FoodyUserPrincipal p,@PathVariable Long id){return service.reject(p.getUserId(),id);}
+ @GetMapping("/purchase-history") public List<PurchaseHistoryResponse> purchaseHistory(@AuthenticationPrincipal FoodyUserPrincipal p){return service.customerPurchaseHistory(p.getUserId());}
+}

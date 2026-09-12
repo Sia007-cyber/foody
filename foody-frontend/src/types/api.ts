@@ -7,7 +7,7 @@ export type UserStatus = "ACTIVE" | "SUSPENDED";
 export interface User {
   id: number;
   publicId: string | null;
-  email: string;
+  email: string | null;
   phone: string | null;
   address: string | null;
   latitude: number | null;
@@ -220,12 +220,17 @@ export interface DebitRequest {
   walletId: number;
   customerUserId: number;
   businessId: number;
+  businessName: string | null;
   requestedByOwnerUserId: number;
   amount: string;
   status: DebitRequestStatus;
   createdAt: string;
   resolvedAt: string | null;
+  items: PurchaseItem[];
 }
+
+export interface PurchaseItem { productId: number | null; productName: string; unitPrice: string; quantity: number; lineTotal: string; }
+export interface PurchaseHistory { id: number; businessId: number; businessName: string; customerUserId: number; customerDisplayName: string; completedAt: string; totalAmount: string; items: PurchaseItem[]; }
 
 export interface ApiErrorBody {
   timestamp: string;

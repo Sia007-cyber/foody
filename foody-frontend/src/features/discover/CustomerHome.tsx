@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import type { Business } from "../../types/api";
 import { useAuth } from "../auth/AuthContext";
-import { useToast } from "../../components/Feedback";
 import { ChevronStartIcon, WalletIcon, CalendarCheckIcon } from "../../components/icons";
 import { formatToman } from "../../lib/format";
 import { walletApi } from "../wallet/walletApi";
@@ -40,10 +39,8 @@ interface CustomerHomeProps {
 
 export function CustomerHome({ nearbyBusinesses, search, onSearchChange }: CustomerHomeProps) {
   const { user } = useAuth();
-  const { notify } = useToast();
   const navigate = useNavigate();
   const hasCustomerWallet = user?.role === "CUSTOMER" || user?.role === "BUSINESS_OWNER";
-  const comingSoon = (label: string) => notify(`${label} — این قابلیت به‌زودی فعال می‌شه.`);
   const firstName = user?.fullName?.trim().split(/\s+/)[0];
 
   const walletsQuery = useQuery({
@@ -55,13 +52,6 @@ export function CustomerHome({ nearbyBusinesses, search, onSearchChange }: Custo
   const totalBalance = wallets.reduce((sum, w) => sum + Number(w.balance), 0);
 
   const quickActions: QuickAction[] = [
-    {
-      key: "qr",
-      label: "اسکن QR میز",
-      icon: <span className="quick-action-emoji">📷</span>,
-      onClick: () => comingSoon("اسکن QR میز"),
-      accent: "violet",
-    },
     {
       key: "reserve",
       label: "رزرو میز",
@@ -100,7 +90,7 @@ export function CustomerHome({ nearbyBusinesses, search, onSearchChange }: Custo
         <div className="home-hero-content">
           <span className="home-hero-kicker">{firstName ? `سلام ${firstName} 👋` : "سلام 👋"}</span>
           <h1 className="home-hero-title">امروز هوس چی کردی؟</h1>
-          <p className="home-hero-subtitle">کافه و فست‌فودها رو پیدا کن، سفارش بده یا میز رزرو کن.</p>
+          <p className="home-hero-subtitle">کافه و فست‌فودها رو پیدا کن، منوها رو ببین یا میز رزرو کن.</p>
           <div className="home-hero-search">
             <input
               className="input"

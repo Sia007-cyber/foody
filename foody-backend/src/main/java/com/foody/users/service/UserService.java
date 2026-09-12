@@ -18,9 +18,13 @@ public interface UserService {
 
     Optional<User> findByEmail(String email);
 
+    Optional<User> findByPhone(String phone);
+
     List<User> findAllById(Iterable<Long> ids);
 
     boolean existsByEmail(String email);
+
+    boolean existsByPhone(String phone);
 
     User create(User user);
 

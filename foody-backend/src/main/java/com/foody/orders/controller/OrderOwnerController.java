@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/business/orders")
 @PreAuthorize("hasRole('BUSINESS_OWNER')")
+@org.springframework.context.annotation.Profile("legacy-orders")
 public class OrderOwnerController {
 
     private final OrderService orderService;

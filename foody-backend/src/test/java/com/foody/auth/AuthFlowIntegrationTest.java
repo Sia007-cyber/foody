@@ -36,6 +36,8 @@ import org.springframework.test.web.servlet.MvcResult;
 @AutoConfigureMockMvc
 class AuthFlowIntegrationTest extends AbstractContainerBaseTest {
 
+    private static String phoneFor(String value) { return "09" + String.format("%09d", Math.floorMod(value.hashCode(), 1_000_000_000)); }
+
     @Autowired MockMvc mockMvc;
     @Autowired ObjectMapper objectMapper;
     @Autowired UserRepository userRepository;
@@ -138,7 +140,7 @@ class AuthFlowIntegrationTest extends AbstractContainerBaseTest {
 
     private String registerAndGetAccessToken(String email, String password) throws Exception {
         String body = objectMapper.writeValueAsString(java.util.Map.of(
-                "email", email, "password", password, "fullName", "Test User", "phone", "123",
+                "email", email, "password", password, "fullName", "Test User", "phone", phoneFor(email),
                 "role", "CUSTOMER"));
         String response = mockMvc.perform(post("/api/auth/register")
                         .contentType(MediaType.APPLICATION_JSON).content(body))
@@ -170,7 +172,7 @@ class AuthFlowIntegrationTest extends AbstractContainerBaseTest {
         // Refresh: capture refresh token then use it
         String regResp = mockMvc.perform(post("/api/auth/register")
                         .contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(
-                                java.util.Map.of("email", email + "_2", "password", password, "fullName", "U2",
+                                java.util.Map.of("email", email + "_2", "password", password, "fullName", "U2", "phone", phoneFor(email + "_2"),
                                         "role", "CUSTOMER"))))
                 .andReturn().getResponse().getContentAsString();
         String refresh = objectMapper.readTree(regResp).get("refreshToken").asText();
@@ -301,7 +303,7 @@ class AuthFlowIntegrationTest extends AbstractContainerBaseTest {
         registerAndGetAccessToken(email, "password123");
 
         String body = objectMapper.writeValueAsString(
-                java.util.Map.of("email", email, "password", "password123", "fullName", "Dup", "role", "CUSTOMER"));
+                java.util.Map.of("email", email, "password", "password123", "fullName", "Dup", "phone", phoneFor(email+"dup"), "role", "CUSTOMER"));
         mockMvc.perform(post("/api/auth/register").contentType(MediaType.APPLICATION_JSON).content(body))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.code").value("RESOURCE_ALREADY_EXISTS"));
@@ -311,7 +313,7 @@ class AuthFlowIntegrationTest extends AbstractContainerBaseTest {
     void register_businessOwner_createsBusinessOwnerAccount() throws Exception {
         String email = "owner_" + System.nanoTime() + "@foody.test";
         String body = objectMapper.writeValueAsString(java.util.Map.of(
-                "email", email, "password", "password123", "fullName", "Owner", "role", "BUSINESS_OWNER"));
+                "email", email, "password", "password123", "fullName", "Owner", "phone", phoneFor(email), "role", "BUSINESS_OWNER"));
         String response = mockMvc.perform(post("/api/auth/register")
                         .contentType(MediaType.APPLICATION_JSON).content(body))
                 .andExpect(status().isOk())
@@ -327,7 +329,7 @@ class AuthFlowIntegrationTest extends AbstractContainerBaseTest {
     void register_adminRole_isRejected() throws Exception {
         String email = "admin_" + System.nanoTime() + "@foody.test";
         String body = objectMapper.writeValueAsString(java.util.Map.of(
-                "email", email, "password", "password123", "fullName", "Admin", "role", "ADMIN"));
+                "email", email, "password", "password123", "fullName", "Admin", "phone", phoneFor(email), "role", "ADMIN"));
         mockMvc.perform(post("/api/auth/register").contentType(MediaType.APPLICATION_JSON).content(body))
                 .andExpect(status().isBadRequest());
     }
@@ -336,12 +338,12 @@ class AuthFlowIntegrationTest extends AbstractContainerBaseTest {
     void patchMe_updatesFields() throws Exception {
         String access = registerAndGetAccessToken("patch_" + System.nanoTime() + "@foody.test", "password123");
         String patch = objectMapper.writeValueAsString(
-                java.util.Map.of("fullName", "Renamed", "phone", "999"));
+                java.util.Map.of("fullName", "Renamed", "phone", "09111111111"));
         mockMvc.perform(patch("/api/users/me").header("Authorization", "Bearer " + access)
                         .contentType(MediaType.APPLICATION_JSON).content(patch))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.fullName").value("Renamed"))
-                .andExpect(jsonPath("$.phone").value("999"));
+                .andExpect(jsonPath("$.phone").value("09111111111"));
     }
 
     @Test

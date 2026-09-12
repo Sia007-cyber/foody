@@ -2,15 +2,12 @@ import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../features/auth/AuthContext";
-import { useCart } from "../features/cart/CartContext";
 import { NotificationBell } from "../features/notifications/NotificationBell";
 import { AvatarMenuButton } from "./AvatarMenuButton";
-import { Button } from "./Button";
 import { MenuIcon, CloseIcon, LogoutIcon } from "./icons";
 
 export function PublicNav() {
   const { user, logout } = useAuth();
-  const { totalItems } = useCart();
   const navigate = useNavigate();
   const [drawerOpen, setDrawerOpen] = useState(false);
 
@@ -41,11 +38,11 @@ export function PublicNav() {
       {(user?.role === "CUSTOMER" || user?.role === "BUSINESS_OWNER") && (
         <>
           <NavLink
-            to="/orders"
+            to="/purchase-history"
             onClick={() => setDrawerOpen(false)}
             className={({ isActive }) => `nav-link ${isActive ? "active" : ""}`}
           >
-            سفارش‌های من
+            تاریخچه خرید
           </NavLink>
           <NavLink
             to="/reservations"
@@ -111,12 +108,6 @@ export function PublicNav() {
         <div className="nav-actions">
           {user && <NotificationBell />}
           {user && <AvatarMenuButton />}
-          {(user?.role === "CUSTOMER" || user?.role === "BUSINESS_OWNER") && totalItems > 0 && (
-            <Button variant="secondary" size="sm" onClick={() => navigate("/checkout")}>
-              سبد خرید
-              <span className="nav-cart-badge">{totalItems}</span>
-            </Button>
-          )}
           {user && (
             <button
               type="button"

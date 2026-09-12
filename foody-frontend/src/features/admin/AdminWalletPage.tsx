@@ -105,7 +105,7 @@ function AdminWalletCard({ wallet, customer, business }: { wallet: Wallet; custo
     event.preventDefault();
     mutate(amount);
   };
-  const customerLabel = customer ? `${customer.fullName} · ${customer.email}` : `مشتری #${wallet.customerUserId}`;
+  const customerLabel = customer ? `${customer.fullName} · ${customer.email ?? customer.phone ?? "بدون راه ارتباطی"}` : `مشتری #${wallet.customerUserId}`;
   const businessLabel = business ? business.name : `کسب‌وکار #${wallet.businessId}`;
 
   return (

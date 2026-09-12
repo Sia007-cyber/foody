@@ -3,7 +3,6 @@ import {
   DashboardIcon,
   UsersIcon,
   StoreIcon,
-  ReceiptIcon,
   WalletIcon,
   MegaphoneIcon,
   ChatIcon,
@@ -20,7 +19,6 @@ export const adminNavItems: DashboardNavItem[] = [
     label: "کسب‌وکارها",
     icon: <StoreIcon size={17} />,
   },
-  { to: "/admin/orders", label: "سفارش‌ها", icon: <ReceiptIcon size={17} /> },
   { to: "/admin/wallets", label: "کیف پول‌ها", icon: <WalletIcon size={17} /> },
   {
     to: "/admin/transactions",

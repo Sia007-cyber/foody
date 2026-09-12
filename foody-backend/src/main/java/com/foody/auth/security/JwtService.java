@@ -45,7 +45,7 @@ public class JwtService {
     private String build(User user, String type, long ttlSeconds) {
         Instant now = Instant.now();
         return Jwts.builder()
-                .subject(user.getEmail())
+                .subject(user.getEmail() != null ? user.getEmail() : user.getPhone())
                 .claim(CLAIM_USER_ID, user.getId())
                 .claim(CLAIM_ROLE, user.getRole().name())
                 .claim(CLAIM_TYPE, type)

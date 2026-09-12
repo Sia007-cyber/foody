@@ -1,0 +1,10 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
+const read = path => readFile(new URL(path, import.meta.url), "utf8");
+const [app,nav,register,login,ownerForm,wallet,home] = await Promise.all([read("../src/App.tsx"),read("../src/components/PublicNav.tsx"),read("../src/features/auth/RegisterPage.tsx"),read("../src/features/auth/LoginPage.tsx"),read("../src/features/owner/OwnerRegisterBusinessPage.tsx"),read("../src/features/wallet/WalletPage.tsx"),read("../src/features/discover/CustomerHome.tsx")]);
+test("registration requires an Iranian mobile and leaves email optional",()=>{assert.match(register,/pattern="09\[0-9\]\{9\}"/);assert.match(register,/09123456789/);assert.match(register,/email: email\.trim\(\) \|\| undefined/);});
+test("login accepts one email or phone identifier",()=>{assert.match(login,/ایمیل یا شماره موبایل/);assert.match(login,/identifier: identifier\.trim\(\)/);});
+test("owner onboarding requires private manager national ID",()=>{assert.match(ownerForm,/کد ملی مدیر کافه/);assert.match(ownerForm,/managerNationalId: managerNationalId\.trim\(\)/);});
+test("orders checkout and QR are absent while histories remain",()=>{assert.doesNotMatch(app,/CheckoutPage|MyOrdersPage|OwnerOrdersPage/);assert.doesNotMatch(nav,/سفارش‌های من|checkout/);assert.doesNotMatch(home,/QR|key: "qr"/);assert.match(app,/PurchaseHistoryPage/);assert.match(app,/OwnerSalesHistoryPage/);});
+test("itemized debit details are visible before confirmation",()=>{assert.match(wallet,/request\.items\.map/);assert.match(wallet,/item\.unitPrice/);assert.match(wallet,/item\.lineTotal/);});

@@ -89,7 +89,11 @@ public class UsersController {
             user.setEmail(request.email());
         }
         if (request.phone() != null) {
-            user.setPhone(request.phone());
+            String phone = request.phone().trim();
+            if (!phone.equals(user.getPhone()) && userRepository.existsByPhone(phone)) {
+                throw new DuplicateResourceException("این شماره موبایل قبلاً استفاده شده");
+            }
+            user.setPhone(phone);
         }
         if (request.address() != null) {
             user.setAddress(request.address());

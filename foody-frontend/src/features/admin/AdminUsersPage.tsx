@@ -98,7 +98,7 @@ export function AdminUsersPage() {
               <div className="list-row-main">
                 <span className="list-row-title">{u.fullName}</span>
                 <span className="list-row-sub">
-                  {u.email} · {roleLabels[u.role]}
+                  {u.email ?? u.phone ?? u.fullName} · {roleLabels[u.role]}
                   {u.phone ? ` · ${u.phone}` : ""}
                 </span>
               </div>
