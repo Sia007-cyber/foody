@@ -18,6 +18,9 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.foody.admin.dto.AdminUserDetailResponse;
+import com.foody.common.exception.ResourceNotFoundException;
+import com.foody.users.dto.UserResponse;
 
 @Service
 class AdminServiceImpl implements AdminService {
@@ -63,6 +66,17 @@ class AdminServiceImpl implements AdminService {
     @Transactional(readOnly = true)
     public List<User> getUsers(UserRole roleFilter, UserStatus statusFilter) {
         return userService.findAll(roleFilter, statusFilter);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public AdminUserDetailResponse getUserDetail(Long userId) {
+        User user = userService.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        var business = user.getRole() == UserRole.BUSINESS_OWNER
+                ? businessService.findByOwnerUserId(userId).map(AdminUserDetailResponse.OwnedBusiness::from).orElse(null)
+                : null;
+        return new AdminUserDetailResponse(UserResponse.from(user), business);
     }
 
     @Override

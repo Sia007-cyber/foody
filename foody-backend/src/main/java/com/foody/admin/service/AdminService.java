@@ -9,6 +9,7 @@ import com.foody.users.entity.User;
 import com.foody.users.entity.UserRole;
 import com.foody.users.entity.UserStatus;
 import java.util.List;
+import com.foody.admin.dto.AdminUserDetailResponse;
 
 /**
  * Public contract for the admin module. Composes the businesses/users/orders/
@@ -27,6 +28,8 @@ public interface AdminService {
 
     // roleFilter/statusFilter are optional — pass null to not filter on that field.
     List<User> getUsers(UserRole roleFilter, UserStatus statusFilter);
+
+    AdminUserDetailResponse getUserDetail(Long userId);
 
     User suspendUser(Long userId);
 

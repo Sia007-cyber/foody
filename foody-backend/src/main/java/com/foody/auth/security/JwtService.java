@@ -25,6 +25,10 @@ public class JwtService {
     private static final String CLAIM_USER_ID = "uid";
     private static final String CLAIM_ROLE = "role";
     private static final String CLAIM_TYPE = "typ";
+    private static final String CLAIM_IMPERSONATION = "impersonation";
+    private static final String CLAIM_INITIATING_ADMIN_ID = "initiatingAdminId";
+    private static final String CLAIM_IMPERSONATION_SESSION_ID = "impersonationSessionId";
+    private static final long IMPERSONATION_TTL_SECONDS = 30 * 60L;
 
     private final SecretKey key;
     private final JwtProperties props;
@@ -42,16 +46,33 @@ public class JwtService {
         return build(user, "refresh", props.getRefreshTokenTtlDays() * 24L * 60L * 60L);
     }
 
+    public String generateImpersonationAccessToken(User user, Long adminId, String sessionId) {
+        return build(user, "access", IMPERSONATION_TTL_SECONDS, adminId, sessionId);
+    }
+
+    public String generateImpersonationRefreshToken(User user, Long adminId, String sessionId) {
+        return build(user, "refresh", IMPERSONATION_TTL_SECONDS, adminId, sessionId);
+    }
+
     private String build(User user, String type, long ttlSeconds) {
+        return build(user, type, ttlSeconds, null, null);
+    }
+
+    private String build(User user, String type, long ttlSeconds, Long adminId, String sessionId) {
         Instant now = Instant.now();
-        return Jwts.builder()
+        var builder = Jwts.builder()
                 .subject(user.getEmail() != null ? user.getEmail() : user.getPhone())
                 .claim(CLAIM_USER_ID, user.getId())
                 .claim(CLAIM_ROLE, user.getRole().name())
                 .claim(CLAIM_TYPE, type)
                 .id(UUID.randomUUID().toString())
-                .issuedAt(Date.from(now))
-                .expiration(Date.from(now.plusSeconds(ttlSeconds)))
+                .issuedAt(Date.from(now));
+        if (adminId != null && sessionId != null) {
+            builder.claim(CLAIM_IMPERSONATION, true)
+                    .claim(CLAIM_INITIATING_ADMIN_ID, adminId)
+                    .claim(CLAIM_IMPERSONATION_SESSION_ID, sessionId);
+        }
+        return builder.expiration(Date.from(now.plusSeconds(ttlSeconds)))
                 .signWith(key)
                 .compact();
     }
@@ -79,5 +100,17 @@ public class JwtService {
 
     public String getRole(Claims claims) {
         return claims.get(CLAIM_ROLE, String.class);
+    }
+
+    public boolean isImpersonation(Claims claims) {
+        return Boolean.TRUE.equals(claims.get(CLAIM_IMPERSONATION, Boolean.class));
+    }
+
+    public Long getInitiatingAdminId(Claims claims) {
+        return claims.get(CLAIM_INITIATING_ADMIN_ID, Long.class);
+    }
+
+    public String getImpersonationSessionId(Claims claims) {
+        return claims.get(CLAIM_IMPERSONATION_SESSION_ID, String.class);
     }
 }

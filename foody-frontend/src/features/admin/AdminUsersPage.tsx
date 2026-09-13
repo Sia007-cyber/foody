@@ -9,6 +9,7 @@ import { PageSpinner, EmptyState, ErrorState } from "../../components/Controls";
 import { useToast, errorMessage } from "../../components/Feedback";
 import { adminNavItems } from "./adminNav";
 import type { UserRole, UserStatus } from "../../types/api";
+import { Link } from "react-router-dom";
 
 const roleOptions: { value: UserRole | ""; label: string }[] = [
   { value: "", label: "همه‌ی نقش‌ها" },
@@ -104,6 +105,7 @@ export function AdminUsersPage() {
               </div>
               <div className="list-row-actions">
                 <UserStatusBadge status={u.status} />
+                <Link className="btn btn-secondary btn-sm" to={`/admin/users/${u.id}`}>جزئیات و پشتیبانی</Link>
                 {u.role !== "ADMIN" && u.status === "ACTIVE" && (
                   <Button size="sm" variant="danger" onClick={() => suspendMutation.mutate(u.id)}>
                     معلق کردن

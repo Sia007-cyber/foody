@@ -14,9 +14,17 @@ import org.springframework.security.core.userdetails.UserDetails;
 public class FoodyUserPrincipal implements UserDetails {
 
     private final User user;
+    private final Long initiatingAdminId;
+    private final String impersonationSessionId;
 
     public FoodyUserPrincipal(User user) {
+        this(user, null, null);
+    }
+
+    public FoodyUserPrincipal(User user, Long initiatingAdminId, String impersonationSessionId) {
         this.user = user;
+        this.initiatingAdminId = initiatingAdminId;
+        this.impersonationSessionId = impersonationSessionId;
     }
 
     public User getUser() {
@@ -26,6 +34,10 @@ public class FoodyUserPrincipal implements UserDetails {
     public Long getUserId() {
         return user.getId();
     }
+
+    public boolean isImpersonating() { return impersonationSessionId != null; }
+    public Long getInitiatingAdminId() { return initiatingAdminId; }
+    public String getImpersonationSessionId() { return impersonationSessionId; }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

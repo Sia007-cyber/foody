@@ -27,6 +27,8 @@ export const authApi = {
   logout: (refreshToken: string) =>
     apiRequest<void>("/api/auth/logout", { method: "POST", auth: false, body: { refreshToken } }),
 
+  exitImpersonation: () => apiRequest<void>("/api/auth/impersonation/exit", { method: "POST" }),
+
   me: () => apiRequest<User>("/api/users/me"),
 
   candidateMe: (accessToken: string, signal: AbortSignal) =>

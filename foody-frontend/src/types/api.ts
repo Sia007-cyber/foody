@@ -25,6 +25,12 @@ export interface TokenResponse {
   refreshToken: string;
   tokenType: string;
   expiresInSeconds: number;
+  impersonation: { active: boolean; initiatingAdminId: number; sessionId: string } | null;
+}
+
+export interface AdminUserDetail {
+  user: User;
+  ownedBusiness: null | { id: number; name: string; status: BusinessStatus; managerNationalId: string };
 }
 
 export type BusinessStatus = "PENDING" | "APPROVED" | "REJECTED" | "SUSPENDED";

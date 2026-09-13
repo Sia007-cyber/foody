@@ -44,6 +44,8 @@ import {
 } from "./components/icons";
 import { NotFoundPage } from "./pages/NotFoundPage";
 import { OffersPage } from "./features/offers/OffersPage";
+import { ImpersonationBanner } from "./components/ImpersonationBanner";
+import { AdminUserDetailPage } from "./features/admin/AdminUserDetailPage";
 
 export default function App() {
   return (
@@ -51,6 +53,7 @@ export default function App() {
       <BrowserRouter>
           <AuthProvider>
             <ToastProvider>
+              <ImpersonationBanner />
               <Routes>
                 <Route element={<PublicLayout />}>
                   <Route path="/" element={<DiscoverPage />} />
@@ -121,6 +124,7 @@ export default function App() {
                   <Route path="/admin" element={<AdminDashboardPage />} />
                   <Route path="/admin/businesses" element={<AdminBusinessesPage />} />
                   <Route path="/admin/users" element={<AdminUsersPage />} />
+                  <Route path="/admin/users/:id" element={<AdminUserDetailPage />} />
                   <Route path="/admin/wallets" element={<AdminWalletPage />} />
                   <Route
                     path="/admin/transactions"

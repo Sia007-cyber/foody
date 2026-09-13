@@ -4,6 +4,7 @@ import {
   assertSession, captureSession, getAccessToken, getRefreshToken, getSessionSnapshot,
   handleSessionStorage, invalidateSession, onSessionBoundary, replaceSession,
   SessionChangedError, setSessionUser, type SessionTicket,
+  beginImpersonation, restoreAdminSession,
 } from "../../lib/session.ts";
 import type { User } from "../../types/api.ts";
 
@@ -95,6 +96,25 @@ async function authenticate(kind: "login" | "register", payload: LoginPayload | 
 
 export const login = (payload: LoginPayload) => authenticate("login", payload);
 export const register = (payload: RegisterPayload) => authenticate("register", payload);
+
+export async function impersonate(response: import("../../types/api").TokenResponse, admin: User): Promise<User> {
+  const ticket = captureSession();
+  const tokens = requireTokens(response);
+  if (!response.impersonation?.active) throw new ApiError({ message: "پاسخ جعل هویت معتبر نیست" }, 502);
+  const target = await candidateUser(tokens.accessToken, ticket);
+  beginImpersonation(tokens, target, {
+    initiatingAdminId: response.impersonation.initiatingAdminId,
+    sessionId: response.impersonation.sessionId,
+    targetName: target.fullName,
+  }, admin, ticket);
+  return target;
+}
+
+export async function exitImpersonation(): Promise<User> {
+  const ticket = captureSession();
+  await authApi.exitImpersonation();
+  return restoreAdminSession(ticket);
+}
 
 export function logout(): Promise<void> {
   const ticket = captureSession();

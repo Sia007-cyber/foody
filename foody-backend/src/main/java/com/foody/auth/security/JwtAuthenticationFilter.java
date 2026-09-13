@@ -11,6 +11,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.web.filter.OncePerRequestFilter;
+import com.foody.auth.repository.ImpersonationSessionRepository;
 
 /**
  * Validates the Bearer access token on each request and populates the
@@ -20,10 +21,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
     private final FoodyUserDetailsService userDetailsService;
+    private final ImpersonationSessionRepository impersonationSessions;
 
-    public JwtAuthenticationFilter(JwtService jwtService, FoodyUserDetailsService userDetailsService) {
+    public JwtAuthenticationFilter(JwtService jwtService, FoodyUserDetailsService userDetailsService,
+            ImpersonationSessionRepository impersonationSessions) {
         this.jwtService = jwtService;
         this.userDetailsService = userDetailsService;
+        this.impersonationSessions = impersonationSessions;
     }
 
     @Override
@@ -40,7 +44,19 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 }
                 Long userId = jwtService.getUserId(claims);
                 if (SecurityContextHolder.getContext().getAuthentication() == null && userId != null) {
-                    var principal = userDetailsService.loadByUserId(userId);
+                    if (jwtService.isImpersonation(claims)) {
+                        var audit = impersonationSessions.findById(jwtService.getImpersonationSessionId(claims))
+                                .orElseThrow(() -> new com.foody.common.exception.InvalidCredentialsException("Unknown impersonation session"));
+                        if (audit.getEndedAt() != null || !audit.getTarget().getId().equals(userId)
+                                || !audit.getAdmin().getId().equals(jwtService.getInitiatingAdminId(claims))) {
+                            throw new com.foody.common.exception.InvalidCredentialsException("Impersonation session has ended");
+                        }
+                    }
+                    var loaded = (FoodyUserPrincipal) userDetailsService.loadByUserId(userId);
+                    var principal = jwtService.isImpersonation(claims)
+                            ? new FoodyUserPrincipal(loaded.getUser(), jwtService.getInitiatingAdminId(claims),
+                                    jwtService.getImpersonationSessionId(claims))
+                            : loaded;
                     // Eligibility comes from the current database account, not the JWT.
                     if (!principal.isEnabled() || !principal.isAccountNonLocked()) {
                         throw new com.foody.common.exception.InvalidCredentialsException("Account is suspended or disabled");

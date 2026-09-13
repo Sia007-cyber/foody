@@ -1,6 +1,6 @@
 import { createContext, Fragment, useContext, useEffect, useSyncExternalStore, type ReactNode } from "react";
 import type { LoginPayload, RegisterPayload } from "./authApi";
-import { login, register, logout, startAuthSession } from "./authSession";
+import { login, register, logout, exitImpersonation, startAuthSession } from "./authSession";
 import { captureSession, getSessionSnapshot, subscribeSession, updateSessionUser } from "../../lib/session";
 import type { User } from "../../types/api";
 
@@ -11,6 +11,8 @@ interface AuthContextValue {
   register: (payload: RegisterPayload) => Promise<User>;
   logout: () => Promise<void>;
   updateUser: (user: User) => void;
+  impersonation: ReturnType<typeof getSessionSnapshot>["impersonation"];
+  exitImpersonation: () => Promise<User>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -26,7 +28,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user: session.user, isLoading: session.isLoading, login, register, logout, updateUser }}>
+    <AuthContext.Provider value={{ user: session.user, isLoading: session.isLoading, login, register, logout, updateUser,
+      impersonation: session.impersonation, exitImpersonation }}>
       {/* Drop observers and component-local profile/form state at a boundary. */}
       <Fragment key={session.generation}>{children}</Fragment>
     </AuthContext.Provider>

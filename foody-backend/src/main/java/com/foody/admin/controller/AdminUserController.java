@@ -13,6 +13,15 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import com.foody.auth.dto.TokenResponse;
+import com.foody.auth.security.FoodyUserPrincipal;
+import com.foody.auth.service.AdminAccountSupportService;
+import com.foody.admin.dto.AdminPasswordResetRequest;
+import jakarta.validation.Valid;
+import com.foody.admin.dto.AdminUserDetailResponse;
 
 /**
  * Admin panel — user directory and moderation. Suspend an account to immediately
@@ -26,9 +35,11 @@ import org.springframework.web.bind.annotation.RestController;
 public class AdminUserController {
 
     private final AdminService adminService;
+    private final AdminAccountSupportService accountSupportService;
 
-    public AdminUserController(AdminService adminService) {
+    public AdminUserController(AdminService adminService, AdminAccountSupportService accountSupportService) {
         this.adminService = adminService;
+        this.accountSupportService = accountSupportService;
     }
 
     @GetMapping
@@ -37,6 +48,11 @@ public class AdminUserController {
         return adminService.getUsers(role, status).stream()
                 .map(UserResponse::from)
                 .toList();
+    }
+
+    @GetMapping("/{id}")
+    public AdminUserDetailResponse getUser(@PathVariable Long id) {
+        return adminService.getUserDetail(id);
     }
 
     @PatchMapping("/{id}/suspend")
@@ -49,5 +65,16 @@ public class AdminUserController {
     public UserResponse activate(@PathVariable Long id) {
         User user = adminService.activateUser(id);
         return UserResponse.from(user);
+    }
+
+    @PostMapping("/{id}/impersonate")
+    public TokenResponse impersonate(@AuthenticationPrincipal FoodyUserPrincipal principal, @PathVariable Long id) {
+        return accountSupportService.startImpersonation(principal, id);
+    }
+
+    @PostMapping("/{id}/password-reset")
+    public void resetPassword(@AuthenticationPrincipal FoodyUserPrincipal principal, @PathVariable Long id,
+            @Valid @RequestBody AdminPasswordResetRequest request) {
+        accountSupportService.resetPassword(principal, id, request.newPassword());
     }
 }

@@ -218,6 +218,23 @@
   min-height: 100vh;
   background: var(--mist);
 }
+.impersonation-banner {
+  position: sticky;
+  top: 0;
+  z-index: 80;
+  min-height: 52px;
+  padding: 9px clamp(16px, 4vw, 40px);
+  background: #33270f;
+  color: #fff8df;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  text-align: center;
+}
+@media (max-width: 560px) {
+  .impersonation-banner { align-items: stretch; flex-direction: column; gap: 8px; }
+}
 .dashboard-sidebar {
   width: 240px;
   flex-shrink: 0;

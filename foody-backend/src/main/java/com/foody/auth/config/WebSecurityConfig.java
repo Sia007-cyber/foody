@@ -23,6 +23,7 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import jakarta.servlet.http.HttpServletResponse;
+import com.foody.auth.repository.ImpersonationSessionRepository;
 
 @Configuration
 @EnableMethodSecurity
@@ -30,15 +31,18 @@ public class WebSecurityConfig {
 
     private final JwtService jwtService;
     private final FoodyUserDetailsService userDetailsService;
+    private final ImpersonationSessionRepository impersonationSessions;
 
     // @Value binds List<String> from a comma-separated property only via this SpEL split;
     // plain "${foody.cors.allowed-origins}" would bind as a single-element list instead.
     @Value("#{'${foody.cors.allowed-origins}'.split(',')}")
     private List<String> allowedOrigins;
 
-    public WebSecurityConfig(JwtService jwtService, FoodyUserDetailsService userDetailsService) {
+    public WebSecurityConfig(JwtService jwtService, FoodyUserDetailsService userDetailsService,
+            ImpersonationSessionRepository impersonationSessions) {
         this.jwtService = jwtService;
         this.userDetailsService = userDetailsService;
+        this.impersonationSessions = impersonationSessions;
     }
 
     private static final String[] PUBLIC_MATCHERS = {
@@ -67,7 +71,7 @@ public class WebSecurityConfig {
                 .anyRequest().authenticated())
             .exceptionHandling(ex -> ex.authenticationEntryPoint((request, response, authException) ->
                 response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized")))
-            .addFilterBefore(new JwtAuthenticationFilter(jwtService, userDetailsService),
+            .addFilterBefore(new JwtAuthenticationFilter(jwtService, userDetailsService, impersonationSessions),
                     UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }

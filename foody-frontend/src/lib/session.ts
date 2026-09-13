@@ -2,8 +2,12 @@ import type { User } from "../types/api.ts";
 
 const ACCESS_KEY = "foody.accessToken";
 const REFRESH_KEY = "foody.refreshToken";
+const ADMIN_CONTEXT_KEY = "foody.impersonation.adminContext";
+const IMPERSONATION_KEY = "foody.impersonation.meta";
 export interface Tokens { accessToken: string; refreshToken: string }
 export interface SessionTicket { generation: number; signal: AbortSignal }
+export interface ImpersonationMeta { initiatingAdminId: number; sessionId: string; targetName: string }
+interface AdminContext { tokens: Tokens; user: User }
 type Boundary = "replace" | "invalidate" | "storage";
 
 function readTokens() {
@@ -11,7 +15,11 @@ function readTokens() {
 }
 let tokens = readTokens();
 let controller = new AbortController();
-let snapshot = { generation: 0, user: null as User | null, isLoading: true };
+function readImpersonation(): ImpersonationMeta | null {
+  try { return JSON.parse(sessionStorage.getItem(IMPERSONATION_KEY) ?? "null") as ImpersonationMeta | null; }
+  catch { return null; }
+}
+let snapshot = { generation: 0, user: null as User | null, isLoading: true, impersonation: readImpersonation() };
 const listeners = new Set<() => void>();
 const boundaries = new Set<(reason: Boundary) => void>();
 
@@ -33,7 +41,7 @@ function emit() { listeners.forEach((listener) => listener()); }
 function transition(reason: Boundary, user: User | null, isLoading: boolean) {
   const previous = controller;
   controller = new AbortController();
-  snapshot = { generation: snapshot.generation + 1, user, isLoading };
+  snapshot = { generation: snapshot.generation + 1, user, isLoading, impersonation: readImpersonation() };
   previous.abort();
   // Cache teardown is synchronous and precedes React notification/new-session rendering.
   boundaries.forEach((listener) => listener(reason));
@@ -78,6 +86,25 @@ export function replaceSession(next: Tokens, user: User, ticket: SessionTicket) 
   writeTokens(next);
   transition("replace", user, false);
 }
+export function beginImpersonation(next: Tokens, target: User, meta: ImpersonationMeta, admin: User, ticket: SessionTicket) {
+  assertSession(ticket);
+  const original: AdminContext = { tokens: { accessToken: getAccessToken()!, refreshToken: getRefreshToken()! }, user: admin };
+  sessionStorage.setItem(ADMIN_CONTEXT_KEY, JSON.stringify(original));
+  sessionStorage.setItem(IMPERSONATION_KEY, JSON.stringify(meta));
+  writeTokens(next);
+  transition("replace", target, false);
+}
+export function restoreAdminSession(ticket: SessionTicket): User {
+  assertSession(ticket);
+  const raw = sessionStorage.getItem(ADMIN_CONTEXT_KEY);
+  if (!raw) throw new Error("نشست اصلی مدیر در دسترس نیست؛ دوباره وارد شوید");
+  const original = JSON.parse(raw) as AdminContext;
+  sessionStorage.removeItem(ADMIN_CONTEXT_KEY);
+  sessionStorage.removeItem(IMPERSONATION_KEY);
+  writeTokens(original.tokens);
+  transition("replace", original.user, false);
+  return original.user;
+}
 export function refreshSessionTokens(next: Tokens, ticket: SessionTicket) {
   assertSession(ticket);
   writeTokens(next);
@@ -87,6 +114,8 @@ export function invalidateSession(ticket = captureSession()) {
   if (ticket.generation !== snapshot.generation) return;
   localStorage.removeItem(ACCESS_KEY);
   localStorage.removeItem(REFRESH_KEY);
+  sessionStorage.removeItem(ADMIN_CONTEXT_KEY);
+  sessionStorage.removeItem(IMPERSONATION_KEY);
   tokens = readTokens();
   transition("invalidate", null, false);
 }

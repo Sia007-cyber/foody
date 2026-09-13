@@ -23,6 +23,10 @@ public class RefreshTokenSession {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "impersonation_session_id")
+    private ImpersonationSession impersonationSession;
+
     @Column(name = "token_hash", nullable = false, unique = true, length = 64)
     private String tokenHash;
 
@@ -44,6 +48,8 @@ public class RefreshTokenSession {
     public Long getId() { return id; }
     public User getUser() { return user; }
     public void setUser(User user) { this.user = user; }
+    public ImpersonationSession getImpersonationSession() { return impersonationSession; }
+    public void setImpersonationSession(ImpersonationSession impersonationSession) { this.impersonationSession = impersonationSession; }
     public String getTokenHash() { return tokenHash; }
     public void setTokenHash(String tokenHash) { this.tokenHash = tokenHash; }
     public Instant getExpiresAt() { return expiresAt; }

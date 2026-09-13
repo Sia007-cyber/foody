@@ -18,4 +18,9 @@ public interface RefreshTokenSessionRepository extends JpaRepository<RefreshToke
     @Query("update RefreshTokenSession s set s.revokedAt = CURRENT_TIMESTAMP " +
             "where s.user.id = :userId and s.revokedAt is null")
     int revokeAllActiveByUserId(@Param("userId") Long userId);
+
+    @Modifying
+    @Query("update RefreshTokenSession s set s.revokedAt = CURRENT_TIMESTAMP " +
+            "where s.impersonationSession.id = :sessionId and s.revokedAt is null")
+    int revokeAllActiveByImpersonationSessionId(@Param("sessionId") String sessionId);
 }

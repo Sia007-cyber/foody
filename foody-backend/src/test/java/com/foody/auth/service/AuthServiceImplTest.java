@@ -41,6 +41,7 @@ class AuthServiceImplTest {
     @Mock PasswordEncoder passwordEncoder;
     @Mock JwtProperties jwtProperties;
     @Mock RefreshTokenSessionRepository refreshTokenRepository;
+    @Mock AdminAccountSupportService accountSupportService;
 
     AuthServiceImpl authService;
     final String ACCESS = "access.jwt.token";
@@ -49,7 +50,7 @@ class AuthServiceImplTest {
     @BeforeEach
     void setUp() {
         authService = new AuthServiceImpl(userService, jwtService, passwordEncoder, jwtProperties,
-                refreshTokenRepository);
+                refreshTokenRepository, accountSupportService);
         // lenient: not every test exercises token issuance.
         org.mockito.Mockito.lenient().when(jwtProperties.getAccessTokenTtlMinutes()).thenReturn(15L);
         org.mockito.Mockito.lenient().when(jwtService.generateAccessToken(any())).thenReturn(ACCESS);

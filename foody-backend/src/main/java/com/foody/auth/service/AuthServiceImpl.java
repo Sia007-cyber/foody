@@ -32,15 +32,18 @@ class AuthServiceImpl implements AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtProperties jwtProperties;
     private final RefreshTokenSessionRepository refreshTokenRepository;
+    private final AdminAccountSupportService accountSupportService;
 
     AuthServiceImpl(UserService userService, JwtService jwtService,
                     PasswordEncoder passwordEncoder, JwtProperties jwtProperties,
-                    RefreshTokenSessionRepository refreshTokenRepository) {
+                    RefreshTokenSessionRepository refreshTokenRepository,
+                    AdminAccountSupportService accountSupportService) {
         this.userService = userService;
         this.jwtService = jwtService;
         this.passwordEncoder = passwordEncoder;
         this.jwtProperties = jwtProperties;
         this.refreshTokenRepository = refreshTokenRepository;
+        this.accountSupportService = accountSupportService;
     }
 
     @Override
@@ -126,7 +129,9 @@ class AuthServiceImpl implements AuthService {
         if (user.getStatus() != UserStatus.ACTIVE) {
             throw new InvalidCredentialsException("Account is suspended or disabled");
         }
-        TokenResponse replacement = issueTokens(user);
+        TokenResponse replacement = session.getImpersonationSession() != null
+                ? accountSupportService.rotate(session, claims)
+                : issueTokens(user);
         session.setRevokedAt(now);
         session.setReplacedByHash(hash(replacement.refreshToken()));
         refreshTokenRepository.save(session);
@@ -164,7 +169,7 @@ class AuthServiceImpl implements AuthService {
         session.setExpiresAt(refreshClaims.getExpiration().toInstant());
         refreshTokenRepository.save(session);
         long expiresIn = Duration.ofMinutes(jwtProperties.getAccessTokenTtlMinutes()).getSeconds();
-        return new TokenResponse(access, refresh, "Bearer", expiresIn);
+        return new TokenResponse(access, refresh, "Bearer", expiresIn, null);
     }
 
     private static String hash(String token) {
