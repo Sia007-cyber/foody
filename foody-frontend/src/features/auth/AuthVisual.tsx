@@ -59,6 +59,9 @@ export function AuthVisual({
       </div>
 
       <div className="auth-hero-topbar">
+        <span className="auth-hero-brand">
+          فودی<span className="auth-hero-brand-dot">.</span>
+        </span>
         <button
           type="button"
           className="auth-hero-back-btn"
@@ -67,9 +70,6 @@ export function AuthVisual({
         >
           <ChevronStartIcon size={18} className="auth-hero-back-icon" />
         </button>
-        <span className="auth-hero-brand">
-          فودی<span className="auth-hero-brand-dot">.</span>
-        </span>
       </div>
 
       <div className="auth-hero-inner">

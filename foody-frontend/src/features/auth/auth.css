@@ -17,15 +17,17 @@
 
 /* Floating top row (back button + brand) directly on the gradient — no white bar */
 .auth-hero-topbar {
-  position: relative;
+  position: absolute;
+  top: max(24px, env(safe-area-inset-top));
+  left: max(32px, env(safe-area-inset-left));
+  right: max(32px, env(safe-area-inset-right));
   z-index: 1;
-  width: 100%;
-  max-width: 460px;
-  height: var(--nav-h);
+  width: auto;
+  height: 36px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  flex-shrink: 0;
+  direction: ltr;
 }
 .auth-hero-back-btn {
   display: inline-flex;
@@ -54,7 +56,7 @@
   letter-spacing: -0.02em;
 }
 .auth-hero-brand-dot {
-  color: var(--ink);
+  color: var(--ember);
 }
 
 /* Soft color blobs scattered around the hero for depth */
@@ -147,6 +149,7 @@
   flex: 1;
   width: 100%;
   max-width: 460px;
+  padding-top: var(--nav-h);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -204,9 +207,22 @@
   background: rgba(255, 255, 255, 0.16);
 }
 
+@media (max-width: 1024px) {
+  .auth-hero-topbar {
+    top: max(20px, env(safe-area-inset-top));
+    left: max(24px, env(safe-area-inset-left));
+    right: max(24px, env(safe-area-inset-right));
+  }
+}
+
 @media (max-width: 520px) {
   .auth-hero {
     padding: 40px 14px;
+  }
+  .auth-hero-topbar {
+    top: max(10px, env(safe-area-inset-top));
+    left: max(12px, env(safe-area-inset-left));
+    right: max(12px, env(safe-area-inset-right));
   }
   .auth-hero-title {
     font-size: 21px;
