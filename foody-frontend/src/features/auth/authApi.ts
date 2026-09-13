@@ -15,6 +15,7 @@ export interface RegisterPayload {
   fullName: string;
   phone: string;
   role: RegistrableRole;
+  managerNationalId?: string;
 }
 
 export const authApi = {

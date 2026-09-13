@@ -255,6 +255,34 @@
   box-shadow: var(--shadow-float);
   animation: auth-card-in 0.35s ease;
 }
+.auth-card-register {
+  max-width: 380px;
+  gap: 16px;
+  padding: 24px;
+}
+.auth-card-register .auth-form {
+  gap: 12px;
+}
+.auth-card-register .input {
+  padding-block: 10px;
+}
+.registration-helper {
+  color: var(--ink-soft);
+  font-size: 12px;
+  line-height: 1.4;
+}
+.auth-card-register .role-option {
+  gap: 4px;
+  padding: 12px 8px;
+}
+.auth-card-register .role-option-icon {
+  width: 30px;
+  height: 30px;
+  margin-bottom: 0;
+}
+.auth-card-register .role-option-subtitle {
+  font-size: 11.5px;
+}
 @keyframes auth-card-in {
   from {
     opacity: 0;
@@ -351,4 +379,13 @@
   padding: 12px 14px;
   font-size: 13px;
   text-align: center;
+}
+
+@media (max-width: 520px) {
+  .auth-card-register {
+    padding: 22px 18px;
+  }
+  .auth-card-register .role-toggle {
+    gap: 8px;
+  }
 }

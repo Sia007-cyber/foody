@@ -17,5 +17,10 @@ public record RegisterRequest(
         @NotBlank @Size(min = 8, max = 128) String password,
         @NotBlank @Size(max = 255) String fullName,
         @NotBlank @Pattern(regexp = "09\\d{9}") String phone,
-        @NotNull UserRole role) {
+        @NotNull UserRole role,
+        String managerNationalId) {
+
+    public RegisterRequest(String email, String password, String fullName, String phone, UserRole role) {
+        this(email, password, fullName, phone, role, null);
+    }
 }

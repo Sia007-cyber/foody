@@ -4,11 +4,12 @@ interface FieldWrapperProps {
   label?: string;
   error?: string;
   helper?: string;
+  helperClassName?: string;
   children: ReactNode;
   htmlFor?: string;
 }
 
-function FieldWrapper({ label, error, helper, children, htmlFor }: FieldWrapperProps) {
+function FieldWrapper({ label, error, helper, helperClassName, children, htmlFor }: FieldWrapperProps) {
   return (
     <div className="field">
       {label && (
@@ -17,7 +18,7 @@ function FieldWrapper({ label, error, helper, children, htmlFor }: FieldWrapperP
         </label>
       )}
       {children}
-      {helper && <span className="field-helper">{helper}</span>}
+      {helper && <span className={`field-helper ${helperClassName ?? ""}`}>{helper}</span>}
       {error && <span className="field-error">{error}</span>}
     </div>
   );
@@ -27,11 +28,12 @@ interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   label?: string;
   error?: string;
   helper?: string;
+  helperClassName?: string;
 }
 
-export function Input({ label, error, helper, id, className, ...rest }: InputProps) {
+export function Input({ label, error, helper, helperClassName, id, className, ...rest }: InputProps) {
   return (
-    <FieldWrapper label={label} error={error} helper={helper} htmlFor={id}>
+    <FieldWrapper label={label} error={error} helper={helper} helperClassName={helperClassName} htmlFor={id}>
       <input id={id} className={`input ${className ?? ""}`} {...rest} />
     </FieldWrapper>
   );

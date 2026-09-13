@@ -10,6 +10,7 @@ import com.foody.auth.repository.RefreshTokenSessionRepository;
 import com.foody.common.exception.DuplicateResourceException;
 import com.foody.common.exception.InvalidCredentialsException;
 import com.foody.common.exception.InvalidRequestException;
+import com.foody.common.validation.IranianNationalId;
 import com.foody.users.entity.User;
 import com.foody.users.entity.UserRole;
 import com.foody.users.entity.UserStatus;
@@ -51,6 +52,9 @@ class AuthServiceImpl implements AuthService {
     public TokenResponse register(RegisterRequest request) {
         if (request.role() == UserRole.ADMIN) {
             throw new InvalidRequestException("Cannot self-register as ADMIN");
+        }
+        if (request.role() == UserRole.BUSINESS_OWNER && !IranianNationalId.isValid(normalizeNationalId(request.managerNationalId()))) {
+            throw new InvalidRequestException("A valid manager national ID is required for business owners");
         }
         String email = normalizeEmail(request.email());
         String phone = normalizePhone(request.phone());
@@ -99,6 +103,10 @@ class AuthServiceImpl implements AuthService {
         String phone = value == null ? "" : value.trim();
         if (!phone.matches("09\\d{9}")) throw new InvalidRequestException("Phone must match 09xxxxxxxxx");
         return phone;
+    }
+
+    private static String normalizeNationalId(String value) {
+        return value == null ? null : value.trim();
     }
 
     @Override

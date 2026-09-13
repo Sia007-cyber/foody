@@ -19,6 +19,8 @@ const ROLE_OPTIONS: { value: RegistrableRole; title: string; subtitle: string; i
   },
 ];
 
+export const OWNER_NATIONAL_ID_STORAGE_KEY = "foody.owner-registration-national-id";
+
 export function RegisterPage() {
   const { register } = useAuth();
   const navigate = useNavigate();
@@ -26,6 +28,7 @@ export function RegisterPage() {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
+  const [managerNationalId, setManagerNationalId] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -42,8 +45,21 @@ export function RegisterPage() {
 
     setLoading(true);
     try {
-      await register({ fullName, email: email.trim() || undefined, phone: phone.trim(), password, role });
-      navigate(role === "BUSINESS_OWNER" ? "/business" : "/", { replace: true });
+      const trimmedNationalId = managerNationalId.trim();
+      await register({
+        fullName,
+        email: email.trim() || undefined,
+        phone: phone.trim(),
+        password,
+        role,
+        managerNationalId: role === "BUSINESS_OWNER" ? trimmedNationalId : undefined,
+      });
+      if (role === "BUSINESS_OWNER") {
+        sessionStorage.setItem(OWNER_NATIONAL_ID_STORAGE_KEY, trimmedNationalId);
+        navigate("/business/register", { replace: true });
+      } else {
+        navigate("/", { replace: true });
+      }
     } catch (err) {
       setError(errorMessage(err));
     } finally {
@@ -58,7 +74,7 @@ export function RegisterPage() {
         title="فودی‌ات رو همین امروز بساز"
         subtitle="چه مشتری باشی چه صاحب کسب‌وکار، فودی برات آماده‌ست."
       >
-        <div className="auth-card">
+        <div className="auth-card auth-card-register">
           <div className="auth-heading">
             <h1>بیا شروع کنیم</h1>
             <p>یه حساب فودی بساز</p>
@@ -75,7 +91,10 @@ export function RegisterPage() {
                   role="radio"
                   aria-checked={role === opt.value}
                   className={`role-option ${role === opt.value ? "is-selected" : ""}`}
-                  onClick={() => setRole(opt.value)}
+                  onClick={() => {
+                    setRole(opt.value);
+                    if (opt.value === "CUSTOMER") setManagerNationalId("");
+                  }}
                 >
                   <span className="role-option-icon">{opt.icon}</span>
                   <span className="role-option-title">{opt.title}</span>
@@ -91,7 +110,7 @@ export function RegisterPage() {
               onChange={(e) => setFullName(e.target.value)}
             />
             <Input
-              label="ایمیل"
+              label="ایمیل (اختیاری)"
               type="email"
               dir="ltr"
               autoComplete="email"
@@ -99,6 +118,7 @@ export function RegisterPage() {
               onChange={(e) => setEmail(e.target.value)}
             />
             <Input
+              id="registration-phone"
               label="شماره موبایل"
               type="tel"
               dir="ltr"
@@ -106,9 +126,24 @@ export function RegisterPage() {
               pattern="09[0-9]{9}"
               maxLength={11}
               helper="مثال: 09123456789"
+              helperClassName="registration-helper"
               value={phone}
               onChange={(e) => setPhone(e.target.value.trim())}
             />
+            {role === "BUSINESS_OWNER" && (
+              <Input
+                label="کد ملی مدیر / مالک"
+                dir="ltr"
+                required
+                pattern="[0-9]{10}"
+                inputMode="numeric"
+                maxLength={10}
+                helper="۱۰ رقم، بدون فاصله"
+                helperClassName="registration-helper"
+                value={managerNationalId}
+                onChange={(e) => setManagerNationalId(e.target.value.trim())}
+              />
+            )}
             <PasswordInput
               label="رمز عبور"
               dir="ltr"

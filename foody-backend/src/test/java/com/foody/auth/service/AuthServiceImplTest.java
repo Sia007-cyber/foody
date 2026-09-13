@@ -80,7 +80,7 @@ class AuthServiceImplTest {
     @Test
     void register_createsBusinessOwnerAndReturnsTokens() {
         RegisterRequest req =
-                new RegisterRequest("owner@b.com", "password123", "Bob", "09123456788", UserRole.BUSINESS_OWNER);
+                new RegisterRequest("owner@b.com", "password123", "Bob", "09123456788", UserRole.BUSINESS_OWNER, "1000000001");
 
         when(userService.existsByEmail("owner@b.com")).thenReturn(false);
         when(passwordEncoder.encode("password123")).thenReturn("hashed");
@@ -89,6 +89,58 @@ class AuthServiceImplTest {
         authService.register(req);
 
         verify(userService).create(argThat(u -> u.getRole() == UserRole.BUSINESS_OWNER));
+    }
+
+    @Test
+    void register_customer_allowsMissingNationalIdAndOptionalEmail() {
+        RegisterRequest req = new RegisterRequest(null, "password123", "Alice", "09123456789", UserRole.CUSTOMER);
+        when(passwordEncoder.encode("password123")).thenReturn("hashed");
+        when(userService.create(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        authService.register(req);
+
+        verify(userService).create(argThat(u -> u.getRole() == UserRole.CUSTOMER && u.getEmail() == null));
+    }
+
+    @Test
+    void register_businessOwner_rejectsMissingNationalId() {
+        RegisterRequest req = new RegisterRequest(null, "password123", "Bob", "09123456788", UserRole.BUSINESS_OWNER);
+
+        assertThatThrownBy(() -> authService.register(req))
+                .isInstanceOf(InvalidRequestException.class)
+                .hasMessageContaining("national ID");
+        verify(userService, never()).create(any());
+    }
+
+    @Test
+    void register_businessOwner_rejectsInvalidNationalId() {
+        RegisterRequest req = new RegisterRequest(null, "password123", "Bob", "09123456788", UserRole.BUSINESS_OWNER, "1234567890");
+
+        assertThatThrownBy(() -> authService.register(req))
+                .isInstanceOf(InvalidRequestException.class)
+                .hasMessageContaining("national ID");
+        verify(userService, never()).create(any());
+    }
+
+    @Test
+    void register_businessOwner_allowsOptionalEmailWithValidNationalId() {
+        RegisterRequest req = new RegisterRequest(null, "password123", "Bob", "09123456788", UserRole.BUSINESS_OWNER, " 1000000001 ");
+        when(passwordEncoder.encode("password123")).thenReturn("hashed");
+        when(userService.create(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        authService.register(req);
+
+        verify(userService).create(argThat(u -> u.getRole() == UserRole.BUSINESS_OWNER && u.getEmail() == null));
+    }
+
+    @Test
+    void register_rejectsMissingPhone() {
+        RegisterRequest req = new RegisterRequest(null, "password123", "Alice", null, UserRole.CUSTOMER);
+
+        assertThatThrownBy(() -> authService.register(req))
+                .isInstanceOf(InvalidRequestException.class)
+                .hasMessageContaining("Phone");
+        verify(userService, never()).create(any());
     }
 
     @Test

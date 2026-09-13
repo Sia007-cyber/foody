@@ -6,6 +6,7 @@ import { Input, Select, Textarea } from "../../components/Field";
 import { Button } from "../../components/Button";
 import { errorMessage } from "../../components/Feedback";
 import { PageSpinner } from "../../components/Controls";
+import { OWNER_NATIONAL_ID_STORAGE_KEY } from "../auth/RegisterPage";
 import "../auth/auth.css";
 
 const BUSINESS_TYPE_OPTIONS: { value: string; label: string }[] = [
@@ -22,7 +23,7 @@ export function OwnerRegisterBusinessPage() {
   const navigate = useNavigate();
   const [name, setName] = useState("");
   const [businessType, setBusinessType] = useState("CAFE");
-  const [managerNationalId, setManagerNationalId] = useState("");
+  const [managerNationalId, setManagerNationalId] = useState(() => sessionStorage.getItem(OWNER_NATIONAL_ID_STORAGE_KEY) ?? "");
   const [address, setAddress] = useState("");
   const [phone, setPhone] = useState("");
   const [description, setDescription] = useState("");
@@ -54,6 +55,7 @@ export function OwnerRegisterBusinessPage() {
         description: description || undefined,
       };
       await businessApi.createMyBusiness(payload);
+      sessionStorage.removeItem(OWNER_NATIONAL_ID_STORAGE_KEY);
       navigate("/business", { replace: true });
     } catch (err) {
       setError(errorMessage(err));
@@ -74,7 +76,7 @@ export function OwnerRegisterBusinessPage() {
 
         <form className="auth-form" onSubmit={handleSubmit}>
           <Input label="نام کسب‌وکار" required value={name} onChange={(e) => setName(e.target.value)} />
-          <Input label="کد ملی مدیر کافه" required dir="ltr" value={managerNationalId} onChange={(e) => setManagerNationalId(e.target.value)} />
+          <Input label="کد ملی مدیر کافه" required dir="ltr" pattern="[0-9]{10}" inputMode="numeric" maxLength={10} helper="۱۰ رقم، بدون فاصله" value={managerNationalId} onChange={(e) => setManagerNationalId(e.target.value.trim())} />
 
           <Select
             label="نوع کسب‌وکار"

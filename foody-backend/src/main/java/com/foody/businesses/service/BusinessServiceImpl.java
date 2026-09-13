@@ -8,6 +8,7 @@ import com.foody.businesses.entity.BusinessTypeCode;
 import com.foody.businesses.repository.BusinessRepository;
 import com.foody.common.exception.DuplicateResourceException;
 import com.foody.common.exception.InvalidRequestException;
+import com.foody.common.validation.IranianNationalId;
 import com.foody.common.exception.InvalidStateTransitionException;
 import com.foody.common.exception.ResourceNotFoundException;
 import com.foody.common.storage.ImageReplacement;
@@ -82,10 +83,14 @@ class BusinessServiceImpl implements BusinessService {
         } catch (IllegalArgumentException e) {
             throw new InvalidRequestException("Unknown business type: " + request.businessType());
         }
+        String managerNationalId = request.managerNationalId() == null ? null : request.managerNationalId().trim();
+        if (!IranianNationalId.isValid(managerNationalId)) {
+            throw new InvalidRequestException("A valid manager national ID is required");
+        }
 
         Business business = new Business();
         business.setOwnerUserId(ownerUserId);
-        business.setManagerNationalId(request.managerNationalId().trim());
+        business.setManagerNationalId(managerNationalId);
         business.setName(request.name());
         business.setBusinessType(request.businessType());
         business.setDescription(request.description());

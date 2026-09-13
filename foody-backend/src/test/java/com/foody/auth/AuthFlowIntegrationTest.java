@@ -313,7 +313,7 @@ class AuthFlowIntegrationTest extends AbstractContainerBaseTest {
     void register_businessOwner_createsBusinessOwnerAccount() throws Exception {
         String email = "owner_" + System.nanoTime() + "@foody.test";
         String body = objectMapper.writeValueAsString(java.util.Map.of(
-                "email", email, "password", "password123", "fullName", "Owner", "phone", phoneFor(email), "role", "BUSINESS_OWNER"));
+                "email", email, "password", "password123", "fullName", "Owner", "phone", phoneFor(email), "role", "BUSINESS_OWNER", "managerNationalId", "1000000001"));
         String response = mockMvc.perform(post("/api/auth/register")
                         .contentType(MediaType.APPLICATION_JSON).content(body))
                 .andExpect(status().isOk())
@@ -323,6 +323,35 @@ class AuthFlowIntegrationTest extends AbstractContainerBaseTest {
         mockMvc.perform(get("/api/users/me").header("Authorization", "Bearer " + access))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.role").value("BUSINESS_OWNER"));
+    }
+
+    @Test
+    void register_businessOwner_requiresValidManagerNationalId() throws Exception {
+        String email = "owner_id_" + System.nanoTime() + "@foody.test";
+        Map<String, String> missingId = Map.of(
+                "email", email, "password", "password123", "fullName", "Owner", "phone", phoneFor(email), "role", "BUSINESS_OWNER");
+        mockMvc.perform(post("/api/auth/register").contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(missingId)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("INVALID_REQUEST"));
+
+        Map<String, String> invalidId = Map.of(
+                "email", "invalid_" + email, "password", "password123", "fullName", "Owner", "phone", phoneFor("invalid_" + email), "role", "BUSINESS_OWNER", "managerNationalId", "1234567890");
+        mockMvc.perform(post("/api/auth/register").contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(invalidId)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("INVALID_REQUEST"));
+    }
+
+    @Test
+    void register_customer_allowsPayloadWithoutEmailOrManagerNationalId() throws Exception {
+        String phone = phoneFor("customer_optional_" + System.nanoTime());
+        Map<String, String> payload = Map.of(
+                "password", "password123", "fullName", "Customer", "phone", phone, "role", "CUSTOMER");
+        mockMvc.perform(post("/api/auth/register").contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(payload)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.accessToken").exists());
     }
 
     @Test

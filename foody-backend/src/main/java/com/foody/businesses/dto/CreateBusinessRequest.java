@@ -15,5 +15,5 @@ public record CreateBusinessRequest(
         @Size(max = 2000) String description,
         @Size(max = 255) String address,
         @Size(max = 64) String phone) {
-    public CreateBusinessRequest(String name,String businessType,String description,String address,String phone){this(name,businessType,"legacy-onboarding",description,address,phone);}
+    public CreateBusinessRequest(String name,String businessType,String description,String address,String phone){this(name,businessType,"1000000001",description,address,phone);}
 }
