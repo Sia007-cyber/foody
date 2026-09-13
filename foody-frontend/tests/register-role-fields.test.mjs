@@ -2,8 +2,9 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 
-const [registerPage, authCss] = await Promise.all([
+const [registerPage, authVisual, authCss] = await Promise.all([
   readFile(new URL("../src/features/auth/RegisterPage.tsx", import.meta.url), "utf8"),
+  readFile(new URL("../src/features/auth/AuthVisual.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/features/auth/auth.css", import.meta.url), "utf8"),
 ]);
 
@@ -28,4 +29,14 @@ test("registration has compact, responsive card and role controls", () => {
   assert.match(authCss, /\.registration-helper \{[\s\S]*color: var\(--ink-soft\)[\s\S]*font-size: 12px/);
   assert.match(authCss, /\.auth-card-register \.role-option \{[\s\S]*padding: 12px 8px/);
   assert.match(authCss, /@media \(max-width: 520px\) \{[\s\S]*\.auth-card-register/);
+});
+
+test("Register disables the shared promotional hero content and moves its card upward", () => {
+  assert.match(registerPage, /showPromotionalContent=\{false\}/);
+  assert.match(authVisual, /showPromotionalContent = true/);
+  assert.match(authVisual, /\{showPromotionalContent && \(/);
+  assert.match(authCss, /\.auth-hero-register \.auth-hero-inner \{[\s\S]*justify-content: flex-start[\s\S]*padding-top: 88px/);
+  assert.match(authCss, /@media \(max-width: 1024px\) \{[\s\S]*\.auth-hero-register \.auth-hero-inner \{[\s\S]*padding-top: 76px/);
+  assert.match(authCss, /@media \(max-width: 520px\) \{[\s\S]*\.auth-hero-register \.auth-hero-inner \{[\s\S]*padding-top: 58px/);
+  assert.match(authCss, /@media \(max-width: 520px\) \{[\s\S]*\.auth-hero-register \{[\s\S]*padding-top: 0/);
 });

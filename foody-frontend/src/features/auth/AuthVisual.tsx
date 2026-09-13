@@ -34,6 +34,7 @@ export function AuthVisual({
   title,
   subtitle,
   showFeatures = true,
+  showPromotionalContent = true,
   children,
 }: {
   kicker: string;
@@ -41,12 +42,14 @@ export function AuthVisual({
   subtitle?: string;
   /** نمایش لیست ویژگی‌ها زیر متن؛ برای صفحات کوتاه‌تر (مثل ورود) خاموش می‌شود. */
   showFeatures?: boolean;
+  /** Register uses the shared shell without the promotional hero block. */
+  showPromotionalContent?: boolean;
   children: ReactNode;
 }) {
   const navigate = useNavigate();
 
   return (
-    <div className="auth-hero">
+    <div className={`auth-hero ${showPromotionalContent ? "" : "auth-hero-register"}`}>
       <div className="auth-hero-orb auth-hero-orb-violet" aria-hidden="true" />
       <div className="auth-hero-orb auth-hero-orb-pistachio" aria-hidden="true" />
       <div className="auth-hero-orb auth-hero-orb-deep" aria-hidden="true" />
@@ -73,21 +76,23 @@ export function AuthVisual({
       </div>
 
       <div className="auth-hero-inner">
-        <div className="auth-hero-text">
-          <span className="auth-hero-kicker">{kicker}</span>
-          <h1 className="auth-hero-title">{title}</h1>
-          {subtitle && <p className="auth-hero-subtitle">{subtitle}</p>}
-          {showFeatures && (
-            <ul className="auth-hero-features">
-              {FEATURES.map((f) => (
-                <li key={f.title} className="auth-hero-feature">
-                  <span className="auth-hero-feature-icon">{f.icon}</span>
-                  {f.title}
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
+        {showPromotionalContent && (
+          <div className="auth-hero-text">
+            <span className="auth-hero-kicker">{kicker}</span>
+            <h1 className="auth-hero-title">{title}</h1>
+            {subtitle && <p className="auth-hero-subtitle">{subtitle}</p>}
+            {showFeatures && (
+              <ul className="auth-hero-features">
+                {FEATURES.map((f) => (
+                  <li key={f.title} className="auth-hero-feature">
+                    <span className="auth-hero-feature-icon">{f.icon}</span>
+                    {f.title}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        )}
 
         {children}
       </div>

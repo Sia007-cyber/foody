@@ -156,6 +156,10 @@
   justify-content: center;
   gap: 30px;
 }
+.auth-hero-register .auth-hero-inner {
+  justify-content: flex-start;
+  padding-top: 88px;
+}
 .auth-hero-text {
   text-align: center;
   color: #fff;
@@ -213,16 +217,25 @@
     left: max(24px, env(safe-area-inset-left));
     right: max(24px, env(safe-area-inset-right));
   }
+  .auth-hero-register .auth-hero-inner {
+    padding-top: 76px;
+  }
 }
 
 @media (max-width: 520px) {
   .auth-hero {
     padding: 40px 14px;
   }
+  .auth-hero-register {
+    padding-top: 0;
+  }
   .auth-hero-topbar {
     top: max(10px, env(safe-area-inset-top));
     left: max(12px, env(safe-area-inset-left));
     right: max(12px, env(safe-area-inset-right));
+  }
+  .auth-hero-register .auth-hero-inner {
+    padding-top: 58px;
   }
   .auth-hero-title {
     font-size: 21px;

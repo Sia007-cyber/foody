@@ -73,6 +73,7 @@ export function RegisterPage() {
         kicker="بیا شروع کنیم 🚀"
         title="فودی‌ات رو همین امروز بساز"
         subtitle="چه مشتری باشی چه صاحب کسب‌وکار، فودی برات آماده‌ست."
+        showPromotionalContent={false}
       >
         <div className="auth-card auth-card-register">
           <div className="auth-heading">
