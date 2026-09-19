@@ -1,4 +1,11 @@
-# Foody shared Tomcat deployment
+# Archived: Foody shared Tomcat deployment
+
+> This file is retained only as historical shared-hosting reference. The current
+> Maven build produces an executable JAR and no longer produces the WAR described
+> below. Do not use these steps for the dedicated VPS and do not deploy the JAR to
+> external Tomcat. Use [`../PRODUCTION.md`](../PRODUCTION.md) instead. The reusable
+> `sharedhost` profile remains in source so its external-storage and conservative
+> pool configuration are not lost, but the shared-host deployment target is retired.
 
 ## Compatibility baseline
 

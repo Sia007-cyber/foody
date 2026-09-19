@@ -88,11 +88,12 @@ interface RequestOptions {
 }
 
 function buildUrl(path: string, query?: RequestOptions["query"]): string {
-  const url = new URL(`${BASE_URL}${path}`);
+  const params = new URLSearchParams();
   for (const [key, value] of Object.entries(query ?? {})) {
-    if (value !== undefined && value !== null && value !== "") url.searchParams.set(key, String(value));
+    if (value !== undefined && value !== null && value !== "") params.set(key, String(value));
   }
-  return url.toString();
+  const suffix = params.toString();
+  return `${BASE_URL}${path}${suffix ? `?${suffix}` : ""}`;
 }
 
 /** One retry; delayed 401s using the previous access token reuse the refreshed token. */

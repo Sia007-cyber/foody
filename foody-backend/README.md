@@ -5,7 +5,8 @@ and [production configuration](../PRODUCTION.md) for current instructions.
 
 Run locally with `SPRING_PROFILES_ACTIVE=local mvn spring-boot:run`.
 Run the full suite with `mvn test` and Docker available; package with `mvn package -DskipTests`.
-The default runtime profile is `prod`. Test resources explicitly select `tc`.
-Flyway V1–V19 owns the schema; historical demo credentials are disabled by V19.
+The package is an executable JAR at `target/foody-backend.jar`. The dedicated VPS
+selects `vps`; the default/cloud profile is `prod`; tests explicitly select `tc`.
+Flyway V1–V23 owns the schema; historical demo credentials are disabled by V19.
 
-See [audit results](../PRODUCTION-AUDIT.md) for verification evidence and unresolved release prerequisites.
+See the [VPS runbook](../PRODUCTION.md) for current deployment instructions.

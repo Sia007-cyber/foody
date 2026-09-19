@@ -1,4 +1,8 @@
-# Final production-readiness audit — 2026-09-09
+# Historical production-readiness audit — 2026-09-09
+
+> This audit records the former Render/Vercel/S3 deployment design. It is not the
+> current operator guide and its build counts and provider-specific blockers are
+> historical. Use [`PRODUCTION.md`](PRODUCTION.md) for the dedicated Ubuntu VPS.
 
 ## Production deployment handoff
 

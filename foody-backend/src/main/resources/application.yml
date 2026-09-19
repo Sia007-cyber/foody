@@ -28,7 +28,7 @@ server:
 foody:
   reservations:
     # Reservation date/time values are local business time. Keep validation independent
-    # of the host (including Render), while allowing an explicit deployment override.
+    # of the host, while allowing an explicit deployment override.
     time-zone: ${FOODY_BUSINESS_TIME_ZONE:Asia/Tehran}
   jwt:
     # Development/test fallback only. The prod profile overrides this with no fallback,
@@ -61,8 +61,8 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
 
 ---
-# Production profile (Render, etc). All values come from environment variables —
-# set SPRING_PROFILES_ACTIVE=prod on the host.
+# Cloud/object-storage production profile. All values come from environment variables.
+# The dedicated Ubuntu host uses the separate vps profile in application-vps.yml.
 spring:
   config:
     activate:

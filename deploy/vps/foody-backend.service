@@ -1,0 +1,43 @@
+[Unit]
+Description=Foody Spring Boot backend
+After=network-online.target mysql.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=foody
+Group=foody
+WorkingDirectory=/var/lib/foody
+EnvironmentFile=/etc/foody/foody.env
+ExecStart=/usr/bin/java -Xms128m -Xmx512m -XX:MaxMetaspaceSize=192m -XX:+ExitOnOutOfMemoryError -jar /opt/foody/current/backend/foody-backend.jar
+Restart=on-failure
+RestartSec=5s
+TimeoutStopSec=30s
+SuccessExitStatus=143
+UMask=0027
+
+# The release and OS stay read-only; only persistent application data is writable.
+NoNewPrivileges=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectKernelLogs=true
+ProtectControlGroups=true
+ProtectClock=true
+ProtectHostname=true
+RestrictSUIDSGID=true
+RestrictRealtime=true
+LockPersonality=true
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+SystemCallArchitectures=native
+CapabilityBoundingSet=
+AmbientCapabilities=
+ReadWritePaths=/var/lib/foody/uploads
+MemoryMax=768M
+TasksMax=256
+
+[Install]
+WantedBy=multi-user.target

@@ -13,9 +13,11 @@ Wallets are business credit ledgers, not an online payment gateway or checkout p
 Offers are capacity-limited claims, not discount codes. Reservation capacity/table allocation
 is not calculated. Additional dashboard tools labelled “coming soon” remain outside this scope.
 
-Production uploads require configured S3-compatible object storage; local/test profiles use disk storage.
-See [production setup and release prerequisites](PRODUCTION.md) and
-[final audit results](PRODUCTION-AUDIT.md). Historical phase notes are not deployment instructions.
+The dedicated-VPS production path uses an executable Spring Boot JAR, systemd,
+Nginx, and persistent uploads outside the release directory. The separate cloud
+profile still supports S3-compatible object storage. See the current
+[VPS production runbook](PRODUCTION.md). [The prior audit](PRODUCTION-AUDIT.md)
+and historical phase notes describe earlier deployment targets and are not current instructions.
 
 ## Local development
 
@@ -29,7 +31,8 @@ SPRING_PROFILES_ACTIVE=local mvn spring-boot:run
 The local profile uses database `foody` and env-overridable `DB_HOST`, `DB_PORT`,
 `DB_USERNAME`, `DB_PASSWORD` (defaults: localhost, 3306, foody, foody).
 It creates the database if permitted. Flyway owns the schema; Hibernate only validates it.
-The default application and Docker profile is **prod**, which requires explicit configuration.
+The default application and Docker profile is **prod**, which requires explicit cloud configuration.
+The dedicated VPS explicitly selects **vps**; local development explicitly selects **local**.
 `tc` is selected by test resources and only the integration-test harness starts containers.
 
 In a second terminal:
@@ -59,8 +62,11 @@ with Maven's `-DargLine=-javaagent:/absolute/path/to/byte-buddy-agent.jar` optio
 ```sh
 cd foody-frontend
 npm test
-VITE_API_BASE_URL=https://your-api.onrender.com npm run build
+VITE_API_BASE_URL= npm run build
 ```
+
+An empty production API base means same-origin `/api` requests through Nginx.
+Development continues to default to `http://localhost:8080`.
 
 The frontend tests use Node's built-in runner and include session/API behavior and UI contract
 checks; they are not a live browser acceptance suite. PWA/mobile implementation is a separate phase.

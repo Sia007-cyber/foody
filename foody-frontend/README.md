@@ -1,4 +1,6 @@
-> Current deployment instructions and release prerequisites: [Production guide](../PRODUCTION.md). Production builds require an explicit HTTPS `VITE_API_BASE_URL`; localhost is development-only.
+> Current deployment instructions: [VPS production guide](../PRODUCTION.md). The
+> VPS production build uses same-origin `/api` requests when `VITE_API_BASE_URL`
+> is empty; an explicit value is still supported for separate HTTPS API hosting.
 
 # Foody Frontend
 

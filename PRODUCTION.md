@@ -1,182 +1,334 @@
-# Foody web production operator runbook
+# Foody dedicated Ubuntu VPS runbook
 
-This is the deployment contract for the current web application only. Repository work is complete when this file is committed; provisioning accounts, secrets, domains, TLS, and live checks are operator actions. Do not treat this guide as evidence that a deployment has been performed.
+This is the current production procedure for Ubuntu 24.04, Java 21, MySQL 8.0,
+Nginx, and systemd. It prepares repository artifacts only; it does not perform a
+server deployment. The older external-Tomcat notes in
+[`foody-backend/DEPLOYMENT.md`](foody-backend/DEPLOYMENT.md) are archived and are
+not compatible with the current executable-JAR build.
 
-## Repository-enforced production contract
+## Production architecture and contract
 
-- The Java 21 Docker image defaults to the `prod` profile, runs Flyway V1–V19, and Hibernate only validates schema.
-- Production JDBC uses MySQL `sslMode=VERIFY_IDENTITY`; the Aiven hostname must match its certificate and its CA must be trusted by the JVM.
-- Production rejects weak/default JWT secrets, invalid CORS origins, and incomplete S3-compatible storage configuration. There is no local upload fallback.
-- Vite production builds require `VITE_API_BASE_URL`; `foody-frontend/vercel.json` provides SPA rewrites.
-- V19 preserves demo rows and foreign-key history, but disables the known demo credentials, revokes their sessions, and suspends the seeded business.
+- Nginx is the only public application entry point on ports 80/443. UFW must not
+  expose 8080 or 3306.
+- Nginx serves the Vite `dist` directory, falls back to `index.html` for SPA
+  routes, and proxies `/api/` and `/uploads/` to `127.0.0.1:8080`.
+- systemd runs the executable Spring Boot JAR as the unprivileged `foody` user.
+- The `vps` Spring profile enforces `127.0.0.1:8080`, an absolute upload path,
+  production CORS/JWT validation, local persistent storage, and a Hikari pool of
+  at most four connections with one minimum idle connection.
+- `/var/lib/foody/uploads` is persistent application data. Releases under
+  `/opt/foody/releases` are immutable and replaceable.
+- Flyway owns the schema and Hibernate only validates it. An empty `foody`
+  database is initialized by the unchanged V1 through V23 migration chain.
+- Demo-account bootstrapping is forced off by the VPS profile. Do not add demo
+  password variables to the production environment.
+- The cloud `prod` profile remains available for S3-compatible storage. The VPS
+  deliberately uses `vps`; never combine production profiles.
 
-## Definitive environment variables
+## Required environment
 
-Only these variables are read by the production code/configuration. Put backend values in Render's server-side environment. Never put secrets in a Vercel `VITE_*` variable.
+Install [`deploy/vps/foody.env.example`](deploy/vps/foody.env.example) as
+`/etc/foody/foody.env` and replace every placeholder. Required values are:
 
-### Backend / Render
+| Variable | Purpose |
+|---|---|
+| `SPRING_PROFILES_ACTIVE` | Must be exactly `vps`. |
+| `FOODY_DB_URL` | JDBC URL for local MySQL database `foody`. |
+| `FOODY_DB_USERNAME` | Application/Flyway database principal (`foody_app`). |
+| `FOODY_DB_PASSWORD` | Database password; secret. |
+| `FOODY_JWT_SECRET` | Base64 of at least 32 random bytes; secret. |
+| `FOODY_CORS_ALLOWED_ORIGINS` | Comma-separated exact HTTPS frontend origins, with no path or trailing slash. |
+| `FOODY_STORAGE_LOCAL_PATH` | Must be an absolute persistent path; use `/var/lib/foody/uploads`. |
 
-| Variable | Required | Secret | Purpose and placeholder shape |
-|---|---:|---:|---|
-| `SPRING_PROFILES_ACTIVE` | Yes | No | `prod`; do not combine with `local` or `tc`. The image defaults to it, but set it explicitly. |
-| `DB_HOST` | Yes | No | Aiven hostname matching its certificate: `<service>.aivencloud.com`. |
-| `DB_PORT` | Yes | No | Aiven MySQL TLS port: `<port>`. |
-| `DB_NAME` | Yes | No | Existing application database: `foody`. |
-| `DB_USERNAME` | Yes | Yes | Principal with Flyway DDL and runtime DML rights: `<database-user>`. |
-| `DB_PASSWORD` | Yes | Yes | Password for that principal: `<database-password>`. |
-| `FOODY_JWT_SECRET` | Yes | Yes | Unique Base64 that decodes to at least 32 bytes: `<base64-32-byte-or-longer-secret>`. Generate, for example, with `openssl rand -base64 32`. |
-| `FOODY_CORS_ALLOWED_ORIGINS` | Yes | No | Exact comma-separated HTTPS frontend origins, no path/trailing slash/wildcard: `https://app.example.com,https://www.example.com`. |
-| `FOODY_BUSINESS_TIME_ZONE` | No | No | Reservation business timezone; defaults to `Asia/Tehran`: `Asia/Tehran`. |
-| `FOODY_STORAGE_BUCKET` | Yes | No | S3-compatible bucket: `foody-public-images`. |
-| `FOODY_STORAGE_REGION` | Yes | No | Provider region; R2 commonly uses `auto`. |
-| `FOODY_STORAGE_ENDPOINT` | Provider-dependent | No | HTTPS S3 API endpoint, no credentials/query/fragment. Required for R2: `https://<account-id>.r2.cloudflarestorage.com`; leave blank only for AWS S3. |
-| `FOODY_STORAGE_ACCESS_KEY` | Yes | Yes | Bucket-scoped S3 API access key: `<storage-access-key>`. |
-| `FOODY_STORAGE_SECRET_KEY` | Yes | Yes | Corresponding API secret: `<storage-secret-key>`. |
-| `FOODY_STORAGE_PUBLIC_BASE_URL` | Yes | No | HTTPS public image origin/prefix, no credentials/query/fragment: `https://media.example.com`. Persisted image URLs are beneath this value. |
+The template also pins the optional business-time-zone default to `Asia/Tehran`
+and explicitly leaves demo accounts disabled. Production startup rejects any
+attempt to set `FOODY_DEMO_ACCOUNTS_ENABLED=true`.
 
-`PORT` is optionally supplied by Render and consumed as `server.port` (default `8080`); do not set a conflicting fixed value. `FOODY_UPLOAD_DIR` is local/test only and unused in `prod`. `TZ=UTC` is baked into the image. `JAVA_TOOL_OPTIONS` is needed only if the Aiven CA is not trusted by Java 21: use a deployment-managed truststore, e.g. `-Djavax.net.ssl.trustStore=/path/to/aiven-truststore -Djavax.net.ssl.trustStorePassword=<truststore-password>`.
+The backend port and address are intentionally not environment variables in the
+template: the VPS profile validates port 8080 and loopback binding. The frontend
+needs no production environment variable for this layout; an unset/empty
+`VITE_API_BASE_URL` means same-origin. Vite variables are public bundle content,
+so never put a secret in one.
 
-### Frontend / Vercel
+Generate the JWT value on a trusted machine with `openssl rand -base64 32`. Do
+not paste secrets into shell command arguments, source files, release folders, or
+systemd unit files.
 
-| Variable | Required | Secret | Purpose and placeholder shape |
-|---|---:|---:|---|
-| `VITE_API_BASE_URL` | Yes | No | Backend HTTPS origin only—no `/api`, path, query, fragment, or credentials: `https://api.example.com`. |
+## 1. Build a release
 
-There are no other frontend production variables. Vite embeds `VITE_*` values in the browser bundle.
+Use Java 21, Maven, and a Node version supported by the checked-in Vite version.
+From a clean checkout on the build machine:
 
-## Durable storage: Cloudflare R2 example
+```sh
+cd foody-backend
+mvn clean package
 
-The implementation does S3 `PutObject` to generated `profiles/`, `business-covers/`, and `products/` keys, and `DeleteObject` for replacement/removal. It does not use client filenames, bucket listing, or application-side object reads.
+cd ../foody-frontend
+npm ci
+npm test
+VITE_API_BASE_URL= npm run build
+```
 
-1. Create an otherwise empty bucket, e.g. `foody-public-images`.
-2. Configure public **read** delivery through a provider public URL or, preferably, a verified custom hostname such as `media.example.com`; complete provider DNS/TLS verification. Use that public HTTPS URL for `FOODY_STORAGE_PUBLIC_BASE_URL`, not the S3 API endpoint.
-3. Create an S3 API credential restricted to this bucket and object write/delete operations. Do not grant account-wide administration and never expose the credential to Vercel. For R2, create a token scoped only to the bucket with the minimum object read/write capability R2 offers; public reads come from the public domain, not Render's credential.
-4. Map provider values exactly:
+Expected artifacts:
 
-   | Provider value | Foody variable |
-   |---|---|
-   | Bucket | `FOODY_STORAGE_BUCKET=foody-public-images` |
-   | R2 compatibility region | `FOODY_STORAGE_REGION=auto` |
-   | R2 S3 API endpoint | `FOODY_STORAGE_ENDPOINT=https://<account-id>.r2.cloudflarestorage.com` |
-   | S3 access key ID | `FOODY_STORAGE_ACCESS_KEY=<render-secret>` |
-   | S3 secret access key | `FOODY_STORAGE_SECRET_KEY=<render-secret>` |
-   | Public/custom-domain image URL | `FOODY_STORAGE_PUBLIC_BASE_URL=https://media.example.com` |
+- backend: `foody-backend/target/foody-backend.jar`
+- frontend: `foody-frontend/dist/`
 
-5. After deployment, upload a profile, cover, or product image; confirm the saved public URL loads over HTTPS. Restart/redeploy Render and reload it.
-6. Replace that image and confirm the record points to the new URL and the prior managed object is removed. Delete a product with a managed image and confirm its directly associated object is removed. A failed database replacement retains the previous URL; unknown legacy/external URLs are intentionally not deleted.
+The explicit empty frontend variable protects the production build from a local
+developer `.env` file. Transfer only the JAR and the contents of `dist/` to the
+VPS through the operator's normal authenticated channel. Do not transfer source
+`.env` files, `target/`, `node_modules/`, or credentials.
 
-Do not use Render disk for production images. Existing `/uploads/...` database URLs are retained but need a separate content migration if they must stay visible after cutover.
+## 2. One-time VPS directories and account
 
-## Real administrator for the current staging/client-demo deployment
+Run these manually on the VPS with administrative privileges:
 
-There is intentionally no public admin-registration or permanent bootstrap endpoint. Registration rejects `ADMIN`, so the supported one-time procedure is normal registration followed by a narrowly targeted, audited database promotion. This is an explicit operator-controlled mechanism; no code change is needed.
+```sh
+sudo adduser --system --group --home /var/lib/foody foody
+sudo install -d -o foody -g foody -m 0750 /var/lib/foody
+sudo install -d -o foody -g foody -m 0750 /var/lib/foody/uploads
+sudo install -d -o root -g root -m 0755 /opt/foody/releases
+sudo install -d -o root -g root -m 0700 /etc/foody
+```
 
-1. On the deployed HTTPS staging site, register a normal `CUSTOMER` account using `<REAL_ADMIN_EMAIL>` and a new private operator-chosen password. Never place that password in SQL, source, migrations, tests, tickets, or this document. Verify login and record `<REAL_ADMIN_USER_ID>` from `/api/users/me`.
-2. In a trusted Aiven administration session, inspect the exact account:
+If the account already exists, do not recreate it; verify it has no interactive
+login and owns the two `/var/lib/foody` directories. Nginx does not need direct
+filesystem access to uploads because `/uploads/` is proxied to Spring.
 
-   ```sql
-   SELECT id, email, role, status, public_id
-   FROM users
-   WHERE id = <REAL_ADMIN_USER_ID> AND email = '<REAL_ADMIN_EMAIL>';
-   ```
+Create a release identified by a UTC timestamp, for example:
 
-3. Confirm it is the intended ACTIVE account, then promote exactly that row. `public_id` is cleared because it is a customer-only identifier.
+```sh
+RELEASE_ID=20260919T120000Z
+sudo install -d -o root -g root -m 0755 /opt/foody/releases/$RELEASE_ID/backend
+sudo install -d -o root -g root -m 0755 /opt/foody/releases/$RELEASE_ID/frontend
+sudo install -o root -g root -m 0644 /path/to/foody-backend.jar /opt/foody/releases/$RELEASE_ID/backend/foody-backend.jar
+sudo cp -a /path/to/dist/. /opt/foody/releases/$RELEASE_ID/frontend/
+sudo chown -R root:root /opt/foody/releases/$RELEASE_ID
+sudo find /opt/foody/releases/$RELEASE_ID -type d -exec chmod 0755 {} +
+sudo find /opt/foody/releases/$RELEASE_ID -type f -exec chmod 0644 {} +
+sudo ln -sfn /opt/foody/releases/$RELEASE_ID /opt/foody/current.next
+sudo mv -Tf /opt/foody/current.next /opt/foody/current
+```
 
-   ```sql
-   START TRANSACTION;
+Use a new release directory for every deployment. Never place uploads, logs, or
+the environment file below `/opt/foody/current`.
 
-   UPDATE users
-   SET role = 'ADMIN', public_id = NULL
-   WHERE id = <REAL_ADMIN_USER_ID>
-     AND email = '<REAL_ADMIN_EMAIL>'
-     AND role = 'CUSTOMER'
-     AND status = 'ACTIVE';
+## 3. Database and environment file
 
-   SELECT id, email, role, status, public_id
-   FROM users
-   WHERE id = <REAL_ADMIN_USER_ID> AND email = '<REAL_ADMIN_EMAIL>';
+MySQL must continue listening only on `127.0.0.1:3306`. The existing empty
+database is named `foody` and the runtime user is `foody_app`. If they have not
+already been provisioned, connect interactively as a MySQL administrator and use
+a unique password in place of the placeholder:
 
-   COMMIT;
-   ```
+```sql
+CREATE DATABASE IF NOT EXISTS foody
+  CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE USER IF NOT EXISTS 'foody_app'@'127.0.0.1'
+  IDENTIFIED BY 'REPLACE_WITH_UNIQUE_PASSWORD';
+GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, ALTER, DROP, INDEX, REFERENCES
+  ON foody.* TO 'foody_app'@'127.0.0.1';
+FLUSH PRIVILEGES;
+```
 
-   Commit only if precisely one row changed and the returned row is correct; otherwise `ROLLBACK`. Do not alter password hashes, status, IDs, or related records—this preserves referential integrity. Log out and sign in again after promotion to receive an ADMIN token.
-4. Verify `/api/users/me` reports `ADMIN` and an admin-only screen works. Never reactivate a demo account and do not convert this SQL into a startup migration or public API.
+The JDBC URL and MySQL account both use `127.0.0.1`; do not grant remote hosts.
+Flyway needs the DDL privileges above for first initialization and later migrations.
 
-The wallet domain remains intentionally role-specific: customer-wallet records and `public_id` lookup support only `CUSTOMER` users. This role correction does not create BUSINESS_OWNER customer wallets. Existing owner/admin business-wallet operations remain unchanged, including immutable ledger entries, actor tracking, and immediate ADMIN credit/debit without customer confirmation.
+Copy the example to a temporary root-readable path, edit it without putting
+secrets in shell history, then install it:
 
-## Temporary Render/Vercel Client Demo
+```sh
+sudo install -o root -g root -m 0600 /path/to/completed-foody.env /etc/foody/foody.env
+sudo systemd-analyze verify /path/to/foody-backend.service
+```
 
-This temporary client-demo mechanism is explicitly opt-in and must never be enabled for the final VPS production deployment. The historical migrations remain unchanged: V2 seeded only the owner and Cafe Sunrise; V5 seeded only the admin; there is no seeded CUSTOMER account to restore.
+Before the final domain exists, the safe example HTTPS origin can remain for
+startup because browser requests are same-origin and do not use CORS. Replace it
+with the exact final HTTPS origin before domain cutover.
 
-Set these Render backend environment variables only for the temporary client-demo deployment:
+## 4. Install and start systemd
 
-| Variable | Value |
-| --- | --- |
-| `FOODY_DEMO_ACCOUNTS_ENABLED` | `true` |
-| `FOODY_DEMO_OWNER_PASSWORD` | `Owner123!` |
-| `FOODY_DEMO_ADMIN_PASSWORD` | `Admin123!` |
+Install [`deploy/vps/foody-backend.service`](deploy/vps/foody-backend.service):
 
-Temporary demo logins:
+```sh
+sudo install -o root -g root -m 0644 /path/to/foody-backend.service /etc/systemd/system/foody-backend.service
+sudo systemctl daemon-reload
+sudo systemctl enable foody-backend.service
+sudo systemctl start foody-backend.service
+```
 
-| Role | Email | Password |
-| --- | --- | --- |
-| BUSINESS_OWNER | `owner@foody.test` | `Owner123!` |
-| ADMIN | `admin@foody.test` | `Admin123!` |
+The service uses a 128 MiB initial heap, 512 MiB maximum heap, 192 MiB maximum
+metaspace, and a 768 MiB systemd memory ceiling. This leaves room on the 2 GB VPS
+for MySQL, Nginx, the OS, and native JVM memory. Revisit these limits only with
+measured memory/GC evidence.
 
-On startup with all three variables above, Foody verifies the original IDs, email addresses, roles, and the V8-updated `کافه سان‌رایز` identity before restoring only those two accounts. It uses the application password encoder, revokes active refresh sessions before reuse, and changes that existing business record back to `APPROVED`. It never creates an admin endpoint, changes V19, or creates duplicate users/businesses.
+Inspect first startup before configuring public traffic:
 
-If `FOODY_DEMO_ACCOUNTS_ENABLED` is absent, false, or lacks either required password variable, the two accounts remain suspended with disabled hashes and Cafe Sunrise remains suspended/non-public. Before the final VPS deployment, remove `FOODY_DEMO_ACCOUNTS_ENABLED`, remove both demo password variables, and create the real administrator through the guarded procedure above.
+```sh
+sudo systemctl status foody-backend.service --no-pager
+sudo journalctl -u foody-backend.service -b --no-pager
+sudo ss -ltnp | grep ':8080'
+curl --fail --show-error http://127.0.0.1:8080/api/businesses
+```
 
-## Demo seed verification
+`ss` must show `127.0.0.1:8080`, never `0.0.0.0:8080` or `[::]:8080`. Startup
+must fail rather than continue when secrets, database access, migrations, or the
+upload directory are invalid.
 
-V2/V5 initially inserted `owner@foody.test` and `admin@foody.test`. V19 deliberately keeps their rows for historical/FK reasons, but targets the original ID-and-email pairs, sets `status='SUSPENDED'`, replaces the password hash with a disabled marker, revokes unrevoked refresh sessions, and suspends the seeded owner business.
+## 5. Verify Flyway initialization
 
-- **Record existence:** expected for referential integrity.
-- **Authentication capability:** unavailable by default; the disabled hash and suspended status both prevent authentication. The temporary Render/Vercel mechanism above is the sole explicit exception. `AuthFlowIntegrationTest.seededBusiness_isNotPublic` verifies the default 401 behavior.
-- **Public visibility:** the seeded business is absent from public browse/detail APIs because only `APPROVED` businesses are public; that test verifies `GET /api/businesses/1` is 404. There is no public user-directory endpoint.
+The first controlled backend start applies V1 through V23 to the empty database.
+The journal should report successful migration and `Started FoodyBackendApplication`.
+Verify from an interactive MySQL session without placing the password on the
+command line:
 
-Before cutover, inspect for renamed/copied demo accounts or other fabricated data; V19 cannot identify records no longer matching its original ID/email predicate.
+```sql
+USE foody;
+SELECT installed_rank, version, description, success
+FROM flyway_schema_history
+ORDER BY installed_rank;
+```
 
-## Vercel + Render + Aiven release order
+Every row must have `success = 1`, and the latest version must be `23`. Never edit
+a historical migration or use Flyway repair to conceal a checksum mismatch.
 
-1. Provision Aiven MySQL and `DB_NAME`. Obtain hostname, TLS port, credentials, and CA chain. Confirm Java 21 trusts the verified CA; otherwise install it in a deployment-managed truststore and configure `JAVA_TOOL_OPTIONS`. Do not downgrade `VERIFY_IDENTITY`.
-2. Back up any target database. Flyway `baseline-on-migrate` is disabled: reconcile a nonempty untracked schema and V12 duplicate-business-owner data before deployment. Never edit applied migrations or blindly repair checksums.
-3. Provision the public storage bucket/domain and restricted credential above.
-4. Create Render with root/Docker context `foody-backend` and its `Dockerfile`. Set every required backend variable, including exact final Vercel production origin(s) in `FOODY_CORS_ALLOWED_ORIGINS`.
-5. Deploy backend. Render logs must show Flyway application/validation through V19, Hibernate validation, and successful bind. There is no implemented Actuator health endpoint: configure `GET /api/businesses` as Render's health check and verify 200 after startup.
-6. Create Vercel with root `foody-frontend`, `npm ci`, `npm run build`, output `dist`, Node 22.12+ (or supported newer), and `VITE_API_BASE_URL=https://<render-backend-host>`. Deploy the SPA.
-7. If final frontend domain differs from step 4, update Render CORS with only exact final HTTPS origin(s), redeploy backend, then redeploy Vercel if its API URL changed.
-8. Establish the real administrator and run every live acceptance item below over HTTPS.
+## 6. Install Nginx configuration
 
-## Live acceptance checklist
+Install [`deploy/vps/nginx-foody.conf`](deploy/vps/nginx-foody.conf):
 
-These are manual production checks; repository tests do not mark them passed. Record URL, timestamp, and result.
+```sh
+sudo install -o root -g root -m 0644 /path/to/nginx-foody.conf /etc/nginx/sites-available/foody
+sudo ln -s /etc/nginx/sites-available/foody /etc/nginx/sites-enabled/foody
+sudo nginx -t
+sudo systemctl reload nginx
+```
 
-### Customer
+Disable the default site if it conflicts with this catch-all server. Re-run
+`nginx -t` before every reload. Confirm UFW still allows only 22, 80, and 443;
+do not add rules for 8080 or 3306.
 
-- [ ] Register, login, browse an APPROVED business and catalog.
-- [ ] Create an order, reservation, and offer claim; confirm wallet behavior within the current business-credit scope.
-- [ ] Create, update, and delete a review.
-- [ ] Upload a profile image where available; logout; confirm the old refresh session cannot restore login.
+Verify through Nginx:
 
-### Business owner
+```sh
+curl --fail --show-error http://127.0.0.1/api/businesses
+curl --fail --show-error http://127.0.0.1/
+```
 
-- [ ] Login; access only own business; manage catalog, orders, reservations, offers, wallets, and available image uploads.
-- [ ] With a second owner, verify cross-owner business/catalog/order/reservation access is rejected.
+Then test login and each role from a browser, upload a small valid image, load its
+`/uploads/...` URL, restart the backend, and confirm the image remains available.
+There is no Actuator dependency; `/api/businesses` is the health/readiness check.
 
-### Administrator
+## Real administrator and demo verification
 
-- [ ] Login with the promoted real admin; use user management, business moderation, and wallet administration.
-- [ ] Verify PENDING, REJECTED, and SUSPENDED businesses remain hidden from public browse/detail APIs.
+There is no public administrator-registration endpoint. After HTTPS is active,
+register a normal customer with the real administrator's private email/password,
+verify the account, and record its ID from `/api/users/me`. Do not send this
+credential over public HTTP and never put its password in SQL or a migration.
+In an interactive local MySQL administration session, inspect and promote only
+that exact active row:
 
-### Infrastructure/security
+```sql
+SELECT id, email, role, status, public_id
+FROM users
+WHERE id = <REAL_ADMIN_USER_ID> AND email = '<REAL_ADMIN_EMAIL>';
 
-- [ ] Upload an image, restart/redeploy Render, and confirm it persists; test replacement/removal.
-- [ ] Confirm MySQL uses verified TLS/hostname validation, not only encrypted transport.
-- [ ] Confirm CORS accepts the configured production frontend and rejects an unapproved origin.
-- [ ] Confirm known demo credentials fail and no secret is exposed in the Vercel bundle/environment.
-- [ ] Confirm refresh rotation rejects reused tokens and logout prevents refresh-session restoration.
+START TRANSACTION;
+UPDATE users
+SET role = 'ADMIN', public_id = NULL
+WHERE id = <REAL_ADMIN_USER_ID>
+  AND email = '<REAL_ADMIN_EMAIL>'
+  AND role = 'CUSTOMER'
+  AND status = 'ACTIVE';
+SELECT ROW_COUNT();
+SELECT id, email, role, status, public_id
+FROM users
+WHERE id = <REAL_ADMIN_USER_ID> AND email = '<REAL_ADMIN_EMAIL>';
+COMMIT;
+```
 
-## Out of scope
+Commit only when exactly one intended row changed; otherwise issue `ROLLBACK`
+instead. Log out and sign in again to obtain an ADMIN token. Never reactivate the
+V2/V5 demo identities, turn this operation into a migration, or add a public
+admin-registration API. Confirm `owner@foody.test`, `admin@foody.test`, and the
+seeded demo business remain suspended/non-public after startup.
 
-Do not begin PWA/mobile work from this runbook. Offline/private-data caching, service workers, installability, push, and native packaging are separate work after web acceptance succeeds.
+Before declaring the release healthy, record manual results for:
+
+- customer registration/login, public catalog, order, reservation, offer, wallet,
+  review, profile upload, logout, and refresh-session behavior;
+- two separate business owners, including catalog/order/reservation/upload flows
+  and rejection of cross-owner access;
+- the real administrator's user management, business moderation, and wallet flows;
+- hidden non-approved businesses, rejected unapproved CORS origins, failed demo
+  logins, upload persistence across restart, and no secrets in the frontend bundle.
+
+## Logs and diagnosis
+
+```sh
+sudo journalctl -u foody-backend.service -n 200 --no-pager
+sudo journalctl -u foody-backend.service -f
+sudo journalctl -u nginx.service -n 100 --no-pager
+sudo tail -n 100 /var/log/nginx/error.log
+```
+
+Application logs go only to journald; no writable log directory is required in a
+release. Configure and monitor journald/Nginx retention at the OS level.
+
+## Future deployments
+
+1. Back up MySQL and `/var/lib/foody/uploads`.
+2. Build and test from a clean checkout using the commands above.
+3. Copy artifacts into a new root-owned timestamped release directory.
+4. Record the current symlink target: `readlink -f /opt/foody/current`.
+5. Atomically point `/opt/foody/current` at the new release.
+6. Run `sudo systemctl restart foody-backend.service`.
+7. Watch the journal for Flyway validation/migration and successful startup.
+8. Run localhost and Nginx health checks plus a focused login/upload smoke test.
+9. Keep at least the previous release until verification and backup retention are
+   complete; delete old releases only under an explicit retention policy.
+
+For an API-incompatible release, use a brief maintenance window so the newly
+served frontend cannot call the old backend during restart.
+
+## Rollback
+
+An application rollback does not undo a Flyway migration. Only roll back the JAR
+alone when the previous application is compatible with the migrated schema:
+
+```sh
+sudo ln -sfn /opt/foody/releases/PREVIOUS_RELEASE /opt/foody/current.next
+sudo mv -Tf /opt/foody/current.next /opt/foody/current
+sudo systemctl restart foody-backend.service
+curl --fail --show-error http://127.0.0.1:8080/api/businesses
+```
+
+If a migration is not backward-compatible, stop the service, restore the matched
+pre-deployment MySQL backup and upload snapshot, switch the release symlink, then
+start and verify. Never manually delete Flyway history rows as a rollback.
+
+## Backups
+
+- Take consistent MySQL backups (for example `mysqldump --single-transaction
+  --routines --triggers foody`) using a protected option file or interactive
+  credentials, never a password in the command line.
+- Back up `/var/lib/foody/uploads` in the same release window so database media
+  URLs and files remain consistent.
+- Store encrypted copies off the VPS, apply retention, monitor backup failures,
+  and regularly test restoring both database and uploads to an isolated system.
+- Back up `/etc/foody/foody.env` securely and separately; access must remain
+  restricted because it contains production secrets.
+
+## Pending domain and HTTPS steps
+
+When the final domain is known:
+
+1. Point DNS A/AAAA records to the VPS and replace `server_name _` with the domain.
+2. Set `FOODY_CORS_ALLOWED_ORIGINS` to the exact `https://domain` value and restart
+   the backend.
+3. Obtain and install a certificate using the operator's chosen ACME client (for
+   example Certbot's Nginx integration), enable HTTP-to-HTTPS redirect, and test
+   automatic renewal.
+4. Run `nginx -t`, reload Nginx, and repeat API, SPA-route, login, and upload tests
+   over HTTPS.
+
+Until those steps are complete, HTTPS readiness is pending. Do not hardcode the
+VPS IP, domain, or backend port into the frontend bundle.
