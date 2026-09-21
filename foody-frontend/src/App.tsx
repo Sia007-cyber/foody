@@ -46,6 +46,7 @@ import { NotFoundPage } from "./pages/NotFoundPage";
 import { OffersPage } from "./features/offers/OffersPage";
 import { ImpersonationBanner } from "./components/ImpersonationBanner";
 import { AdminUserDetailPage } from "./features/admin/AdminUserDetailPage";
+import { PwaLifecycle } from "./components/PwaLifecycle";
 
 export default function App() {
   return (
@@ -53,6 +54,7 @@ export default function App() {
       <BrowserRouter>
           <AuthProvider>
             <ToastProvider>
+              <PwaLifecycle />
               <ImpersonationBanner />
               <Routes>
                 <Route element={<PublicLayout />}>
