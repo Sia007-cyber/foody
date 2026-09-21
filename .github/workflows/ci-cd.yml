@@ -103,12 +103,12 @@ jobs:
       cancel-in-progress: false
     env:
       RELEASE_ID: ${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
-      STAGING_DIR: ${{ runner.temp }}/foody-${{ github.run_id }}-${{ github.run_attempt }}
       ARCHIVE: /var/lib/foody-deploy/incoming/foody-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}.tar.gz
     steps:
       - name: Prepare isolated release staging
         run: |
           set -euo pipefail
+          STAGING_DIR="$RUNNER_TEMP/foody-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
           case "$STAGING_DIR" in
             "$RUNNER_TEMP"/foody-[0-9]*-[0-9]*) ;;
             *) echo "Refusing unsafe staging path" >&2; exit 1 ;;
@@ -133,6 +133,7 @@ jobs:
       - name: Package immutable release
         run: |
           set -euo pipefail
+          STAGING_DIR="$RUNNER_TEMP/foody-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
           test -s "$STAGING_DIR/release/backend/foody-backend.jar"
           test -s "$STAGING_DIR/release/frontend/index.html"
           tar --create --gzip --file "$STAGING_DIR/foody-release.tar.gz" \
@@ -151,5 +152,6 @@ jobs:
         if: always()
         run: |
           set -euo pipefail
+          STAGING_DIR="$RUNNER_TEMP/foody-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
           rm -f -- "$ARCHIVE" "$ARCHIVE.part"
           rm -rf -- "$STAGING_DIR"
