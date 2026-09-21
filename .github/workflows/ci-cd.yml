@@ -144,14 +144,31 @@ jobs:
       - name: Transfer complete release archive
         run: |
           set -euo pipefail
+
           remote_dir="/var/lib/foody-deploy/incoming"
           remote_archive="$remote_dir/foody-${RELEASE_ID}.tar.gz"
-          ssh -o BatchMode=yes -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes "$PROD_USER@$PROD_HOST" \
+
+          ssh_options=(
+            -o BatchMode=yes
+            -o IdentitiesOnly=yes
+            -o StrictHostKeyChecking=yes
+            -o ConnectTimeout=15
+            -o ConnectionAttempts=2
+            -o ServerAliveInterval=10
+            -o ServerAliveCountMax=3
+          )
+
+          echo "Testing SSH connectivity to production host..."
+          ssh -v "${ssh_options[@]}" "$PROD_USER@$PROD_HOST" \
             "install -d -m 0700 '$remote_dir'"
-          scp -o BatchMode=yes -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes \
+
+          echo "Transferring release archive..."
+          scp -v "${ssh_options[@]}" \
             "foody-${RELEASE_ID}.tar.gz" \
             "$PROD_USER@$PROD_HOST:$remote_archive.part"
-          ssh -o BatchMode=yes -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes "$PROD_USER@$PROD_HOST" \
+
+          echo "Finalizing uploaded release archive..."
+          ssh -v "${ssh_options[@]}" "$PROD_USER@$PROD_HOST" \
             "mv '$remote_archive.part' '$remote_archive'"
 
       - name: Activate and verify release
