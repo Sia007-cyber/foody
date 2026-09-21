@@ -5,6 +5,7 @@ import { useAuth } from "../features/auth/AuthContext";
 import { NotificationBell } from "../features/notifications/NotificationBell";
 import { AvatarMenuButton } from "./AvatarMenuButton";
 import { MenuIcon, CloseIcon, LogoutIcon } from "./icons";
+import { PwaInstallEntry } from "./PwaLifecycle";
 
 export function PublicNav() {
   const { user, logout } = useAuth();
@@ -106,6 +107,7 @@ export function PublicNav() {
         <nav className="nav-links">{navItems}</nav>
 
         <div className="nav-actions">
+          <PwaInstallEntry />
           {user && <NotificationBell />}
           {user && <AvatarMenuButton />}
           {user && (
@@ -140,6 +142,7 @@ export function PublicNav() {
                 </button>
               </div>
               <nav className="nav-drawer-list">{navItems}</nav>
+              <PwaInstallEntry variant="navigation" onActivate={() => setDrawerOpen(false)} />
               {user && (
                 <button
                   type="button"

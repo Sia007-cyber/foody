@@ -6,6 +6,7 @@ import { NotificationBell } from "../features/notifications/NotificationBell";
 import { AvatarMenuButton } from "./AvatarMenuButton";
 import { Button } from "./Button";
 import { MenuIcon, CloseIcon, LogoutIcon } from "./icons";
+import { PwaInstallEntry } from "./PwaLifecycle";
 
 export interface DashboardNavItem {
   to: string;
@@ -68,6 +69,7 @@ export function DashboardShell({
         </NavLink>
         <nav className="dashboard-nav">{navLinks}</nav>
         <div style={{ marginTop: "auto" }}>
+          <PwaInstallEntry variant="navigation" />
           <Button variant="ghost" size="sm" onClick={() => logout().then(() => navigate("/"))}>
             خروج
           </Button>
@@ -106,6 +108,7 @@ export function DashboardShell({
                 </button>
               </div>
               <nav className="nav-drawer-list">{navLinks}</nav>
+              <PwaInstallEntry variant="navigation" onActivate={() => setDrawerOpen(false)} />
               <button
                 type="button"
                 className="nav-drawer-logout"

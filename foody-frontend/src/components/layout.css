@@ -93,6 +93,40 @@
   align-items: center;
   gap: 10px;
 }
+.pwa-install-entry {
+  border: 1px solid var(--line);
+  background: var(--paper);
+  color: var(--ember-deep);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.pwa-install-entry:hover:not(:disabled) {
+  background: var(--ember-wash);
+  border-color: color-mix(in srgb, var(--ember) 35%, var(--line));
+}
+.pwa-install-entry:disabled { cursor: wait; opacity: 0.6; }
+.pwa-install-entry-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: var(--r-pill);
+}
+.pwa-install-entry-navigation {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: var(--r-sm);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-align: start;
+  font-size: 14px;
+  font-weight: 600;
+}
+.dashboard-sidebar .pwa-install-entry-navigation {
+  margin-bottom: 8px;
+}
 .nav-logout-btn {
   display: inline-flex;
   align-items: center;
@@ -195,6 +229,9 @@
   padding: 12px 14px;
   border-radius: var(--r-sm);
   text-align: start;
+}
+.nav-drawer > .pwa-install-entry-navigation {
+  margin-top: 6px;
 }
 .nav-drawer-logout {
   margin-top: auto;

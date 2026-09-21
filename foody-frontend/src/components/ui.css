@@ -546,6 +546,11 @@
   gap: 10px;
   justify-content: flex-end;
 }
+.pwa-ios-instructions p {
+  color: var(--ink-soft);
+  font-size: 14px;
+  line-height: 1.8;
+}
 
 /* ---------- Admin account support ---------- */
 .admin-user-detail-grid { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(280px, .8fr); gap: 18px; align-items: start; }

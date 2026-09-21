@@ -26,6 +26,20 @@ ready, Foody prompts the user before activating it and reloading the page, so an
 in-progress form is not disrupted without warning. Old generated caches are
 removed after the replacement service worker activates.
 
+## Installation
+
+When the browser exposes a real installation path, Foody shows a discreet
+**Install Foody** action in its existing navigation. Chromium browsers receive
+the native install prompt only after the user selects that action; a dismissed
+or consumed prompt is not offered again in that page session. The action is
+hidden while Foody is already running in standalone mode and in browsers with
+no supported installation path.
+
+On iPhone and iPad, where the native prompt is not generally available, the
+same user-initiated action opens concise Persian instructions to use Safari's
+Share menu and **Add to Home Screen**. It does not claim to install the app
+automatically.
+
 ## Production validation
 
 After deploying over HTTPS, use a fresh browser profile and verify:
@@ -41,3 +55,9 @@ After deploying over HTTPS, use a fresh browser profile and verify:
    update prompt appears and reloads only after confirmation.
 6. DevTools **Cache Storage** contains static build files only—no `/api` or
    `/uploads` responses.
+7. In Chromium, use the navigation install action and verify the browser-native
+   prompt appears only after clicking it; dismissing it removes the action for
+   the current page session.
+8. On iPhone/iPad Safari, use the navigation install action and verify it shows
+   the Share / Add to Home Screen guidance, then confirm the action is absent
+   after launching Foody from the home screen.

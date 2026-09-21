@@ -54,9 +54,9 @@ export default function App() {
       <BrowserRouter>
           <AuthProvider>
             <ToastProvider>
-              <PwaLifecycle />
-              <ImpersonationBanner />
-              <Routes>
+              <PwaLifecycle>
+                <ImpersonationBanner />
+                <Routes>
                 <Route element={<PublicLayout />}>
                   <Route path="/" element={<DiscoverPage />} />
                   <Route path="/businesses/:id" element={<BusinessDetailPage />} />
@@ -187,7 +187,8 @@ export default function App() {
                 </Route>
 
                 <Route path="*" element={<NotFoundPage />} />
-              </Routes>
+                </Routes>
+              </PwaLifecycle>
             </ToastProvider>
           </AuthProvider>
       </BrowserRouter>
