@@ -57,12 +57,13 @@ public class PrimaryAdminProvisioningService {
 
         Optional<User> byEmail = users.findByEmail(email);
         Optional<User> byPhone = users.findByPhone(phone);
-        if (byEmail.isPresent() != byPhone.isPresent()
-                || (byEmail.isPresent() && !byEmail.get().getId().equals(byPhone.orElseThrow().getId()))) {
+        if (byEmail.isPresent() && byPhone.isPresent()
+                && !byEmail.get().getId().equals(byPhone.get().getId())) {
             throw new IllegalStateException("The supplied email and phone belong to conflicting accounts");
         }
 
-        boolean created = byEmail.isEmpty();
+        Optional<User> matchedAccount = byEmail.isPresent() ? byEmail : byPhone;
+        boolean created = matchedAccount.isEmpty();
         User target;
         UserRole previousRole = null;
         if (created) {
@@ -71,17 +72,23 @@ public class PrimaryAdminProvisioningService {
             target.setPhone(phone);
             target.setFullName(fullName);
         } else {
-            target = users.findByIdForUpdate(byEmail.orElseThrow().getId())
+            target = users.findByIdForUpdate(matchedAccount.orElseThrow().getId())
                     .orElseThrow(() -> new IllegalStateException("The matching account disappeared during provisioning"));
-            if (!email.equals(target.getEmail()) || !phone.equals(target.getPhone())) {
+            if (!canAttachEmail(target.getEmail(), email) || !canAttachPhone(target.getPhone(), phone)) {
                 throw new IllegalStateException("The supplied identity no longer matches the account");
             }
+            target.setEmail(email);
+            target.setPhone(phone);
             previousRole = target.getRole();
         }
 
         target.setPasswordHash(passwords.encode(password));
         target.setRole(UserRole.ADMIN);
-        target.setAdminBaseRole(null);
+        if (created) {
+            target.setAdminBaseRole(null);
+        } else if (previousRole == UserRole.CUSTOMER || previousRole == UserRole.BUSINESS_OWNER) {
+            target.setAdminBaseRole(previousRole);
+        }
         target.setPrimaryAdmin(true);
         target.setStatus(UserStatus.ACTIVE);
         User saved = users.saveAndFlush(target);
@@ -114,5 +121,13 @@ public class PrimaryAdminProvisioningService {
 
     private static String normalizePhone(String value) {
         return value == null ? null : value.trim();
+    }
+
+    private static boolean canAttachEmail(String existing, String supplied) {
+        return existing == null || existing.equalsIgnoreCase(supplied);
+    }
+
+    private static boolean canAttachPhone(String existing, String supplied) {
+        return existing == null || existing.equals(supplied);
     }
 }

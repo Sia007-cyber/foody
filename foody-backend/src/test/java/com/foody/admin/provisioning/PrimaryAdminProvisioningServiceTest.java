@@ -45,6 +45,7 @@ class PrimaryAdminProvisioningServiceTest {
         properties.setFullName("Primary Operator");
         properties.setPassword("strongPassword123");
         when(validator.validate(any(RegisterRequest.class))).thenReturn(Set.of());
+        org.mockito.Mockito.lenient().when(passwords.encode("strongPassword123")).thenReturn("bcrypt-hash");
     }
 
     @Test
@@ -52,7 +53,6 @@ class PrimaryAdminProvisioningServiceTest {
         when(users.findPrimaryAdminForUpdate()).thenReturn(Optional.empty());
         when(users.findByEmail("primary@example.test")).thenReturn(Optional.empty());
         when(users.findByPhone("09120000000")).thenReturn(Optional.empty());
-        when(passwords.encode("strongPassword123")).thenReturn("bcrypt-hash");
         when(users.saveAndFlush(any(User.class))).thenAnswer(invocation -> {
             User user = invocation.getArgument(0);
             user.setId(42L);
@@ -65,6 +65,55 @@ class PrimaryAdminProvisioningServiceTest {
                 && "bcrypt-hash".equals(user.getPasswordHash())));
         verify(audits).save(any(AdminRoleAudit.class));
         verify(sessions).invalidate(42L);
+    }
+
+    @Test
+    void existingPhoneAndUnusedEmailPromotesAccountAndAttachesEmail() {
+        User existing = account(4L, null, "09120000000", UserRole.BUSINESS_OWNER);
+        arrangeExistingMatch(Optional.empty(), Optional.of(existing), existing);
+
+        assertThat(service.provision(properties)).isEqualTo(PrimaryAdminProvisioningService.Outcome.PROMOTED);
+        assertThat(existing.getEmail()).isEqualTo("primary@example.test");
+        assertThat(existing.getPhone()).isEqualTo("09120000000");
+        assertThat(existing.getRole()).isEqualTo(UserRole.ADMIN);
+        assertThat(existing.getAdminBaseRole()).isEqualTo(UserRole.BUSINESS_OWNER);
+        verify(audits).save(org.mockito.ArgumentMatchers.argThat(audit ->
+                audit.getPreviousRole() == UserRole.BUSINESS_OWNER
+                        && audit.getNewRole() == UserRole.ADMIN));
+        verify(sessions).invalidate(4L);
+    }
+
+    @Test
+    void existingEmailAndUnusedPhonePromotesAccountAndAttachesPhone() {
+        User existing = account(5L, "primary@example.test", null, UserRole.CUSTOMER);
+        arrangeExistingMatch(Optional.of(existing), Optional.empty(), existing);
+
+        assertThat(service.provision(properties)).isEqualTo(PrimaryAdminProvisioningService.Outcome.PROMOTED);
+        assertThat(existing.getEmail()).isEqualTo("primary@example.test");
+        assertThat(existing.getPhone()).isEqualTo("09120000000");
+        assertThat(existing.getAdminBaseRole()).isEqualTo(UserRole.CUSTOMER);
+    }
+
+    @Test
+    void bothIdentitiesResolvingToSameUserPromoteThatUser() {
+        User existing = account(6L, "primary@example.test", "09120000000", UserRole.BUSINESS_OWNER);
+        arrangeExistingMatch(Optional.of(existing), Optional.of(existing), existing);
+
+        assertThat(service.provision(properties)).isEqualTo(PrimaryAdminProvisioningService.Outcome.PROMOTED);
+        assertThat(existing.isPrimaryAdmin()).isTrue();
+        assertThat(existing.getAdminBaseRole()).isEqualTo(UserRole.BUSINESS_OWNER);
+    }
+
+    @Test
+    void existingAccountWithDifferentNonMissingIdentityIsNotOverwritten() {
+        User existing = account(6L, "existing@example.test", "09120000000", UserRole.BUSINESS_OWNER);
+        arrangeExistingMatch(Optional.empty(), Optional.of(existing), existing);
+
+        assertThatThrownBy(() -> service.provision(properties))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("no longer matches");
+        assertThat(existing.getEmail()).isEqualTo("existing@example.test");
+        verify(users, never()).saveAndFlush(any());
     }
 
     @Test
@@ -94,9 +143,9 @@ class PrimaryAdminProvisioningServiceTest {
     void splitEmailAndPhoneIdentityFailsClosed() {
         when(users.findPrimaryAdminForUpdate()).thenReturn(Optional.empty());
         when(users.findByEmail("primary@example.test"))
-                .thenReturn(Optional.of(account(1L, "primary@example.test", "09123333333")));
+                .thenReturn(Optional.of(account(1L, "primary@example.test", "09123333333", UserRole.CUSTOMER)));
         when(users.findByPhone("09120000000"))
-                .thenReturn(Optional.of(account(2L, "other@example.test", "09120000000")));
+                .thenReturn(Optional.of(account(2L, "other@example.test", "09120000000", UserRole.BUSINESS_OWNER)));
 
         assertThatThrownBy(() -> service.provision(properties))
                 .isInstanceOf(IllegalStateException.class)
@@ -104,14 +153,26 @@ class PrimaryAdminProvisioningServiceTest {
         verify(users, never()).saveAndFlush(any());
     }
 
+    private void arrangeExistingMatch(Optional<User> byEmail, Optional<User> byPhone, User locked) {
+        when(users.findPrimaryAdminForUpdate()).thenReturn(Optional.empty());
+        when(users.findByEmail("primary@example.test")).thenReturn(byEmail);
+        when(users.findByPhone("09120000000")).thenReturn(byPhone);
+        when(users.findByIdForUpdate(locked.getId())).thenReturn(Optional.of(locked));
+        org.mockito.Mockito.lenient().when(users.saveAndFlush(locked)).thenReturn(locked);
+    }
+
     private User account(Long id, String email, String phone) {
+        return account(id, email, phone, UserRole.ADMIN);
+    }
+
+    private User account(Long id, String email, String phone, UserRole role) {
         User user = new User();
         user.setId(id);
         user.setEmail(email);
         user.setPhone(phone);
         user.setFullName("Existing Account");
         user.setPasswordHash("existing-hash");
-        user.setRole(UserRole.ADMIN);
+        user.setRole(role);
         user.setStatus(UserStatus.ACTIVE);
         return user;
     }
