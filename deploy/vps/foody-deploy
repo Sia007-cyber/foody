@@ -1,0 +1,174 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+IFS=$'\n\t'
+umask 022
+
+readonly RELEASES_DIR=/opt/foody/releases
+readonly CURRENT_LINK=/opt/foody/current
+readonly SERVICE=foody-backend.service
+readonly LOCAL_HEALTH_URL=http://127.0.0.1:8080/api/businesses
+readonly PUBLIC_APP_URL=https://dayca.ir/
+readonly PUBLIC_API_URL=https://dayca.ir/api/businesses
+readonly KEEP_RELEASES=6
+readonly HEALTH_ATTEMPTS=30
+readonly HEALTH_DELAY_SECONDS=2
+
+log() {
+  printf '[foody-deploy] %s\n' "$*"
+}
+
+die() {
+  log "ERROR: $*" >&2
+  return 1
+}
+
+usage() {
+  printf 'Usage: %s RELEASE_ID ARCHIVE\n' "$0" >&2
+  exit 2
+}
+
+[[ $# -eq 2 ]] || usage
+readonly RELEASE_ID=$1
+readonly ARCHIVE=$2
+readonly NEW_RELEASE="$RELEASES_DIR/$RELEASE_ID"
+
+[[ $EUID -eq 0 ]] || die "must run as root (normally through the restricted sudo rule)"
+[[ $RELEASE_ID =~ ^[0-9a-f]{40}-[1-9][0-9]*-[1-9][0-9]*$ ]] || die "invalid release ID"
+[[ $ARCHIVE == "/var/lib/foody-deploy/incoming/foody-$RELEASE_ID.tar.gz" ]] || die "unexpected archive path"
+[[ -f $ARCHIVE && ! -L $ARCHIVE && -s $ARCHIVE ]] || die "release archive is missing or invalid"
+[[ -d $RELEASES_DIR && ! -L $RELEASES_DIR ]] || die "release root is missing or is a symlink"
+[[ ! -e $NEW_RELEASE && ! -L $NEW_RELEASE ]] || die "release already exists; immutable releases are never overwritten"
+
+# Work only from a private, root-owned snapshot. The SSH account owns the
+# incoming file and must not be able to change it between validation/extraction.
+SAFE_ARCHIVE=$(mktemp /opt/foody/.foody-release.XXXXXXXXXX.tar.gz)
+readonly SAFE_ARCHIVE
+install -o root -g root -m 0600 "$ARCHIVE" "$SAFE_ARCHIVE"
+
+validate_archive() {
+  local entry line type
+  local saw_jar=false
+  local saw_index=false
+
+  while IFS= read -r entry; do
+    [[ -n $entry ]] || die "archive contains an empty entry name"
+    [[ $entry =~ ^(backend|frontend)(/[A-Za-z0-9._@+-]+)*/?$ ]] || die "unsafe archive entry: $entry"
+    [[ $entry != /* && $entry != *".."* && $entry != *"//"* ]] || die "unsafe archive path: $entry"
+    [[ $entry == backend/foody-backend.jar ]] && saw_jar=true
+    [[ $entry == frontend/index.html ]] && saw_index=true
+  done < <(tar --list --file "$SAFE_ARCHIVE")
+
+  while IFS= read -r line; do
+    type=${line:0:1}
+    [[ $type == - || $type == d ]] || die "archive contains a non-regular entry"
+  done < <(tar --list --verbose --file "$SAFE_ARCHIVE")
+
+  [[ $saw_jar == true && $saw_index == true ]] || die "archive lacks the backend JAR or frontend index"
+}
+
+health_check() {
+  local description=$1
+  local url=$2
+  local attempt
+  for ((attempt = 1; attempt <= HEALTH_ATTEMPTS; attempt++)); do
+    if curl --fail --silent --show-error --location \
+      --connect-timeout 3 --max-time 10 --output /dev/null "$url"; then
+      log "$description health check passed"
+      return 0
+    fi
+    log "$description health check attempt $attempt/$HEALTH_ATTEMPTS failed"
+    sleep "$HEALTH_DELAY_SECONDS"
+  done
+  return 1
+}
+
+verify_release_health() {
+  systemctl is-active --quiet "$SERVICE" || return 1
+  health_check "local backend" "$LOCAL_HEALTH_URL" || return 1
+  health_check "public API" "$PUBLIC_API_URL" || return 1
+  health_check "public application" "$PUBLIC_APP_URL" || return 1
+}
+
+previous_release=""
+activated=false
+
+rollback() {
+  local failure_status=$?
+  trap - ERR INT TERM
+  rm -f -- "$SAFE_ARCHIVE"
+  if [[ $activated != true ]]; then
+    if [[ -d $NEW_RELEASE ]]; then
+      log "removing incomplete, inactive release $RELEASE_ID"
+      rm -rf --one-file-system -- "$NEW_RELEASE"
+    fi
+    exit "$failure_status"
+  fi
+
+  log "deployment failed after activation; rolling back application files"
+  if [[ -n $previous_release && -d $previous_release ]]; then
+    ln -sfn "$previous_release" "$CURRENT_LINK.rollback"
+    mv -Tf "$CURRENT_LINK.rollback" "$CURRENT_LINK"
+    systemctl restart "$SERVICE" || true
+    if verify_release_health; then
+      log "rollback health verification passed"
+    else
+      log "ERROR: rollback health verification failed; inspect systemd and application logs" >&2
+    fi
+  else
+    log "ERROR: no previous release exists; removing the failed current link and stopping the service" >&2
+    unlink "$CURRENT_LINK" || true
+    systemctl stop "$SERVICE" || true
+  fi
+  log "Flyway migrations were not reversed; database compatibility requires backward-compatible migrations"
+  exit "$failure_status"
+}
+trap rollback ERR INT TERM
+
+validate_archive
+if [[ -L $CURRENT_LINK ]]; then
+  previous_release=$(readlink -f "$CURRENT_LINK")
+  [[ $previous_release == "$RELEASES_DIR/"* && -d $previous_release ]] || die "current link does not target a release"
+elif [[ -e $CURRENT_LINK ]]; then
+  die "current path exists but is not a symlink"
+fi
+
+log "installing immutable release $RELEASE_ID"
+install -d -o root -g root -m 0755 "$NEW_RELEASE"
+tar --extract --gzip --file "$SAFE_ARCHIVE" --directory "$NEW_RELEASE" \
+  --no-same-owner --no-same-permissions
+[[ -s $NEW_RELEASE/backend/foody-backend.jar ]] || die "installed backend JAR is missing"
+[[ -s $NEW_RELEASE/frontend/index.html ]] || die "installed frontend index is missing"
+chown -R root:root "$NEW_RELEASE"
+find "$NEW_RELEASE" -type d -exec chmod 0755 {} +
+find "$NEW_RELEASE" -type f -exec chmod 0644 {} +
+
+if [[ -e $CURRENT_LINK.next || -L $CURRENT_LINK.next ]]; then
+  [[ -L $CURRENT_LINK.next ]] || die "activation staging path is not a symlink"
+  unlink "$CURRENT_LINK.next"
+fi
+ln -s "$NEW_RELEASE" "$CURRENT_LINK.next"
+mv -Tf "$CURRENT_LINK.next" "$CURRENT_LINK"
+activated=true
+log "activated $NEW_RELEASE"
+
+systemctl restart "$SERVICE"
+verify_release_health
+activated=false
+trap - ERR INT TERM
+rm -f -- "$SAFE_ARCHIVE"
+rm -f -- "$ARCHIVE"
+
+log "deployment passed; conservatively pruning releases beyond the newest $KEEP_RELEASES"
+mapfile -t releases < <(find "$RELEASES_DIR" -mindepth 1 -maxdepth 1 -type d \
+  -printf '%T@ %p\n' | sort -rn | cut -d' ' -f2-)
+for ((i = KEEP_RELEASES; i < ${#releases[@]}; i++)); do
+  candidate=${releases[$i]}
+  [[ $candidate == "$NEW_RELEASE" || $candidate == "$previous_release" ]] && continue
+  candidate_name=${candidate##*/}
+  [[ $candidate_name =~ ^[0-9a-f]{40}-[1-9][0-9]*-[1-9][0-9]*$ ]] || continue
+  [[ $(readlink -f "$candidate") == "$candidate" ]] || continue
+  log "removing old release $candidate_name"
+  rm -rf --one-file-system -- "$candidate"
+done
+
+log "release $RELEASE_ID deployed successfully"

@@ -19,7 +19,7 @@ not compatible with the current executable-JAR build.
 - `/var/lib/foody/uploads` is persistent application data. Releases under
   `/opt/foody/releases` are immutable and replaceable.
 - Flyway owns the schema and Hibernate only validates it. An empty `foody`
-  database is initialized by the unchanged V1 through V23 migration chain.
+  database is initialized by the unchanged V1 through V24 migration chain.
 - Demo-account bootstrapping is forced off by the VPS profile. Do not add demo
   password variables to the production environment.
 - The cloud `prod` profile remains available for S3-compatible storage. The VPS
@@ -273,7 +273,16 @@ sudo tail -n 100 /var/log/nginx/error.log
 Application logs go only to journald; no writable log directory is required in a
 release. Configure and monitor journald/Nginx retention at the OS level.
 
-## Future deployments
+## Automated future deployments
+
+The production-safe GitHub Actions pipeline, required GitHub values, exact
+least-privilege VPS setup, immutable activation, health checks, rollback, and
+release retention are documented in
+[`deploy/vps/CI-CD.md`](deploy/vps/CI-CD.md). The manual sequence below remains
+useful as an operator reference, but routine deployments should use the reviewed
+pipeline after its one-time setup and environment protection are verified.
+
+## Manual future deployment reference
 
 1. Back up MySQL and `/var/lib/foody/uploads`.
 2. Build and test from a clean checkout using the commands above.
