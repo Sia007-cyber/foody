@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-labelledby="title">
+  <title id="title">فودی.</title>
+  <rect width="512" height="512" rx="112" fill="#ffffff"/>
+  <g direction="rtl">
+    <text x="256" y="302" fill="#1d1d1f" font-family="Vazirmatn, sans-serif" font-size="154" font-weight="800" text-anchor="middle">فودی</text>
+    <circle cx="150" cy="330" r="14" fill="#ff5a36"/>
+  </g>
+</svg>

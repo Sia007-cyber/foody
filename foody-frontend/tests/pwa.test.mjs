@@ -4,7 +4,8 @@ import { readFileSync } from "node:fs";
 
 const vite = readFileSync(new URL("../vite.config.ts", import.meta.url), "utf8");
 const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
-const foodyMark = readFileSync(new URL("../public/foody-mark.svg", import.meta.url), "utf8");
+const foodyWordmark = readFileSync(new URL("../public/foody-wordmark.svg", import.meta.url), "utf8");
+const foodyMaskableWordmark = readFileSync(new URL("../public/foody-wordmark-maskable.svg", import.meta.url), "utf8");
 const lifecycle = readFileSync(new URL("../src/components/PwaLifecycle.tsx", import.meta.url), "utf8");
 const publicNav = readFileSync(new URL("../src/components/PublicNav.tsx", import.meta.url), "utf8");
 const dashboardShell = readFileSync(new URL("../src/components/DashboardShell.tsx", import.meta.url), "utf8");
@@ -19,13 +20,17 @@ test("PWA manifest is installable and uses the existing Foody identity", () => {
   assert.match(html, /rel="apple-touch-icon"/);
 });
 
-test("browser and PWA icons use the existing Foody wordmark instead of Vite branding", () => {
-  assert.match(html, /href="\/foody-mark\.svg"/);
+test("browser and PWA icons use the RTL Foody header wordmark instead of Vite branding", () => {
+  assert.match(html, /href="\/foody-wordmark\.svg"/);
   assert.doesNotMatch(html, /favicon\.svg|vite/i);
-  assert.match(foodyMark, /فودی/);
-  assert.match(foodyMark, /#1d1d1f/);
-  assert.match(foodyMark, /#ff5a36/);
-  assert.doesNotMatch(foodyMark, /#863bff|#7e14ff|vite/i);
+  assert.match(foodyWordmark, /direction="rtl"/);
+  assert.match(foodyWordmark, />فودی<\/text>/);
+  assert.match(foodyWordmark, /<circle cx="150" cy="330" r="14" fill="#ff5a36"/);
+  assert.match(foodyMaskableWordmark, /direction="rtl"/);
+  assert.match(foodyMaskableWordmark, />فودی<\/text>/);
+  assert.match(foodyMaskableWordmark, /<circle cx="173" cy="314" r="11" fill="#ff5a36"/);
+  assert.doesNotMatch(foodyWordmark, /#863bff|#7e14ff|vite/i);
+  assert.doesNotMatch(foodyMaskableWordmark, /#863bff|#7e14ff|vite/i);
   for (const icon of ["pwa-192x192.png", "pwa-512x512.png", "pwa-maskable-512x512.png"]) {
     assert.match(vite, new RegExp(icon));
   }
