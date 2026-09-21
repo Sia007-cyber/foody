@@ -12,7 +12,8 @@ From the repository root, run `git diff --check`.
 
 The tests use Node's built-in test runner and native TypeScript loading (verified
 with Node 26.8.1). There are no added dependencies, browser binaries, or running
-backend requirements. `--test-isolation=none` runs the tests in one process;
+backend requirements. `--experimental-test-isolation=none` runs the tests in one process on
+the Node 22 CI runtime (newer Node releases retain it as an alias);
 they are sequential because they exercise the application singleton session and
 QueryClient. Query/mutation GC delays are disabled only in the test fixture.
 
