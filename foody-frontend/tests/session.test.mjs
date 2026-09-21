@@ -8,6 +8,13 @@ Object.defineProperty(globalThis, 'localStorage', { value: {
   removeItem: (key) => storage.delete(key),
   clear: () => storage.clear(),
 }, configurable: true });
+const sessionStorageData = new Map();
+Object.defineProperty(globalThis, 'sessionStorage', { value: {
+  getItem: (key) => sessionStorageData.get(key) ?? null,
+  setItem: (key, value) => sessionStorageData.set(key, String(value)),
+  removeItem: (key) => sessionStorageData.delete(key),
+  clear: () => sessionStorageData.clear(),
+}, configurable: true });
 globalThis.window = new EventTarget();
 const originalFetch = globalThis.fetch;
 const session = await import('../src/lib/session.ts');

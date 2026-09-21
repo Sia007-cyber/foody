@@ -17,9 +17,10 @@ the Node 22 CI runtime (newer Node releases retain it as an alias);
 they are sequential because they exercise the application singleton session and
 QueryClient. Query/mutation GC delays are disabled only in the test fixture.
 
-The fixture replaces fetch and localStorage and dispatches storage events through
-an EventTarget. It imports the actual API client, session lifecycle, auth API and
-production QueryClient. It does not mount React components or launch a browser.
+The fixture replaces fetch, localStorage, and sessionStorage and dispatches
+storage events through an EventTarget. It imports the actual API client, session
+lifecycle, auth API and production QueryClient. It does not mount React
+components or launch a browser.
 
 Coverage includes:
 
