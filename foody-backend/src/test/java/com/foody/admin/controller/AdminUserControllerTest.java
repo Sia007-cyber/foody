@@ -7,6 +7,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.foody.admin.service.AdminService;
+import com.foody.admin.service.PrimaryAdminRoleService;
 import com.foody.auth.service.AdminAccountSupportService;
 import com.foody.common.exception.GlobalExceptionHandler;
 import com.foody.users.entity.User;
@@ -33,12 +34,13 @@ class AdminUserControllerTest {
 
     @Mock AdminService adminService;
     @Mock AdminAccountSupportService accountSupportService;
+    @Mock PrimaryAdminRoleService primaryAdminRoleService;
 
     MockMvc mockMvc;
 
     @BeforeEach
     void setUp() {
-        AdminUserController controller = new AdminUserController(adminService, accountSupportService);
+        AdminUserController controller = new AdminUserController(adminService, accountSupportService, primaryAdminRoleService);
         mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .setControllerAdvice(new GlobalExceptionHandler())
                 .build();

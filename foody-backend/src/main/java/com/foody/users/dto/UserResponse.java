@@ -21,6 +21,7 @@ public record UserResponse(
         String profileImageUrl,
         String fullName,
         UserRole role,
+        boolean primaryAdmin,
         UserStatus status,
         Instant createdAt,
         Instant updatedAt) {
@@ -37,6 +38,7 @@ public record UserResponse(
                 u.getProfileImageUrl(),
                 u.getFullName(),
                 u.getRole(),
+                u.isPrimaryAdmin(),
                 u.getStatus(),
                 u.getCreatedAt(),
                 u.getUpdatedAt());

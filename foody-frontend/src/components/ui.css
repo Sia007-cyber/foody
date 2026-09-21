@@ -536,6 +536,7 @@
 .support-card > p { color: var(--ink-soft); font-size: 14px; line-height: 1.8; }
 .support-card-heading { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; padding-bottom: 16px; border-bottom: 1px solid var(--line); }
 .support-card-heading p { color: var(--ink-soft); margin-top: 4px; }
+.account-badge-group { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
 .account-detail-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 24px; margin: 0; }
 .account-detail-list div { padding: 12px 0; border-bottom: 1px solid var(--line); min-width: 0; }
 .account-detail-list dt { color: var(--ink-soft); font-size: 12px; margin-bottom: 4px; }

@@ -16,9 +16,13 @@ public interface UserService {
 
     Optional<User> findById(Long id);
 
+    Optional<User> findByIdForUpdate(Long id);
+
     Optional<User> findByEmail(String email);
 
     Optional<User> findByPhone(String phone);
+
+    Optional<User> findPrimaryAdmin();
 
     List<User> findAllById(Iterable<Long> ids);
 

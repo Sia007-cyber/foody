@@ -22,6 +22,7 @@ import com.foody.auth.service.AdminAccountSupportService;
 import com.foody.admin.dto.AdminPasswordResetRequest;
 import jakarta.validation.Valid;
 import com.foody.admin.dto.AdminUserDetailResponse;
+import com.foody.admin.service.PrimaryAdminRoleService;
 
 /**
  * Admin panel — user directory and moderation. Suspend an account to immediately
@@ -36,10 +37,13 @@ public class AdminUserController {
 
     private final AdminService adminService;
     private final AdminAccountSupportService accountSupportService;
+    private final PrimaryAdminRoleService primaryAdminRoleService;
 
-    public AdminUserController(AdminService adminService, AdminAccountSupportService accountSupportService) {
+    public AdminUserController(AdminService adminService, AdminAccountSupportService accountSupportService,
+                               PrimaryAdminRoleService primaryAdminRoleService) {
         this.adminService = adminService;
         this.accountSupportService = accountSupportService;
+        this.primaryAdminRoleService = primaryAdminRoleService;
     }
 
     @GetMapping
@@ -76,5 +80,15 @@ public class AdminUserController {
     public void resetPassword(@AuthenticationPrincipal FoodyUserPrincipal principal, @PathVariable Long id,
             @Valid @RequestBody AdminPasswordResetRequest request) {
         accountSupportService.resetPassword(principal, id, request.newPassword());
+    }
+
+    @PatchMapping("/{id}/grant-admin")
+    public UserResponse grantAdmin(@AuthenticationPrincipal FoodyUserPrincipal principal, @PathVariable Long id) {
+        return UserResponse.from(primaryAdminRoleService.grantAdmin(principal, id));
+    }
+
+    @PatchMapping("/{id}/revoke-admin")
+    public UserResponse revokeAdmin(@AuthenticationPrincipal FoodyUserPrincipal principal, @PathVariable Long id) {
+        return UserResponse.from(primaryAdminRoleService.revokeAdmin(principal, id));
     }
 }

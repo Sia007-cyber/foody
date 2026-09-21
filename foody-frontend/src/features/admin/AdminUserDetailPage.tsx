@@ -1,12 +1,12 @@
 import { useState } from "react";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useParams } from "react-router-dom";
 import { DashboardShell } from "../../components/DashboardShell";
 import { Button } from "../../components/Button";
 import { PasswordInput } from "../../components/Field";
 import { ConfirmDialog, errorMessage, useToast } from "../../components/Feedback";
 import { ErrorState, PageSpinner } from "../../components/Controls";
-import { UserStatusBadge } from "../../components/Badge";
+import { Badge, UserStatusBadge } from "../../components/Badge";
 import { useAuth } from "../auth/AuthContext";
 import { impersonate } from "../auth/authSession";
 import { adminApi } from "./adminApi";
@@ -20,10 +20,12 @@ export function AdminUserDetailPage() {
   const id = Number(useParams().id);
   const navigate = useNavigate();
   const { user: admin } = useAuth();
+  const queryClient = useQueryClient();
   const { notify } = useToast();
   const [confirmImpersonation, setConfirmImpersonation] = useState(false);
   const [newPassword, setNewPassword] = useState("");
   const [confirmReset, setConfirmReset] = useState(false);
+  const [roleAction, setRoleAction] = useState<"grant" | "revoke" | null>(null);
   const query = useQuery({ queryKey: ["admin", "users", id], queryFn: () => adminApi.user(id), enabled: Number.isFinite(id) });
   const detail = query.data;
   const target = detail?.user;
@@ -38,18 +40,35 @@ export function AdminUserDetailPage() {
     onSuccess: () => { setNewPassword(""); setConfirmReset(false); notify("رمز عبور جایگزین شد و نشست‌های فعال کاربر لغو شدند", "ok"); },
     onError: (error) => notify(errorMessage(error), "danger"),
   });
+  const roleMutation = useMutation({
+    mutationFn: (action: "grant" | "revoke") => action === "grant" ? adminApi.grantAdmin(id) : adminApi.revokeAdmin(id),
+    onSuccess: (updated, action) => {
+      setRoleAction(null);
+      queryClient.setQueryData(["admin", "users", id], (current: typeof detail) => current ? { ...current, user: updated } : current);
+      queryClient.invalidateQueries({ queryKey: ["admin", "users"] });
+      notify(action === "grant" ? "دسترسی مدیر با موفقیت اعطا شد" : "دسترسی مدیر با موفقیت لغو شد", "ok");
+    },
+    onError: (error) => notify(errorMessage(error), "danger"),
+  });
 
   if (query.isLoading) return <DashboardShell navItems={adminNavItems} title="جزئیات کاربر"><PageSpinner /></DashboardShell>;
   if (query.isError || !target) return <DashboardShell navItems={adminNavItems} title="جزئیات کاربر"><ErrorState error={query.error} onRetry={() => query.refetch()} /></DashboardShell>;
   const eligible = target.role === "CUSTOMER" || target.role === "BUSINESS_OWNER";
+  const isPrimaryAdmin = admin?.primaryAdmin === true;
+  const canGrantAdmin = isPrimaryAdmin && eligible && target.status === "ACTIVE";
+  const canRevokeAdmin = isPrimaryAdmin && target.role === "ADMIN" && !target.primaryAdmin;
 
   return (
     <DashboardShell navItems={adminNavItems} title="جزئیات و پشتیبانی کاربر" actions={<Button variant="secondary" onClick={() => navigate("/admin/users")}>بازگشت</Button>}>
       <div className="admin-user-detail-grid">
         <section className="support-card admin-user-profile-card">
           <div className="support-card-heading">
-            <div><h2>{target.fullName}</h2><p>{roleLabels[target.role]}</p></div>
-            <UserStatusBadge status={target.status} />
+            <div><h2>{target.fullName}</h2><p>{target.primaryAdmin ? "مدیر اصلی" : target.role === "ADMIN" ? "مدیر عادی" : roleLabels[target.role]}</p></div>
+            <div className="account-badge-group">
+              {target.primaryAdmin && <Badge tone="ember">مدیر اصلی</Badge>}
+              {!target.primaryAdmin && target.role === "ADMIN" && <Badge tone="pending">مدیر عادی</Badge>}
+              <UserStatusBadge status={target.status} />
+            </div>
           </div>
           <dl className="account-detail-list">
             <div><dt>شناسه داخلی</dt><dd>{target.id}</dd></div>
@@ -69,6 +88,16 @@ export function AdminUserDetailPage() {
         </section>
 
         <div className="support-actions-stack">
+          {isPrimaryAdmin && (canGrantAdmin || canRevokeAdmin || target.primaryAdmin) && <section className="support-card">
+            <h2>مدیریت دسترسی مدیر</h2>
+            {target.primaryAdmin ? <p className="security-note">حساب مدیر اصلی از این جریان قابل تنزل نیست.</p> : canGrantAdmin ? <>
+              <p>این کاربر به پنل مدیریت و قابلیت‌های حساس مدیریتی دسترسی خواهد داشت.</p>
+              <Button onClick={() => setRoleAction("grant")}>اعطای دسترسی مدیر</Button>
+            </> : canRevokeAdmin ? <>
+              <p>دسترسی مدیریتی فوراً لغو و نشست‌های قابل تمدید و پشتیبانی این مدیر باطل می‌شوند.</p>
+              <Button variant="danger" onClick={() => setRoleAction("revoke")}>لغو دسترسی مدیر</Button>
+            </> : null}
+          </section>}
           <section className="support-card">
             <h2>ورود پشتیبانی</h2>
             <p>بدون دانستن رمز عبور، یک نشست محدود و قابل ممیزی برای این حساب باز کنید.</p>
@@ -86,6 +115,8 @@ export function AdminUserDetailPage() {
       </div>
       {confirmImpersonation && <ConfirmDialog title="ورود به‌جای کاربر؟" description={`یک نشست پشتیبانی قابل ممیزی برای ${target.fullName} ایجاد می‌شود.`} confirmLabel="شروع ورود پشتیبانی" loading={impersonationMutation.isPending} onCancel={() => setConfirmImpersonation(false)} onConfirm={() => impersonationMutation.mutate()} />}
       {confirmReset && <ConfirmDialog title="بازنشانی رمز عبور؟" description="رمز قبلی دیگر کار نخواهد کرد و همه نشست‌های تمدید فعال این کاربر لغو می‌شوند." confirmLabel="تایید بازنشانی" danger loading={resetMutation.isPending} onCancel={() => setConfirmReset(false)} onConfirm={() => resetMutation.mutate()} />}
+      {roleAction === "grant" && <ConfirmDialog title="اعطای دسترسی مدیر؟" description={`پس از تایید، ${target.fullName} به امکانات مدیریتی دسترسی خواهد داشت و نشست‌های تمدید فعلی او لغو می‌شوند.`} confirmLabel="اعطای دسترسی مدیر" loading={roleMutation.isPending} onCancel={() => setRoleAction(null)} onConfirm={() => roleMutation.mutate("grant")} />}
+      {roleAction === "revoke" && <ConfirmDialog title="لغو دسترسی مدیر؟" description={`دسترسی مدیریتی ${target.fullName} فوراً لغو و نشست‌های قابل تمدید و پشتیبانی او باطل می‌شوند.`} confirmLabel="لغو دسترسی مدیر" danger loading={roleMutation.isPending} onCancel={() => setRoleAction(null)} onConfirm={() => roleMutation.mutate("revoke")} />}
     </DashboardShell>
   );
 }

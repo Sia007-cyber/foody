@@ -24,6 +24,8 @@ export const adminApi = {
     apiRequest<User[]>("/api/admin/users", { query: { role, status } }),
   suspendUser: (id: number) => apiRequest<User>(`/api/admin/users/${id}/suspend`, { method: "PATCH" }),
   activateUser: (id: number) => apiRequest<User>(`/api/admin/users/${id}/activate`, { method: "PATCH" }),
+  grantAdmin: (id: number) => apiRequest<User>(`/api/admin/users/${id}/grant-admin`, { method: "PATCH" }),
+  revokeAdmin: (id: number) => apiRequest<User>(`/api/admin/users/${id}/revoke-admin`, { method: "PATCH" }),
   user: (id: number) => apiRequest<AdminUserDetail>(`/api/admin/users/${id}`),
   impersonateUser: (id: number) => apiRequest<TokenResponse>(`/api/admin/users/${id}/impersonate`, { method: "POST" }),
   resetPassword: ({ id, newPassword }: { id: number; newPassword: string }) =>

@@ -15,6 +15,7 @@ export interface User {
   profileImageUrl: string | null;
   fullName: string;
   role: UserRole;
+  primaryAdmin: boolean;
   status: UserStatus;
   createdAt: string;
   updatedAt: string;

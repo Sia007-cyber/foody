@@ -4,7 +4,7 @@ import { adminApi } from "./adminApi";
 import { DashboardShell } from "../../components/DashboardShell";
 import { Select } from "../../components/Field";
 import { Button } from "../../components/Button";
-import { UserStatusBadge } from "../../components/Badge";
+import { Badge, UserStatusBadge } from "../../components/Badge";
 import { PageSpinner, EmptyState, ErrorState } from "../../components/Controls";
 import { useToast, errorMessage } from "../../components/Feedback";
 import { adminNavItems } from "./adminNav";
@@ -99,11 +99,13 @@ export function AdminUsersPage() {
               <div className="list-row-main">
                 <span className="list-row-title">{u.fullName}</span>
                 <span className="list-row-sub">
-                  {u.email ?? u.phone ?? u.fullName} · {roleLabels[u.role]}
+                  {u.email ?? u.phone ?? u.fullName} · {u.primaryAdmin ? "مدیر اصلی" : u.role === "ADMIN" ? "مدیر عادی" : roleLabels[u.role]}
                   {u.phone ? ` · ${u.phone}` : ""}
                 </span>
               </div>
               <div className="list-row-actions">
+                {u.primaryAdmin && <Badge tone="ember">مدیر اصلی</Badge>}
+                {!u.primaryAdmin && u.role === "ADMIN" && <Badge tone="pending">مدیر عادی</Badge>}
                 <UserStatusBadge status={u.status} />
                 <Link className="btn btn-secondary btn-sm" to={`/admin/users/${u.id}`}>جزئیات و پشتیبانی</Link>
                 {u.role !== "ADMIN" && u.status === "ACTIVE" && (

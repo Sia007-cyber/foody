@@ -10,6 +10,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 import java.math.BigDecimal;
 import java.time.Instant;
 import com.foody.users.service.PublicCustomerIdGenerator;
@@ -25,6 +26,10 @@ public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Version
+    @Column(nullable = false)
+    private Long version;
 
     @Column(name = "public_id", unique = true, updatable = false, length = 19)
     private String publicId;
@@ -58,6 +63,13 @@ public class User {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private UserRole role = UserRole.CUSTOMER;
+
+    @Column(name = "is_primary_admin", nullable = false)
+    private boolean primaryAdmin;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "admin_base_role")
+    private UserRole adminBaseRole;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -105,8 +117,13 @@ public class User {
     public void setFullName(String fullName) { this.fullName = fullName; }
     public UserRole getRole() { return role; }
     public void setRole(UserRole role) { this.role = role; }
+    public boolean isPrimaryAdmin() { return primaryAdmin; }
+    public void setPrimaryAdmin(boolean primaryAdmin) { this.primaryAdmin = primaryAdmin; }
+    public UserRole getAdminBaseRole() { return adminBaseRole; }
+    public void setAdminBaseRole(UserRole adminBaseRole) { this.adminBaseRole = adminBaseRole; }
     public UserStatus getStatus() { return status; }
     public void setStatus(UserStatus status) { this.status = status; }
     public Instant getCreatedAt() { return createdAt; }
     public Instant getUpdatedAt() { return updatedAt; }
+    public Long getVersion() { return version; }
 }

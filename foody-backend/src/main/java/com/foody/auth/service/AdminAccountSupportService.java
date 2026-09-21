@@ -47,7 +47,9 @@ public class AdminAccountSupportService {
     public TokenResponse startImpersonation(FoodyUserPrincipal actor, Long targetId) {
         requireRealAdmin(actor);
         User target = users.findById(targetId).orElseThrow(() -> new ResourceNotFoundException("User not found"));
-        if (target.getRole() == UserRole.ADMIN) throw new AccessDeniedException("Admin accounts cannot be impersonated");
+        if (target.isPrimaryAdmin() || target.getRole() == UserRole.ADMIN) {
+            throw new AccessDeniedException("Admin accounts cannot be impersonated");
+        }
         if (target.getStatus() != UserStatus.ACTIVE) throw new InvalidRequestException("Only active accounts can be impersonated");
         String sessionId = UUID.randomUUID().toString();
         ImpersonationSession audit = new ImpersonationSession();
@@ -62,7 +64,9 @@ public class AdminAccountSupportService {
     public void resetPassword(FoodyUserPrincipal actor, Long targetId, String newPassword) {
         requireRealAdmin(actor);
         User target = users.findById(targetId).orElseThrow(() -> new ResourceNotFoundException("User not found"));
-        if (target.getRole() == UserRole.ADMIN) throw new AccessDeniedException("Admin passwords cannot be reset here");
+        if (target.isPrimaryAdmin() || target.getRole() == UserRole.ADMIN) {
+            throw new AccessDeniedException("Admin passwords cannot be reset here");
+        }
         target.setPasswordHash(passwordEncoder.encode(newPassword));
         users.save(target);
         refreshSessions.revokeAllActiveByUserId(targetId);

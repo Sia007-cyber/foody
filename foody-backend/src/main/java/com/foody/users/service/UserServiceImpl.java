@@ -28,6 +28,12 @@ class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
+    public Optional<User> findByIdForUpdate(Long id) {
+        return userRepository.findByIdForUpdate(id);
+    }
+
+    @Override
     @Transactional(readOnly = true)
     public Optional<User> findByEmail(String email) {
         return userRepository.findByEmail(email);
@@ -36,6 +42,10 @@ class UserServiceImpl implements UserService {
     @Override
     @Transactional(readOnly = true)
     public Optional<User> findByPhone(String phone) { return userRepository.findByPhone(phone); }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<User> findPrimaryAdmin() { return userRepository.findByPrimaryAdminTrue(); }
 
     @Override
     @Transactional(readOnly = true)
@@ -94,7 +104,7 @@ class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId));
         // Admin accounts are managed outside this flow — an admin must never be able to
         // lock themself (or another admin) out via the same panel they're using.
-        if (user.getRole() == UserRole.ADMIN) {
+        if (user.getRole() == UserRole.ADMIN || user.isPrimaryAdmin()) {
             throw new InvalidRequestException("Cannot change the status of an admin account");
         }
         user.setStatus(newStatus);
