@@ -7,6 +7,9 @@ import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
+import org.springframework.context.ApplicationContext;
+import org.springframework.security.web.SecurityFilterChain;
+import com.foody.auth.config.WebSecurityConfig;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 
@@ -23,6 +26,7 @@ class VpsStartupIntegrationTest extends AbstractContainerBaseTest {
     @Autowired UploadStorage uploadStorage;
     @Autowired HikariDataSource dataSource;
     @Autowired Environment environment;
+    @Autowired ApplicationContext applicationContext;
 
     @Test
     void vpsProfileStartsWithLocalStorageAndConservativeRuntimeSettings() {
@@ -34,5 +38,7 @@ class VpsStartupIntegrationTest extends AbstractContainerBaseTest {
         assertThat(environment.getProperty("server.address")).isEqualTo("127.0.0.1");
         assertThat(environment.getProperty("server.port")).isEqualTo("8080");
         assertThat(environment.getProperty("foody.demo-accounts.enabled", Boolean.class)).isFalse();
+        assertThat(applicationContext.getBeansOfType(WebSecurityConfig.class)).hasSize(1);
+        assertThat(applicationContext.getBeansOfType(SecurityFilterChain.class)).hasSize(1);
     }
 }
