@@ -275,7 +275,7 @@ release. Configure and monitor journald/Nginx retention at the OS level.
 
 ## Automated future deployments
 
-The production-safe GitHub Actions pipeline, required GitHub values, exact
+The production-safe GitHub Actions pipeline, self-hosted runner requirements,
 least-privilege VPS setup, immutable activation, health checks, rollback, and
 release retention are documented in
 [`deploy/vps/CI-CD.md`](deploy/vps/CI-CD.md). The manual sequence below remains

@@ -11,66 +11,52 @@ the npm cache, `npm ci`, tests, lint, and a production build. The production
 build explicitly leaves `VITE_API_BASE_URL` empty so `/api` and `/uploads` stay
 same-origin. No production secret is needed at build time.
 
-The deployment job downloads those exact CI artifacts, makes one archive, and
-copies only that archive to the VPS with OpenSSH. It does not build or check out
-source on the VPS. The GitHub environment and job concurrency group serialize
-production deployments; queued newer deployments do not cancel an active one.
+The deployment job runs on the production VPS's self-hosted runner, downloads
+those exact CI artifacts, and makes one archive locally. It does not build or
+check out application source on the VPS. The GitHub environment and job
+concurrency group serialize production deployments; queued newer deployments do
+not cancel an active one.
 
 ## GitHub configuration
 
 Use the existing GitHub Environment named exactly `Production` (environment
 names are case-sensitive in this deployment contract). Environment protection
 rules such as required reviewers, protected `main`, and an optional wait timer
-are strongly recommended. Configure these values in that environment:
+are strongly recommended. The self-hosted deployment path needs no production
+host, SSH user, private-key, or known-hosts value in GitHub.
 
-| Kind | Name | Value |
-|---|---|---|
-| Variable | `PROD_HOST` | The VPS DNS name or IPv4 address (for example `deploy.dayca.ir`; no scheme or port). |
-| Variable | `PROD_USER` | `foody-deploy` |
-| Secret | `PROD_SSH_PRIVATE_KEY` | The dedicated unencrypted Ed25519 private key used only by Actions. |
-| Secret | `PROD_SSH_KNOWN_HOSTS` | A verified OpenSSH `known_hosts` line for `PROD_HOST`. |
-
-Do not use a personal key or put the private key in the repository. Generate the
-key on a trusted administrator machine with `ssh-keygen -t ed25519 -f
-foody-github-actions -C foody-github-actions`. Install only the `.pub` value on
-the server. Obtain the host public key through a trusted channel, compare its
-fingerprint with the VPS console/provider record, then store the complete
-`known_hosts` line as the secret. Do not disable `StrictHostKeyChecking`.
+After one successful self-hosted deployment, these obsolete Environment values
+can be deleted: variables `PROD_HOST` and `PROD_USER`, and secrets
+`PROD_SSH_PRIVATE_KEY` and `PROD_SSH_KNOWN_HOSTS`.
 
 Repository Actions settings must allow read access to contents; the workflow
 declares no write permission. Branch protection should require the `Backend
 tests and package` and `Frontend tests, lint, and build` checks before merging.
 
-## One-time VPS setup
+## Self-hosted runner and one-time VPS setup
 
-Run the following as a VPS administrator. These commands do not alter
-`/etc/foody/foody.env`, `/var/lib/foody/uploads`, MySQL, port exposure, or Nginx.
+The repository's GitHub Actions runner must be registered at repository scope,
+online with the standard `self-hosted`, `Linux`, and `X64` labels, and installed
+as a service running as the unprivileged `foody-deploy` user. Never run the
+runner as root. Restrict repository administration and workflow changes because
+a self-hosted runner is production infrastructure.
+
 The existing application/service setup in `PRODUCTION.md` must already be
-complete.
+complete. Verify the deployment boundary with these safe checks on the VPS:
 
 ```sh
-sudo adduser --system --group --home /var/lib/foody-deploy foody-deploy
-sudo install -d -o foody-deploy -g foody-deploy -m 0700 /var/lib/foody-deploy
-sudo install -d -o foody-deploy -g foody-deploy -m 0700 /var/lib/foody-deploy/incoming
-sudo install -d -o root -g root -m 0755 /opt/foody
-sudo install -d -o root -g root -m 0755 /opt/foody/releases
-sudo install -o root -g root -m 0755 /tmp/foody-deploy /usr/local/sbin/foody-deploy
-sudo install -d -o foody-deploy -g foody-deploy -m 0700 /var/lib/foody-deploy/.ssh
-sudoedit /var/lib/foody-deploy/.ssh/authorized_keys
-sudo chown foody-deploy:foody-deploy /var/lib/foody-deploy/.ssh/authorized_keys
-sudo chmod 0600 /var/lib/foody-deploy/.ssh/authorized_keys
-sudo visudo -f /etc/sudoers.d/foody-deploy
-sudo chmod 0440 /etc/sudoers.d/foody-deploy
+getent passwd foody-deploy
+sudo systemctl status 'actions.runner.*' --no-pager
+sudo stat -c '%U:%G %a %n' /usr/local/sbin/foody-deploy
+sudo stat -c '%U:%G %a %n' /var/lib/foody-deploy/incoming
 sudo visudo -cf /etc/sudoers.d/foody-deploy
+sudo -u foody-deploy sudo -n -l
 ```
 
-Before running the commands, securely copy the reviewed repository file
-`deploy/vps/foody-deploy` to `/tmp/foody-deploy`; the routine pipeline never
-copies or updates this privileged program. Put exactly the dedicated public key
-on one line in `authorized_keys`. The workflow needs remote commands and SCP, so
-do not attach a false forced command to that key. Rely on the dedicated account,
-key, filesystem permissions, and narrow sudo rule below, and keep SSH password
-authentication disabled for this account.
+The script must report `root:root 755`, the incoming directory must be writable
+only by the deployment account (normally `foody-deploy:foody-deploy 700`), and
+the runner service must run as `foody-deploy`. The routine pipeline never copies
+or updates the privileged program.
 
 The exact `/etc/sudoers.d/foody-deploy` content is:
 
@@ -80,26 +66,31 @@ foody-deploy ALL=(root) NOPASSWD: /usr/local/sbin/foody-deploy
 
 This permits no arbitrary `systemctl`, shell, editor, or file-copy command as
 root. The root-owned deployment program validates both arguments, snapshots and
-validates the untrusted incoming tar archive, and only then operates on Foody's
-release path and service. Whenever `deploy/vps/foody-deploy` changes, review it
-and reinstall it manually with the `install` command above before enabling the
-corresponding workflow change.
+validates the unprivileged incoming tar archive, and only then operates on
+Foody's release path and service. Whenever `deploy/vps/foody-deploy` changes,
+review it and reinstall it manually before enabling the corresponding workflow
+change.
 
-The deploy account also needs its login shell enabled because OpenSSH invokes
-remote commands. Confirm `getent passwd foody-deploy` shows `/bin/bash` or
-`/bin/sh`; if Ubuntu created `/usr/sbin/nologin`, set it once:
-
-```sh
-sudo usermod --shell /bin/bash foody-deploy
-```
+The deploy job uses only `[self-hosted, Linux, X64]`, is guarded to `main`
+pushes or manual dispatches on `main`, and depends on both GitHub-hosted CI jobs.
+Pull-request code never schedules work on the production runner.
 
 ## Activation, verification, rollback, and retention
 
 Each release ID combines the 40-character commit SHA, Actions run ID, and run
-attempt. The privileged script refuses an existing directory, installs the full
-archive under `/opt/foody/releases/<release-id>`, fixes root ownership and
-read-only file permissions, then atomically replaces `/opt/foody/current`.
-Only after activation does it restart `foody-backend.service`.
+attempt. The self-hosted job clears a run-specific staging directory under
+`RUNNER_TEMP`, downloads the backend and frontend artifacts produced by CI,
+packages them, and atomically places the complete archive at
+`/var/lib/foody-deploy/incoming/foody-<release-id>.tar.gz`. It then invokes only:
+
+```sh
+sudo -n /usr/local/sbin/foody-deploy "$RELEASE_ID" "$ARCHIVE"
+```
+
+The privileged script refuses an existing directory, installs the full archive
+under `/opt/foody/releases/<release-id>`, fixes root ownership and read-only file
+permissions, then atomically replaces `/opt/foody/current`. Only after activation
+does it restart `foody-backend.service`.
 
 It requires the service to be active and performs bounded checks against:
 

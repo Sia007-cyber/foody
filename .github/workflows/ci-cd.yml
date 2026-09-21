@@ -95,85 +95,61 @@ jobs:
     name: Deploy production
     if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
     needs: [backend, frontend]
-    runs-on: ubuntu-24.04
+    runs-on: [self-hosted, Linux, X64]
     timeout-minutes: 20
     environment: Production
     concurrency:
       group: foody-production
       cancel-in-progress: false
     env:
-      PROD_HOST: ${{ vars.PROD_HOST }}
-      PROD_USER: ${{ vars.PROD_USER }}
       RELEASE_ID: ${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+      STAGING_DIR: ${{ runner.temp }}/foody-${{ github.run_id }}-${{ github.run_attempt }}
+      ARCHIVE: /var/lib/foody-deploy/incoming/foody-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}.tar.gz
     steps:
+      - name: Prepare isolated release staging
+        run: |
+          set -euo pipefail
+          case "$STAGING_DIR" in
+            "$RUNNER_TEMP"/foody-[0-9]*-[0-9]*) ;;
+            *) echo "Refusing unsafe staging path" >&2; exit 1 ;;
+          esac
+          rm -rf -- "$STAGING_DIR"
+          install -d -m 0700 "$STAGING_DIR/release/backend" "$STAGING_DIR/release/frontend"
+          test -d /var/lib/foody-deploy/incoming
+          test -w /var/lib/foody-deploy/incoming
+
       - name: Download backend artifact
         uses: actions/download-artifact@v4
         with:
           name: backend-${{ github.sha }}
-          path: release/backend
+          path: ${{ runner.temp }}/foody-${{ github.run_id }}-${{ github.run_attempt }}/release/backend
 
       - name: Download frontend artifact
         uses: actions/download-artifact@v4
         with:
           name: frontend-${{ github.sha }}
-          path: release/frontend
+          path: ${{ runner.temp }}/foody-${{ github.run_id }}-${{ github.run_attempt }}/release/frontend
 
       - name: Package immutable release
         run: |
           set -euo pipefail
-          test -s release/backend/foody-backend.jar
-          test -s release/frontend/index.html
-          tar --create --gzip --file "foody-${RELEASE_ID}.tar.gz" -C release backend frontend
-
-      - name: Configure pinned SSH identity
-        env:
-          PROD_SSH_PRIVATE_KEY: ${{ secrets.PROD_SSH_PRIVATE_KEY }}
-          PROD_SSH_KNOWN_HOSTS: ${{ secrets.PROD_SSH_KNOWN_HOSTS }}
-        run: |
-          set -euo pipefail
-          [[ "$PROD_HOST" =~ ^[A-Za-z0-9.-]+$ ]]
-          [[ "$PROD_USER" == "foody-deploy" ]]
-          test -n "$PROD_SSH_PRIVATE_KEY"
-          test -n "$PROD_SSH_KNOWN_HOSTS"
-          install -d -m 0700 "$HOME/.ssh"
-          install -m 0600 /dev/null "$HOME/.ssh/id_ed25519"
-          printf '%s\n' "$PROD_SSH_PRIVATE_KEY" > "$HOME/.ssh/id_ed25519"
-          install -m 0600 /dev/null "$HOME/.ssh/known_hosts"
-          printf '%s\n' "$PROD_SSH_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
-
-      - name: Transfer complete release archive
-        run: |
-          set -euo pipefail
-
-          remote_dir="/var/lib/foody-deploy/incoming"
-          remote_archive="$remote_dir/foody-${RELEASE_ID}.tar.gz"
-
-          ssh_options=(
-            -o BatchMode=yes
-            -o IdentitiesOnly=yes
-            -o StrictHostKeyChecking=yes
-            -o ConnectTimeout=15
-            -o ConnectionAttempts=2
-            -o ServerAliveInterval=10
-            -o ServerAliveCountMax=3
-          )
-
-          echo "Testing SSH connectivity to production host..."
-          ssh -v "${ssh_options[@]}" "$PROD_USER@$PROD_HOST" \
-            "install -d -m 0700 '$remote_dir'"
-
-          echo "Transferring release archive..."
-          scp -v "${ssh_options[@]}" \
-            "foody-${RELEASE_ID}.tar.gz" \
-            "$PROD_USER@$PROD_HOST:$remote_archive.part"
-
-          echo "Finalizing uploaded release archive..."
-          ssh -v "${ssh_options[@]}" "$PROD_USER@$PROD_HOST" \
-            "mv '$remote_archive.part' '$remote_archive'"
+          test -s "$STAGING_DIR/release/backend/foody-backend.jar"
+          test -s "$STAGING_DIR/release/frontend/index.html"
+          tar --create --gzip --file "$STAGING_DIR/foody-release.tar.gz" \
+            -C "$STAGING_DIR/release" backend frontend
+          rm -f -- "$ARCHIVE.part"
+          test ! -e "$ARCHIVE"
+          install -m 0600 "$STAGING_DIR/foody-release.tar.gz" "$ARCHIVE.part"
+          mv -T "$ARCHIVE.part" "$ARCHIVE"
 
       - name: Activate and verify release
         run: |
           set -euo pipefail
-          remote_archive="/var/lib/foody-deploy/incoming/foody-${RELEASE_ID}.tar.gz"
-          ssh -o BatchMode=yes -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes "$PROD_USER@$PROD_HOST" \
-            "sudo /usr/local/sbin/foody-deploy '$RELEASE_ID' '$remote_archive'"
+          sudo -n /usr/local/sbin/foody-deploy "$RELEASE_ID" "$ARCHIVE"
+
+      - name: Clean deployment staging
+        if: always()
+        run: |
+          set -euo pipefail
+          rm -f -- "$ARCHIVE" "$ARCHIVE.part"
+          rm -rf -- "$STAGING_DIR"
