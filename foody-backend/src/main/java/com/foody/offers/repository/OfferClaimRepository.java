@@ -8,4 +8,5 @@ public interface OfferClaimRepository extends JpaRepository<OfferClaim,Long> {
     long countByOfferId(Long offerId);
     boolean existsByOfferIdAndCustomerUserId(Long offerId, Long customerUserId);
     List<OfferClaim> findByCustomerUserIdOrderByClaimedAtDesc(Long customerUserId);
+    List<OfferClaim> findByOfferIdOrderByClaimedAtDesc(Long offerId);
 }

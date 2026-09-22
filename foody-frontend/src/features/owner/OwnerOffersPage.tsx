@@ -125,6 +125,8 @@ function OfferForm({ onSubmit, loading }: { onSubmit: (request: CreateOfferReque
 }
 
 function OfferCard({ offer, onCancel }: { offer: Offer; onCancel: () => void }) {
+  const [showClaims, setShowClaims] = useState(false);
+  const claimsQuery = useQuery({ queryKey: ["business", "offers", offer.id, "claims"], queryFn: () => ownerOffersApi.getClaims(offer.id), enabled: showClaims });
   const state = offerPresentationState(offer);
   const remaining = Math.max(0, offer.remainingAvailability);
   const claimed = Math.min(offer.capacity, Math.max(0, offer.claimCount));
@@ -135,7 +137,8 @@ function OfferCard({ offer, onCancel }: { offer: Offer; onCancel: () => void }) 
       <div className="owner-offer-card-header"><div><h2>{offer.title}</h2>{offer.description && <p>{offer.description}</p>}</div><span className={`owner-offer-status owner-offer-status-${state}`}>{stateLabels[state]}</span></div>
       <div className="owner-offer-capacity"><div className="owner-offer-capacity-label"><span>دریافت‌شده: <strong>{new Intl.NumberFormat("fa-IR").format(claimed)} از {new Intl.NumberFormat("fa-IR").format(offer.capacity)}</strong></span><span>باقی‌مانده: <strong>{new Intl.NumberFormat("fa-IR").format(remaining)}</strong></span></div><div className="owner-offer-progress" aria-label={`${claimed} از ${offer.capacity} ظرفیت دریافت شده`}><span style={{ width: `${progress}%` }} /></div></div>
       <div className="owner-offer-times"><span><ClockIcon size={16} />شروع: {formatDateTime(offer.startsAt)}</span><span><ClockIcon size={16} />پایان: {formatDateTime(offer.expiresAt)}</span></div>
-      {mayCancel && <div className="owner-offer-card-actions"><Button size="sm" variant="danger" onClick={onCancel}>لغو پیشنهاد</Button></div>}
+      <div className="owner-offer-card-actions"><Button size="sm" variant="secondary" onClick={() => setShowClaims(value => !value)} aria-expanded={showClaims}>{showClaims ? "بستن دریافت‌ها" : `مشاهده دریافت‌کنندگان (${claimed})`}</Button>{mayCancel && <Button size="sm" variant="danger" onClick={onCancel}>لغو پیشنهاد</Button>}</div>
+      {showClaims && (claimsQuery.isLoading ? <PageSpinner /> : claimsQuery.isError ? <ErrorState error={claimsQuery.error} onRetry={() => claimsQuery.refetch()} title="دریافت‌کنندگان لود نشدند" /> : !claimsQuery.data?.length ? <EmptyState title="هنوز کسی این پیشنهاد را دریافت نکرده" /> : <div className="owner-offer-claims" aria-label="دریافت‌کنندگان پیشنهاد">{claimsQuery.data.map(claim => <div key={claim.id}><strong>{claim.customerDisplayName}</strong><span>{claim.customerPublicId} · {formatDateTime(claim.claimedAt)}</span></div>)}</div>)}
     </article>
   );
 }

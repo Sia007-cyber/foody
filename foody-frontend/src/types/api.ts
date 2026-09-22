@@ -278,6 +278,20 @@ export interface CreateOfferRequest {
 export interface OfferClaim {
   id: number;
   offerId: number;
+  offerTitle: string;
+  offerDescription: string | null;
+  businessId: number;
+  businessName: string;
   claimedAt: string;
   remainingAvailability: number;
+  expiresAt: string;
+  offerStatus: OfferStatus;
+}
+
+export interface OwnerOfferClaim {
+  id: number;
+  offerId: number;
+  customerPublicId: string;
+  customerDisplayName: string;
+  claimedAt: string;
 }

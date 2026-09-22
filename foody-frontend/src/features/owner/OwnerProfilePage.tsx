@@ -73,9 +73,13 @@ export function OwnerProfilePage() {
     const ticket = captureSession();
     setUploadingCover(true);
     try {
-      await businessApi.uploadCoverImage(file);
+      const updated = await businessApi.uploadCoverImage(file);
       assertSession(ticket);
-      queryClient.invalidateQueries({ queryKey: ["business", "profile"] });
+      queryClient.setQueryData(["business", "profile"], updated);
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["businesses"] }),
+        queryClient.invalidateQueries({ queryKey: ["businesses", updated.id] }),
+      ]);
       notify("عکس کسب‌وکار به‌روز شد", "ok");
     } catch (err) {
       notify(errorMessage(err), "danger");

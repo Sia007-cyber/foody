@@ -46,7 +46,9 @@ test("my claims renders API-backed history and preserves empty history", () => {
   assert.match(page, /claim\.claimedAt/);
   assert.match(page, /claim\.remainingAvailability/);
   assert.match(page, /هنوز پیشنهادی دریافت نکرده‌ای/);
-  assert.match(page, /پیشنهاد شماره \$\{claim\.offerId\}/);
+  assert.match(page, /claim\.offerTitle/);
+  assert.match(page, /claim\.businessName/);
+  assert.doesNotMatch(page, /offersById/);
 });
 
 test("Special Offers is the primary marketplace destination and claim history is secondary", () => {

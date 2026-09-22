@@ -55,7 +55,7 @@ export function OffersPage() {
         <div className="offers-page-hero-icon"><MegaphoneIcon size={26} /></div>
         <div><span className="section-eyebrow">بازار فودی</span><h1>{historyMode ? "سابقه پیشنهادهای من" : "پیشنهادهای ویژه"}</h1><p>{historyMode ? "پیشنهادهایی که قبلاً دریافت کرده‌ای اینجا هستند." : "پیشنهادهای عمومی و فعال کسب‌وکارها را ببین و اگر مناسب توست، دریافتش کن."}</p></div>
       </header>
-      {historyMode ? <ClaimHistory claims={claimsQuery.data} isLoading={claimsQuery.isLoading} isError={claimsQuery.isError} error={claimsQuery.error} onRetry={() => claimsQuery.refetch()} offers={offersQuery.data ?? []} /> : (
+      {historyMode ? <ClaimHistory claims={claimsQuery.data} isLoading={claimsQuery.isLoading} isError={claimsQuery.isError} error={claimsQuery.error} onRetry={() => claimsQuery.refetch()} /> : (
         offersQuery.isLoading ? <PageSpinner /> : offersQuery.isError ? <ErrorState error={offersQuery.error} onRetry={() => offersQuery.refetch()} title="پیشنهادها لود نشدند" /> : !offersQuery.data?.length ? (
           <EmptyState title="فعلاً پیشنهاد قابل دریافتی نیست" description="پیشنهادهای فعال کافه‌ها در اینجا نمایش داده می‌شوند." />
         ) : (
@@ -83,10 +83,9 @@ function CustomerOfferCard({ offer, claimed, canAct, claiming, onClaim }: { offe
   );
 }
 
-function ClaimHistory({ claims, isLoading, isError, error, onRetry, offers }: { claims?: OfferClaim[]; isLoading: boolean; isError: boolean; error: unknown; onRetry: () => void; offers: Offer[] }) {
+function ClaimHistory({ claims, isLoading, isError, error, onRetry }: { claims?: OfferClaim[]; isLoading: boolean; isError: boolean; error: unknown; onRetry: () => void }) {
   if (isLoading) return <PageSpinner />;
   if (isError) return <ErrorState error={error} onRetry={onRetry} title="دریافت‌های شما لود نشدند" />;
   if (!claims?.length) return <EmptyState title="هنوز پیشنهادی دریافت نکرده‌ای" description="وقتی یک پیشنهاد محدود را دریافت کنی، سابقه‌اش اینجا می‌ماند." />;
-  const offersById = new Map(offers.map((offer) => [offer.id, offer]));
-  return <div className="customer-claims-list" aria-label="دریافت‌های من">{claims.map((claim) => { const offer = offersById.get(claim.offerId); return <article className="customer-claim-card" key={claim.id}><div>{offer?.businessName && <span className="customer-offer-business">{offer.businessName}</span>}<h2>{offer?.title ?? `پیشنهاد شماره ${claim.offerId}`}</h2><p>زمان دریافت: {formatDateTime(claim.claimedAt)} · ظرفیت باقی‌مانده: {new Intl.NumberFormat("fa-IR").format(Math.max(0, claim.remainingAvailability))}</p></div><span className="customer-offer-state customer-offer-state-claimed"><CheckCircleIcon size={15} />دریافت‌شده</span></article>; })}</div>;
+  return <div className="customer-claims-list" aria-label="دریافت‌های من">{claims.map((claim) => <article className="customer-claim-card" key={claim.id}><div><span className="customer-offer-business">{claim.businessName}</span><h2>{claim.offerTitle}</h2>{claim.offerDescription&&<p>{claim.offerDescription}</p>}<p>زمان دریافت: {formatDateTime(claim.claimedAt)} · ظرفیت باقی‌مانده: {new Intl.NumberFormat("fa-IR").format(Math.max(0, claim.remainingAvailability))}</p></div><span className="customer-offer-state customer-offer-state-claimed"><CheckCircleIcon size={15} />دریافت‌شده</span></article>)}</div>;
 }

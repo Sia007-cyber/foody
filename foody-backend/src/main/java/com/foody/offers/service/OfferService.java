@@ -10,4 +10,5 @@ public interface OfferService {
     List<OfferResponse> claimableOffers();
     OfferClaimResponse claim(Long customerUserId, Long offerId);
     List<OfferClaimResponse> myClaims(Long customerUserId);
+    List<OwnerOfferClaimResponse> ownerClaims(Long ownerUserId, Long offerId);
 }

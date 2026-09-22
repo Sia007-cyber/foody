@@ -7,6 +7,7 @@ import { ReviewsSection } from "./ReviewsSection";
 import { PageSpinner, EmptyState, ErrorState } from "../../components/Controls";
 import "./business-detail.css";
 import { useAuth } from "../auth/AuthContext";
+import { resolveMediaUrl } from "../../lib/api";
 
 const typeLabel: Record<string, string> = { CAFE: "کافه", FAST_FOOD: "فست‌فود" };
 
@@ -43,6 +44,7 @@ export function BusinessDetailPage() {
   return (
     <div>
       <div className="biz-header">
+        {business.coverImageUrl && <img className="biz-header-cover" src={resolveMediaUrl(business.coverImageUrl) ?? undefined} alt="" />}
         <h1>{business.name}</h1>
         <div className="biz-header-meta">
           <span>{typeLabel[business.businessType] ?? business.businessType}</span>

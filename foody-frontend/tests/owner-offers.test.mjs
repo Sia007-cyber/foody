@@ -57,3 +57,10 @@ test("successful offer mutations invalidate the offer query and owner navigation
   assert.match(nav, /to: "\/business\/offers", label: "پیشنهادهای محدود"/);
   assert.match(app, /path="\/business\/offers" element=\{<OwnerOffersPage \/>\}/);
 });
+
+test("owner can inspect the real customers who claimed an offer", () => {
+  assert.match(api, /getClaims: \(id: number\).*\/api\/business\/offers\/\$\{id\}\/claims/);
+  assert.match(page, /customerDisplayName/);
+  assert.match(page, /customerPublicId/);
+  assert.match(page, /claimedAt/);
+});

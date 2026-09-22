@@ -139,6 +139,7 @@
   padding: 40px 0 120px;
   align-items: start;
 }
+.biz-header-cover { width: 100%; max-height: 360px; object-fit: cover; }
 @media (max-width: 860px) {
   .biz-layout {
     grid-template-columns: 1fr;
@@ -169,6 +170,14 @@
   flex-direction: column;
   gap: 4px;
   min-width: 0;
+}
+.product-row-image {
+  width: 88px;
+  height: 88px;
+  flex: 0 0 88px;
+  object-fit: cover;
+  border-radius: var(--r-md);
+  background: var(--mist);
 }
 .product-row-name {
   font-weight: 600;

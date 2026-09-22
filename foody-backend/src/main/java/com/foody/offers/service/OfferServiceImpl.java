@@ -7,6 +7,7 @@ import com.foody.common.exception.*;
 import com.foody.offers.dto.*;
 import com.foody.offers.entity.*;
 import com.foody.offers.repository.*;
+import com.foody.users.repository.UserRepository;
 import java.time.*;
 import java.util.List;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -15,8 +16,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 class OfferServiceImpl implements OfferService {
-    private final OfferRepository offers; private final OfferClaimRepository claims; private final BusinessRepository businesses;
-    OfferServiceImpl(OfferRepository offers, OfferClaimRepository claims, BusinessRepository businesses){this.offers=offers;this.claims=claims;this.businesses=businesses;}
+    private final OfferRepository offers; private final OfferClaimRepository claims; private final BusinessRepository businesses; private final UserRepository users;
+    OfferServiceImpl(OfferRepository offers, OfferClaimRepository claims, BusinessRepository businesses, UserRepository users){this.offers=offers;this.claims=claims;this.businesses=businesses;this.users=users;}
 
     @Override @Transactional public OfferResponse create(Long ownerUserId, CreateOfferRequest r){
         Business b=ownedBusiness(ownerUserId);
@@ -49,10 +50,14 @@ class OfferServiceImpl implements OfferService {
         long count=claims.countByOfferId(offerId); if(count>=o.getCapacity()) throw new InvalidStateTransitionException("Offer capacity is exhausted");
         OfferClaim c=new OfferClaim(); c.setOfferId(offerId); c.setCustomerUserId(customerUserId);
         try { c=claims.saveAndFlush(c); } catch(DataIntegrityViolationException e){ throw new DuplicateResourceException("You have already claimed this offer"); }
-        return OfferClaimResponse.from(c,o.getCapacity()-count-1);
+        return OfferClaimResponse.from(c,o,b.getName(),o.getCapacity()-count-1);
     }
     @Override @Transactional(readOnly=true) public List<OfferClaimResponse> myClaims(Long customerUserId){
-        return claims.findByCustomerUserIdOrderByClaimedAtDesc(customerUserId).stream().map(c->{Offer o=offers.findById(c.getOfferId()).orElseThrow(); return OfferClaimResponse.from(c,Math.max(0,o.getCapacity()-claims.countByOfferId(o.getId())));}).toList();
+        return claims.findByCustomerUserIdOrderByClaimedAtDesc(customerUserId).stream().map(c->{Offer o=offers.findById(c.getOfferId()).orElseThrow();Business b=businesses.findById(o.getBusinessId()).orElseThrow();return OfferClaimResponse.from(c,o,b.getName(),Math.max(0,o.getCapacity()-claims.countByOfferId(o.getId())));}).toList();
+    }
+    @Override @Transactional(readOnly=true) public List<OwnerOfferClaimResponse> ownerClaims(Long ownerUserId,Long offerId){
+        Business b=ownedBusiness(ownerUserId);offers.findByIdAndBusinessId(offerId,b.getId()).orElseThrow(()->new ResourceNotFoundException("Offer not found: "+offerId));
+        return claims.findByOfferIdOrderByClaimedAtDesc(offerId).stream().map(c->OwnerOfferClaimResponse.from(c,users.findById(c.getCustomerUserId()).orElseThrow())).toList();
     }
     private Business ownedBusiness(Long userId){return businesses.findByOwnerUserId(userId).orElseThrow(()->new ResourceNotFoundException("No business found for this owner"));}
     private OfferResponse response(Offer o,String businessName){return OfferResponse.from(o,businessName,claims.countByOfferId(o.getId()));}

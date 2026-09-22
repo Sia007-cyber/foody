@@ -19,3 +19,6 @@
 .owner-offer-times { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 16px; color: var(--ink-soft); font-size: 13px; }.owner-offer-times span { display: inline-flex; align-items: center; gap: 6px; }
 .owner-offer-card-actions { display: flex; justify-content: flex-end; margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--line); }
 @media (max-width: 520px) { .owner-offer-form-grid, .owner-offer-time-fields { grid-template-columns: 1fr; }.owner-offer-card-header, .owner-offer-capacity-label { align-items: flex-start; flex-direction: column; }.owner-offer-card { padding: 16px; } }
+.owner-offer-claims { display: grid; gap: 8px; margin-top: 14px; }
+.owner-offer-claims > div { display: flex; justify-content: space-between; gap: 12px; padding: 10px; border-radius: var(--r-md); background: var(--mist); }
+.owner-offer-claims span { color: var(--ink-soft); font-size: 12px; }

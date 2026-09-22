@@ -4,6 +4,7 @@ import { formatToman } from "../../lib/format";
 import { Spinner } from "../../components/Controls";
 import type { Menu } from "../../types/api";
 import { ProductReviews } from "./ProductReviews";
+import { resolveMediaUrl } from "../../lib/api";
 
 export function MenuSection({ menu, canReview }: { menu: Menu; canReview: boolean }) {
   const { data: products, isLoading } = useQuery({
@@ -32,6 +33,9 @@ export function MenuSection({ menu, canReview }: { menu: Menu; canReview: boolea
               key={product.id}
               className={`product-row ${!product.isAvailable ? "product-row-unavailable" : ""}`}
             >
+              {product.imageUrl && (
+                <img src={resolveMediaUrl(product.imageUrl) ?? undefined} alt={product.name} className="product-row-image" />
+              )}
               <div className="product-row-main">
                 <span className="product-row-name">{product.name}</span>
                 {product.description && <span className="product-row-desc">{product.description}</span>}

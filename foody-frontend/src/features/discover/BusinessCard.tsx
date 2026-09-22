@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import type { Business } from "../../types/api";
+import { resolveMediaUrl } from "../../lib/api";
 
 const typeLabel: Record<string, string> = {
   CAFE: "کافه",
@@ -17,9 +18,8 @@ export function BusinessCard({ business }: { business: Business }) {
   return (
     <Link to={`/businesses/${business.id}`} className="business-card">
       <div className={`business-cover ${coverClass}`}>
-        <span className="business-cover-emoji" aria-hidden="true">
-          {typeEmoji[business.businessType] ?? "🍽️"}
-        </span>
+        {business.coverImageUrl ? <img src={resolveMediaUrl(business.coverImageUrl) ?? undefined} alt="" /> :
+          <span className="business-cover-emoji" aria-hidden="true">{typeEmoji[business.businessType] ?? "🍽️"}</span>}
       </div>
       <div className="business-card-body">
         <span className="business-card-name">{business.name}</span>

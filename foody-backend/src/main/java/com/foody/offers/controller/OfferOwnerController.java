@@ -15,4 +15,5 @@ public class OfferOwnerController {
     @GetMapping public List<OfferResponse> list(@AuthenticationPrincipal FoodyUserPrincipal p){return service.ownerOffers(p.getUserId());}
     @PostMapping public OfferResponse create(@AuthenticationPrincipal FoodyUserPrincipal p,@Valid @RequestBody CreateOfferRequest r){return service.create(p.getUserId(),r);}
     @PatchMapping("/{id}/cancel") public OfferResponse cancel(@AuthenticationPrincipal FoodyUserPrincipal p,@PathVariable Long id){return service.cancel(p.getUserId(),id);}
+    @GetMapping("/{id}/claims") public List<OwnerOfferClaimResponse> claims(@AuthenticationPrincipal FoodyUserPrincipal p,@PathVariable Long id){return service.ownerClaims(p.getUserId(),id);}
 }
