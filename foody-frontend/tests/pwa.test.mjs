@@ -28,12 +28,16 @@ test("PWA manifest is installable and uses the existing Foody identity", () => {
 
 test("browser and PWA icons use the canonical Foody logo instead of legacy or Vite branding", () => {
   assert.match(html, /href="\/foody-logo\.svg"/);
-  assert.doesNotMatch(html, /favicon\.svg|vite/i);
-  assert.match(foodyLogo, /viewBox="0 0 512 512"/);
-  assert.match(foodyLogo, /direction="rtl"/);
-  assert.match(foodyLogo, />فودی<\/text>/);
-  assert.match(foodyLogo, /fill="#FF6B00"/);
-  assert.doesNotMatch(foodyLogo, /#863bff|#7e14ff|vite/i);
+  assert.doesNotMatch(html, /vite/i);
+  // The favicon embeds a pre-rasterized, correctly-shaped wordmark as a base64 <image>
+  // rather than live <text> + @font-face: the browser's favicon renderer uses a
+  // restricted context that does not reliably load embedded fonts, which previously
+  // broke Persian letter joining in the tab icon. Embedding a raster image sidesteps
+  // that entirely and renders identically everywhere.
+  assert.match(foodyLogo, /viewBox="0 0 256 256"/);
+  assert.match(foodyLogo, /<image href="data:image\/png;base64,/);
+  assert.doesNotMatch(foodyLogo, /@font-face|<text/);
+  assert.doesNotMatch(foodyLogo, /#863bff|#7e14ff|#ff6b00|vite/i);
   assert.deepEqual(
     publicAssets.filter((asset) => /wordmark|foody-mark|foody-symbol|favicon\.svg|icons\.svg/i.test(asset)),
     [],
@@ -41,10 +45,14 @@ test("browser and PWA icons use the canonical Foody logo instead of legacy or Vi
   for (const icon of ["pwa-192x192.png", "pwa-512x512.png", "pwa-maskable-512x512.png"]) {
     assert.match(vite, new RegExp(icon));
   }
+  assert.match(html, /href="\/favicon-32x32\.png"/);
+  assert.match(html, /href="\/favicon-16x16\.png"/);
   assert.deepEqual(pngDimensions("apple-touch-icon.png"), [180, 180]);
   assert.deepEqual(pngDimensions("pwa-192x192.png"), [192, 192]);
   assert.deepEqual(pngDimensions("pwa-512x512.png"), [512, 512]);
   assert.deepEqual(pngDimensions("pwa-maskable-512x512.png"), [512, 512]);
+  assert.deepEqual(pngDimensions("favicon-32x32.png"), [32, 32]);
+  assert.deepEqual(pngDimensions("favicon-16x16.png"), [16, 16]);
 });
 
 test("service worker caches only built assets and excludes API and upload navigations", () => {
