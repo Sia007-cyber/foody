@@ -55,7 +55,6 @@ export interface Business {
 
 export interface AdminBusiness extends Business {
   featured: boolean;
-  popular: boolean;
 }
 
 export interface Review {

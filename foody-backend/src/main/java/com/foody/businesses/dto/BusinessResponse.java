@@ -13,6 +13,7 @@ public record BusinessResponse(
         String description,
         String businessType,
         String address,
+        String city,
         BigDecimal latitude,
         BigDecimal longitude,
         String phone,
@@ -24,7 +25,7 @@ public record BusinessResponse(
     public static BusinessResponse from(Business b) {
         return new BusinessResponse(
                 b.getId(), b.getOwnerUserId(), b.getName(), b.getDescription(),
-                b.getBusinessType(), b.getAddress(), b.getLatitude(), b.getLongitude(),
+                b.getBusinessType(), b.getAddress(), b.getCity(), b.getLatitude(), b.getLongitude(),
                 b.getPhone(), b.getStatus(), b.getCoverImageUrl(),
                 b.getCreatedAt(), b.getUpdatedAt());
     }

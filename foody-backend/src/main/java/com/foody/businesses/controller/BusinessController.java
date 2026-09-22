@@ -30,11 +30,8 @@ public class BusinessController {
     }
 
     @GetMapping
-    public List<BusinessResponse> discover(@RequestParam(required = false) String type,
-                                            @RequestParam(required = false) String search) {
-        return businessService.search(type, search).stream()
-                .map(BusinessResponse::from)
-                .toList();
+    public List<BusinessResponse> discover(@RequestParam(required = false) String type, @RequestParam(required = false) String search) {
+        return businessService.search(type, search).stream().map(BusinessResponse::from).toList();
     }
 
     @GetMapping("/featured")
@@ -42,9 +39,14 @@ public class BusinessController {
         return businessService.findFeatured().stream().map(BusinessResponse::from).toList();
     }
 
-    @GetMapping("/popular")
-    public List<BusinessResponse> popular() {
-        return businessService.findPopular().stream().map(BusinessResponse::from).toList();
+    @GetMapping("/by-city")
+    public List<BusinessResponse> byCity(@RequestParam String city) {
+        return businessService.findByCity(city).stream().map(BusinessResponse::from).toList();
+    }
+
+    @GetMapping("/top-rated")
+    public List<BusinessResponse> topRated() {
+        return businessService.findTopRated().stream().map(BusinessResponse::from).toList();
     }
 
     @GetMapping("/{id}")

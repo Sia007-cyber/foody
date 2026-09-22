@@ -11,17 +11,17 @@ const [discover, api, adminPage, adminApi] = await Promise.all([
 
 test("homepage uses dedicated curated queries while keeping the full directory", () => {
   assert.match(api, /\/api\/businesses\/featured/);
-  assert.match(api, /\/api\/businesses\/popular/);
+  assert.match(api, /\/api\/businesses\/by-city/);
+  assert.match(api, /\/api\/businesses\/top-rated/);
   assert.match(discover, /queryKey: \["businesses", "featured"\]/);
-  assert.match(discover, /queryKey: \["businesses", "popular"\]/);
+  assert.match(discover, /queryKey: \["businesses", "top-rated"\]/);
   assert.match(discover, /id="all-businesses"/);
   assert.match(discover, /همه‌ی کسب‌وکارها/);
 });
 
-test("admin business management controls both curated homepage flags", () => {
+test("admin business management controls the recommended homepage flag only", () => {
   assert.match(adminApi, /\/api\/admin\/businesses\/\$\{id\}\/featured/);
-  assert.match(adminApi, /\/api\/admin\/businesses\/\$\{id\}\/popular/);
   assert.match(adminPage, /نمایش در ویژه‌ها/);
-  assert.match(adminPage, /نمایش در محبوب‌ها/);
+  assert.doesNotMatch(adminApi, /\/popular/);
   assert.match(adminPage, /b\.status === "APPROVED"/);
 });

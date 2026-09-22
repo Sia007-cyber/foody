@@ -68,6 +68,7 @@ export function DiscoverPage() {
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [type, setType] = useState<TypeFilter>("");
+  const [city, setCity] = useState("");
 
   useEffect(() => {
     const t = setTimeout(() => setDebouncedSearch(search.trim()), 350);
@@ -86,7 +87,8 @@ export function DiscoverPage() {
   });
 
   const featuredQuery = useQuery({ queryKey: ["businesses", "featured"], queryFn: businessApi.featured });
-  const popularQuery = useQuery({ queryKey: ["businesses", "popular"], queryFn: businessApi.popular });
+  const cityQuery = useQuery({ queryKey: ["businesses", "city", city], queryFn: () => businessApi.byCity(city), enabled: Boolean(city) });
+  const topRatedQuery = useQuery({ queryKey: ["businesses", "top-rated"], queryFn: businessApi.topRated });
 
   // Signed-in users share one marketplace discovery experience. Actions that are
   // not available to a role are handled inside the shared home component.
@@ -109,7 +111,10 @@ export function DiscoverPage() {
       {!user && <AnonymousDiscoverHero search={search} onSearchChange={setSearch} />}
       <CustomerHome
         featuredBusinesses={featuredQuery.data ?? []}
-        popularBusinesses={popularQuery.data ?? []}
+        cityBusinesses={cityQuery.data ?? []}
+        topRatedBusinesses={topRatedQuery.data ?? []}
+        city={city}
+        onCityChange={setCity}
         search={search}
         onSearchChange={setSearch}
         showHero={user != null}

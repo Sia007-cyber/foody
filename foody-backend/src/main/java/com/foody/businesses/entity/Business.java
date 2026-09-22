@@ -46,6 +46,7 @@ public class Business {
     private String businessType;
 
     private String address;
+    @Column(length = 100) private String city;
 
     @Column(precision = 10, scale = 8)
     private BigDecimal latitude;
@@ -65,8 +66,6 @@ public class Business {
     @Column(nullable = false)
     private boolean featured = false;
 
-    @Column(nullable = false)
-    private boolean popular = false;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
@@ -100,6 +99,8 @@ public class Business {
     public void setBusinessType(String businessType) { this.businessType = businessType; }
     public String getAddress() { return address; }
     public void setAddress(String address) { this.address = address; }
+    public String getCity() { return city; }
+    public void setCity(String city) { this.city = city; }
     public BigDecimal getLatitude() { return latitude; }
     public void setLatitude(BigDecimal latitude) { this.latitude = latitude; }
     public BigDecimal getLongitude() { return longitude; }
@@ -112,8 +113,6 @@ public class Business {
     public void setCoverImageUrl(String coverImageUrl) { this.coverImageUrl = coverImageUrl; }
     public boolean isFeatured() { return featured; }
     public void setFeatured(boolean featured) { this.featured = featured; }
-    public boolean isPopular() { return popular; }
-    public void setPopular(boolean popular) { this.popular = popular; }
     public Instant getCreatedAt() { return createdAt; }
     public Instant getUpdatedAt() { return updatedAt; }
     public Long getVersion() { return version; }

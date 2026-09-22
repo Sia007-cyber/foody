@@ -65,6 +65,7 @@ export default function App() {
                     <Route path="/wallet" element={<WalletPage />} />
                   </Route>
 
+
                   <Route element={<RequireAuth roles={["CUSTOMER", "BUSINESS_OWNER"]} />}>
                     <Route path="/purchase-history" element={<PurchaseHistoryPage />} />
                     <Route path="/reservations" element={<MyReservationsPage />} />

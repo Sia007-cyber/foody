@@ -76,8 +76,14 @@ class BusinessServiceImpl implements BusinessService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<Business> findPopular() {
-        return businessRepository.findByStatusAndPopularTrueOrderByUpdatedAtDesc(BusinessStatus.APPROVED);
+    public List<Business> findByCity(String city) {
+        return businessRepository.findPublicByCityOrderByRating(BusinessStatus.APPROVED, city.trim());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Business> findTopRated() {
+        return businessRepository.findPublicOrderByRating(BusinessStatus.APPROVED);
     }
 
     private static String blankToNull(String value) {
@@ -183,13 +189,6 @@ class BusinessServiceImpl implements BusinessService {
         return businessRepository.saveAndFlush(business);
     }
 
-    @Override
-    @Transactional
-    public Business setPopular(Long businessId, boolean popular) {
-        Business business = approvedBusinessForHomepagePlacement(businessId);
-        business.setPopular(popular);
-        return businessRepository.saveAndFlush(business);
-    }
 
     private Business approvedBusinessForHomepagePlacement(Long businessId) {
         Business business = businessRepository.findById(businessId)

@@ -60,10 +60,5 @@ public class AdminBusinessController {
         return AdminBusinessResponse.from(adminService.setBusinessFeatured(id, request.enabled()));
     }
 
-    @PatchMapping("/{id}/popular")
-    public AdminBusinessResponse setPopular(@PathVariable Long id, @RequestBody HomepagePlacementRequest request) {
-        return AdminBusinessResponse.from(adminService.setBusinessPopular(id, request.enabled()));
-    }
-
     public record HomepagePlacementRequest(boolean enabled) {}
 }

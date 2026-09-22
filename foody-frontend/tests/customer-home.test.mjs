@@ -4,12 +4,14 @@ import { readFile } from "node:fs/promises";
 
 const source = await readFile(new URL("../src/features/discover/CustomerHome.tsx", import.meta.url), "utf8");
 
-test("customer home has curated featured and popular sections and hides each empty section", () => {
-  assert.match(source, /بهترین کافه‌ها و فست‌فودهای بندرعباس/);
+test("customer home keeps city, recommended, and top-rated sections independent", () => {
+  assert.doesNotMatch(source, /بهترین کافه‌ها و فست‌فودهای بندرعباس/);
+  assert.match(source, /IRAN_CITIES/);
+  assert.match(source, /cityBusinesses/);
   assert.match(source, /featuredBusinesses\.length > 0/);
-  assert.match(source, /کسب‌وکارهای ویژه/);
-  assert.match(source, /popularBusinesses\.length > 0/);
-  assert.match(source, /کسب‌وکارهای محبوب/);
+  assert.match(source, /کسب‌وکارهای پیشنهادی/);
+  assert.match(source, /topRatedBusinesses\.length > 0/);
+  assert.match(source, /کسب‌وکارهای برتر/);
   assert.doesNotMatch(source, /nearbyBusinesses/);
 });
 

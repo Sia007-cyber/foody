@@ -74,11 +74,8 @@ class RoleAuthorizationIntegrationTest extends AbstractContainerBaseTest {
         String body = "{\"enabled\":true}";
 
         mvc.perform(patch("/api/admin/businesses/{id}/featured", business.getId()).header("Authorization", bearer(user(UserRole.CUSTOMER))).contentType(MediaType.APPLICATION_JSON).content(body)).andExpect(status().isForbidden());
-        mvc.perform(patch("/api/admin/businesses/{id}/popular", business.getId()).header("Authorization", bearer(user(UserRole.BUSINESS_OWNER))).contentType(MediaType.APPLICATION_JSON).content(body)).andExpect(status().isForbidden());
         mvc.perform(patch("/api/admin/businesses/{id}/featured", business.getId()).header("Authorization", bearer(user(UserRole.ADMIN))).contentType(MediaType.APPLICATION_JSON).content(body)).andExpect(status().isOk());
-        mvc.perform(patch("/api/admin/businesses/{id}/popular", business.getId()).header("Authorization", bearer(user(UserRole.ADMIN))).contentType(MediaType.APPLICATION_JSON).content(body)).andExpect(status().isOk());
         org.assertj.core.api.Assertions.assertThat(businesses.findById(business.getId()).orElseThrow().isFeatured()).isTrue();
-        org.assertj.core.api.Assertions.assertThat(businesses.findById(business.getId()).orElseThrow().isPopular()).isTrue();
     }
 
     private User user(UserRole role) {

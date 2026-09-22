@@ -12,7 +12,7 @@ const offers = await readFile(new URL("../src/features/offers/OffersPage.tsx", i
 test("public and signed-in users share the curated discovery page and components", () => {
   assert.match(discover, /<CustomerHome/);
   assert.match(discover, /featuredBusinesses=\{featuredQuery\.data \?\? \[\]\}/);
-  assert.match(discover, /popularBusinesses=\{popularQuery\.data \?\? \[\]\}/);
+  assert.match(discover, /topRatedBusinesses=\{topRatedQuery\.data \?\? \[\]\}/);
   assert.doesNotMatch(discover, /user\?\.role === "CUSTOMER"/);
   assert.match(home, /enabled: hasCustomerWallet/);
 });

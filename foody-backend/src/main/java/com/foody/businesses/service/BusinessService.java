@@ -30,7 +30,8 @@ public interface BusinessService {
 
     List<Business> findFeatured();
 
-    List<Business> findPopular();
+    List<Business> findByCity(String city);
+    List<Business> findTopRated();
 
     Business updateProfile(Long ownerUserId, UpdateBusinessProfileRequest request);
 
@@ -45,7 +46,6 @@ public interface BusinessService {
 
     Business setFeatured(Long businessId, boolean featured);
 
-    Business setPopular(Long businessId, boolean popular);
 
     // Admin dashboard summary.
     long countByStatus(BusinessStatus status);

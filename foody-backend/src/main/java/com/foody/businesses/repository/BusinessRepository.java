@@ -23,7 +23,11 @@ public interface BusinessRepository extends JpaRepository<Business, Long> {
 
     List<Business> findByStatusAndFeaturedTrueOrderByUpdatedAtDesc(BusinessStatus status);
 
-    List<Business> findByStatusAndPopularTrueOrderByUpdatedAtDesc(BusinessStatus status);
+    @Query("SELECT b FROM Business b LEFT JOIN com.foody.reviews.entity.Review r ON r.businessId = b.id AND r.moderationStatus = com.foody.reviews.entity.ReviewModerationStatus.APPROVED WHERE b.status = :status AND b.city = :city GROUP BY b.id ORDER BY CASE WHEN COUNT(r) = 0 THEN 1 ELSE 0 END, AVG(r.rating) DESC, b.name ASC, b.id ASC")
+    List<Business> findPublicByCityOrderByRating(@Param("status") BusinessStatus status, @Param("city") String city);
+
+    @Query("SELECT b FROM Business b LEFT JOIN com.foody.reviews.entity.Review r ON r.businessId = b.id AND r.moderationStatus = com.foody.reviews.entity.ReviewModerationStatus.APPROVED WHERE b.status = :status GROUP BY b.id ORDER BY CASE WHEN COUNT(r) = 0 THEN 1 ELSE 0 END, AVG(r.rating) DESC, b.name ASC, b.id ASC")
+    List<Business> findPublicOrderByRating(@Param("status") BusinessStatus status);
 
     // Admin dashboard summary.
     long countByStatus(BusinessStatus status);

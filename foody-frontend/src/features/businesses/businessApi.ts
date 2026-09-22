@@ -26,7 +26,9 @@ export const businessApi = {
 
   featured: () => apiRequest<Business[]>("/api/businesses/featured", { auth: false }),
 
-  popular: () => apiRequest<Business[]>("/api/businesses/popular", { auth: false }),
+  byCity: (city: string) => apiRequest<Business[]>("/api/businesses/by-city", { auth: false, query: { city } }),
+
+  topRated: () => apiRequest<Business[]>("/api/businesses/top-rated", { auth: false }),
 
   getById: (id: number) => apiRequest<Business>(`/api/businesses/${id}`, { auth: false }),
 
