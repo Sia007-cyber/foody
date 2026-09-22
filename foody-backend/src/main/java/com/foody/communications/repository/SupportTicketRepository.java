@@ -1,0 +1,3 @@
+package com.foody.communications.repository;
+import com.foody.communications.entity.*; import java.util.*; import org.springframework.data.domain.*; import org.springframework.data.jpa.repository.JpaRepository;
+public interface SupportTicketRepository extends JpaRepository<SupportTicket,Long>{Slice<SupportTicket> findByBusinessIdOrderByUpdatedAtDesc(Long businessId,Pageable pageable);Slice<SupportTicket> findByStatusOrderByUpdatedAtDesc(TicketStatus status,Pageable pageable);Slice<SupportTicket> findAllByOrderByUpdatedAtDesc(Pageable pageable);Optional<SupportTicket> findByIdAndBusinessId(Long id,Long businessId);}

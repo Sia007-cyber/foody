@@ -1,0 +1,12 @@
+package com.foody.communications.controller;
+import com.foody.auth.security.FoodyUserPrincipal; import com.foody.communications.dto.*; import com.foody.communications.service.CommunicationService; import jakarta.validation.Valid; import org.springframework.http.HttpStatus; import org.springframework.security.access.prepost.PreAuthorize; import org.springframework.security.core.annotation.AuthenticationPrincipal; import org.springframework.web.bind.annotation.*;
+@RestController @RequestMapping("/api/business/communications") @PreAuthorize("hasRole('BUSINESS_OWNER')") public class OwnerCommunicationController {
+ private final CommunicationService service; public OwnerCommunicationController(CommunicationService s){service=s;}
+ @PostMapping("/tickets") @ResponseStatus(HttpStatus.CREATED) public CommunicationResponses.TicketDetail create(@AuthenticationPrincipal FoodyUserPrincipal p,@Valid @RequestBody CommunicationRequests.CreateTicket r){return service.createTicket(p.getUserId(),r);}
+ @GetMapping("/tickets") public CommunicationResponses.Page<CommunicationResponses.TicketSummary> tickets(@AuthenticationPrincipal FoodyUserPrincipal p,@RequestParam(defaultValue="0")int page,@RequestParam(defaultValue="20")int limit){return service.ownerTickets(p.getUserId(),page,limit);}
+ @GetMapping("/tickets/{id}") public CommunicationResponses.TicketDetail ticket(@AuthenticationPrincipal FoodyUserPrincipal p,@PathVariable Long id){return service.ownerTicket(p.getUserId(),id);}
+ @PostMapping("/tickets/{id}/replies") @ResponseStatus(HttpStatus.CREATED) public CommunicationResponses.TicketDetail reply(@AuthenticationPrincipal FoodyUserPrincipal p,@PathVariable Long id,@Valid @RequestBody CommunicationRequests.Reply r){return service.ownerReply(p.getUserId(),id,r);}
+ @GetMapping("/messages") public CommunicationResponses.Page<CommunicationResponses.BusinessMessageView> messages(@AuthenticationPrincipal FoodyUserPrincipal p,@RequestParam(defaultValue="0")int page,@RequestParam(defaultValue="20")int limit){return service.ownerMessages(p.getUserId(),page,limit);}
+ @GetMapping("/messages/{id}") public CommunicationResponses.BusinessMessageView message(@AuthenticationPrincipal FoodyUserPrincipal p,@PathVariable Long id){return service.ownerMessage(p.getUserId(),id);}
+ @GetMapping("/unread-count") public CommunicationResponses.UnreadCount unread(@AuthenticationPrincipal FoodyUserPrincipal p){return service.ownerUnread(p.getUserId());}
+}

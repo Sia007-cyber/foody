@@ -58,6 +58,13 @@ export interface AdminBusiness extends Business {
   featured: boolean;
 }
 
+export type TicketStatus = "OPEN" | "ANSWERED" | "CLOSED";
+export interface TicketSummary { id: number; businessId: number; businessName: string; ownerDisplayName: string; subject: string; status: TicketStatus; unread: boolean; createdAt: string; updatedAt: string; }
+export interface TicketMessage { id: number; senderType: "BUSINESS_OWNER" | "ADMIN"; senderDisplayName: string; body: string; createdAt: string; }
+export interface TicketDetail { ticket: TicketSummary; messages: TicketMessage[]; }
+export interface BusinessMessage { id: number; targetBusinessId: number | null; targetBusinessName: string | null; type: "DIRECT" | "BROADCAST"; subject: string; body: string; read: boolean; createdAt: string; }
+export interface PageResponse<T> { items: T[]; page: number; hasMore: boolean; }
+
 export interface Review {
   id: number;
   rating: number;
@@ -183,7 +190,10 @@ export type NotificationType =
   | "NEW_ORDER"
   | "RESERVATION_STATUS_CHANGED"
   | "NEW_RESERVATION"
-  | "BUSINESS_STATUS_CHANGED";
+  | "BUSINESS_STATUS_CHANGED"
+  | "SUPPORT_TICKET"
+  | "SUPPORT_REPLY"
+  | "ADMIN_MESSAGE";
 
 export interface Notification {
   id: number;

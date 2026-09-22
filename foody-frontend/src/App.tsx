@@ -48,6 +48,8 @@ import { ImpersonationBanner } from "./components/ImpersonationBanner";
 import { AdminUserDetailPage } from "./features/admin/AdminUserDetailPage";
 import { PwaLifecycle } from "./components/PwaLifecycle";
 import { FavoritesPage } from "./features/favorites/FavoritesPage";
+import { OwnerCommunicationsPage } from "./features/communications/OwnerCommunicationsPage";
+import { AdminCommunicationsPage } from "./features/communications/AdminCommunicationsPage";
 
 export default function App() {
   return (
@@ -103,6 +105,7 @@ export default function App() {
                     <Route path="/business/wallets" element={<OwnerWalletPage />} />
                     <Route path="/business/offers" element={<OwnerOffersPage />} />
                     <Route path="/business/reviews" element={<OwnerReviewsPage />} />
+                    <Route path="/business/communications" element={<OwnerCommunicationsPage />} />
                     <Route
                       path="/business/discounts"
                       element={
@@ -157,6 +160,7 @@ export default function App() {
                     }
                   />
                   <Route path="/admin/reviews" element={<AdminReviewsPage />} />
+                  <Route path="/admin/communications" element={<AdminCommunicationsPage />} />
                   <Route
                     path="/admin/violations"
                     element={

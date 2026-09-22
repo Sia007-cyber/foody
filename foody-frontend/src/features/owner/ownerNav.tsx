@@ -22,5 +22,6 @@ export const ownerNavItems: DashboardNavItem[] = [
   { to: "/business/offers", label: "پیشنهادهای محدود", icon: <MegaphoneIcon size={17} /> },
   { to: "/business/discounts", label: "تخفیف‌ها", icon: <MegaphoneIcon size={17} /> },
   { to: "/business/reviews", label: "نظرات", icon: <ChatIcon size={17} /> },
+  { to: "/business/communications", label: "پیام‌ها و پشتیبانی", icon: <ChatIcon size={17} /> },
   { to: "/business/reports", label: "گزارش فروش", icon: <ChartIcon size={17} /> },
 ];

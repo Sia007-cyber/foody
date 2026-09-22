@@ -31,6 +31,7 @@ export const adminNavItems: DashboardNavItem[] = [
     label: "نظرات و بازخوردها",
     icon: <ChatIcon size={17} />,
   },
+  { to: "/admin/communications", label: "پیام‌ها و پشتیبانی", icon: <ChatIcon size={17} /> },
   {
     to: "/admin/violations",
     label: "گزارشات تخلف",

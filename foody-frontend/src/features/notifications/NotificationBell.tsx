@@ -4,10 +4,11 @@ import { useNavigate } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { notificationApi } from "./notificationApi";
 import { useAuth } from "../auth/AuthContext";
-import { BellIcon, CloseIcon, ReceiptIcon, CalendarCheckIcon, StoreIcon } from "../../components/icons";
+import { BellIcon, CloseIcon, ReceiptIcon, CalendarCheckIcon, StoreIcon, ChatIcon } from "../../components/icons";
 import { Spinner, EmptyState } from "../../components/Controls";
 import { formatRelativeTime } from "../../lib/format";
 import type { Notification } from "../../types/api";
+import { ownerCommunicationApi } from "../communications/communicationApi";
 
 const TYPE_ICON: Record<Notification["type"], ReactNode> = {
   ORDER_STATUS_CHANGED: <ReceiptIcon size={16} />,
@@ -15,6 +16,9 @@ const TYPE_ICON: Record<Notification["type"], ReactNode> = {
   RESERVATION_STATUS_CHANGED: <CalendarCheckIcon size={16} />,
   NEW_RESERVATION: <CalendarCheckIcon size={16} />,
   BUSINESS_STATUS_CHANGED: <StoreIcon size={16} />,
+  SUPPORT_TICKET: <ChatIcon size={16} />,
+  SUPPORT_REPLY: <ChatIcon size={16} />,
+  ADMIN_MESSAGE: <ChatIcon size={16} />,
 };
 
 const MOBILE_QUERY = "(max-width: 720px)";
@@ -30,8 +34,12 @@ function resolveLink(n: Notification, role: string | undefined): string | null {
     if (n.referenceType === "ORDER") return "/business/orders";
     if (n.referenceType === "RESERVATION") return "/business/reservations";
     if (n.referenceType === "BUSINESS") return "/business/profile";
+    if (n.referenceType === "SUPPORT_TICKET" || n.referenceType === "BUSINESS_MESSAGE") return "/business/communications";
   }
-  if (role === "ADMIN" && n.referenceType === "BUSINESS") return "/admin/businesses";
+  if (role === "ADMIN") {
+    if (n.referenceType === "BUSINESS") return "/admin/businesses";
+    if (n.referenceType === "SUPPORT_TICKET") return "/admin/communications";
+  }
   return null;
 }
 
@@ -48,6 +56,12 @@ export function NotificationBell() {
     queryKey: ["notifications", "unread-count"],
     queryFn: notificationApi.unreadCount,
     enabled: Boolean(user),
+    refetchInterval: 30_000,
+  });
+  const { data: communicationUnread } = useQuery({
+    queryKey: ["communications", "owner", "unread-count"],
+    queryFn: ownerCommunicationApi.unreadCount,
+    enabled: user?.role === "BUSINESS_OWNER",
     refetchInterval: 30_000,
   });
 
@@ -110,7 +124,7 @@ export function NotificationBell() {
 
   if (!user) return null;
 
-  const unreadCount = unread?.unreadCount ?? 0;
+  const unreadCount = (unread?.unreadCount ?? 0) + (communicationUnread?.unreadCount ?? 0);
 
   function handleItemClick(n: Notification) {
     if (!n.read) markAsRead.mutate(n.id);
@@ -148,7 +162,7 @@ export function NotificationBell() {
               <div className="notif-dropdown-header">
                 <span>اعلان‌ها</span>
                 <div className="notif-dropdown-header-actions">
-                  {unreadCount > 0 && (
+                  {(unread?.unreadCount ?? 0) > 0 && (
                     <button
                       type="button"
                       className="notif-mark-all"
@@ -170,6 +184,13 @@ export function NotificationBell() {
               </div>
 
               <div className="notif-dropdown-list">
+                {user.role === "BUSINESS_OWNER" && (communicationUnread?.unreadCount ?? 0) > 0 && (
+                  <button type="button" className="notif-item unread" onClick={() => { navigate("/business/communications"); setOpen(false); }}>
+                    <span className="notif-item-icon"><ChatIcon size={16} /></span>
+                    <span className="notif-item-body"><span className="notif-item-title">پیام‌ها و پشتیبانی</span><span className="notif-item-message">{communicationUnread?.unreadCount} پیام یا پاسخ خوانده‌نشده</span></span>
+                    <span className="notif-item-dot" />
+                  </button>
+                )}
                 {isLoading ? (
                   <div className="notif-dropdown-loading">
                     <Spinner />

@@ -1,0 +1,3 @@
+package com.foody.communications.entity;
+import jakarta.persistence.*; import java.time.Instant;
+@Entity @Table(name="business_message_reads") @IdClass(BusinessMessageReadId.class) public class BusinessMessageRead { @Id @Column(name="message_id") private Long messageId; @Id @Column(name="business_id") private Long businessId; @Column(name="read_at",nullable=false) private Instant readAt; @PrePersist void create(){if(readAt==null)readAt=Instant.now();} public Long getMessageId(){return messageId;} public void setMessageId(Long v){messageId=v;} public Long getBusinessId(){return businessId;} public void setBusinessId(Long v){businessId=v;} public Instant getReadAt(){return readAt;} }

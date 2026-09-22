@@ -1,0 +1,19 @@
+.communications-grid { display: grid; grid-template-columns: minmax(260px, .8fr) minmax(0, 1.4fr); gap: 18px; align-items: start; }
+.communications-stack { display: grid; gap: 14px; }
+.communications-panel { border: 1px solid var(--line); border-radius: var(--r-lg); background: var(--paper); padding: 18px; }
+.communications-panel h2, .communications-panel h3, .communications-panel p { margin: 0; }
+.communications-panel h2 { font-size: 17px; margin-bottom: 14px; }
+.communications-form { display: grid; gap: 12px; }
+.communications-list { display: grid; gap: 8px; }
+.communication-item { width: 100%; display: grid; gap: 5px; padding: 12px; border: 1px solid var(--line); border-radius: var(--r-md); background: var(--paper); color: var(--ink); text-align: right; cursor: pointer; }
+.communication-item:hover, .communication-item.is-active { border-color: var(--ember); background: var(--ember-wash); }
+.communication-item-head { display: flex; justify-content: space-between; gap: 10px; align-items: center; }
+.communication-item-meta { color: var(--ink-soft); font-size: 12px; }
+.communication-unread { width: 8px; height: 8px; border-radius: 50%; background: var(--ember); display: inline-block; flex: 0 0 auto; }
+.ticket-thread { display: grid; gap: 10px; margin-block: 14px; }
+.ticket-message { max-width: 88%; padding: 11px 13px; border-radius: var(--r-md); background: var(--mist); white-space: pre-wrap; }
+.ticket-message.admin { margin-inline-start: auto; background: var(--ember-wash); }
+.ticket-message small { display: block; color: var(--ink-soft); margin-top: 5px; }
+.communication-body { white-space: pre-wrap; line-height: 1.9; color: var(--ink-soft); }
+.communication-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+@media (max-width: 800px) { .communications-grid { grid-template-columns: 1fr; } }

@@ -35,6 +35,9 @@ public interface BusinessRepository extends JpaRepository<Business, Long> {
     // Admin dashboard summary.
     long countByStatus(BusinessStatus status);
 
+    @Query("SELECT COALESCE(MAX(b.id), 0) FROM Business b")
+    long maxId();
+
     // Phase 1 Discover: only APPROVED businesses, optionally filtered by exact
     // business_type code and/or a case-insensitive substring match on name.
     // Passing null for a param means "don't filter on it".

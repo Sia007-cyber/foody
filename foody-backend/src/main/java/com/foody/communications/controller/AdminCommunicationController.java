@@ -1,0 +1,12 @@
+package com.foody.communications.controller;
+import com.foody.auth.security.FoodyUserPrincipal; import com.foody.communications.dto.*; import com.foody.communications.entity.TicketStatus; import com.foody.communications.service.CommunicationService; import jakarta.validation.Valid; import org.springframework.http.HttpStatus; import org.springframework.security.access.prepost.PreAuthorize; import org.springframework.security.core.annotation.AuthenticationPrincipal; import org.springframework.web.bind.annotation.*;
+@RestController @RequestMapping("/api/admin/communications") @PreAuthorize("hasRole('ADMIN')") public class AdminCommunicationController {
+ private final CommunicationService service; public AdminCommunicationController(CommunicationService s){service=s;}
+ @GetMapping("/tickets") public CommunicationResponses.Page<CommunicationResponses.TicketSummary> tickets(@RequestParam(required=false)TicketStatus status,@RequestParam(defaultValue="0")int page,@RequestParam(defaultValue="20")int limit){return service.adminTickets(status,page,limit);}
+ @GetMapping("/tickets/{id}") public CommunicationResponses.TicketDetail ticket(@AuthenticationPrincipal FoodyUserPrincipal p,@PathVariable Long id){return service.adminTicket(p.getUserId(),id);}
+ @PostMapping("/tickets/{id}/replies") @ResponseStatus(HttpStatus.CREATED) public CommunicationResponses.TicketDetail reply(@AuthenticationPrincipal FoodyUserPrincipal p,@PathVariable Long id,@Valid @RequestBody CommunicationRequests.Reply r){return service.adminReply(p.getUserId(),id,r);}
+ @PatchMapping("/tickets/{id}/close") public CommunicationResponses.TicketDetail close(@AuthenticationPrincipal FoodyUserPrincipal p,@PathVariable Long id){return service.closeTicket(p.getUserId(),id);}
+ @PostMapping("/messages/direct") @ResponseStatus(HttpStatus.CREATED) public CommunicationResponses.BusinessMessageView direct(@AuthenticationPrincipal FoodyUserPrincipal p,@Valid @RequestBody CommunicationRequests.DirectMessage r){return service.sendDirect(p.getUserId(),r);}
+ @PostMapping("/messages/broadcast") @ResponseStatus(HttpStatus.CREATED) public CommunicationResponses.BusinessMessageView broadcast(@AuthenticationPrincipal FoodyUserPrincipal p,@Valid @RequestBody CommunicationRequests.Broadcast r){return service.sendBroadcast(p.getUserId(),r);}
+ @GetMapping("/messages/sent") public CommunicationResponses.Page<CommunicationResponses.BusinessMessageView> sent(@RequestParam(defaultValue="0")int page,@RequestParam(defaultValue="20")int limit){return service.sentMessages(page,limit);}
+}

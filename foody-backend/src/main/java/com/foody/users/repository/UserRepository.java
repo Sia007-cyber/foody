@@ -41,6 +41,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     boolean existsByPublicId(String publicId);
 
+    List<User> findByRoleAndStatus(UserRole role, UserStatus status);
+
     @Query("""
             SELECT u FROM User u
             WHERE u.status = com.foody.users.entity.UserStatus.ACTIVE
