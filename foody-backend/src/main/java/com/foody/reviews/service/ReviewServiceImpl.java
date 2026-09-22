@@ -38,13 +38,13 @@ class ReviewServiceImpl implements ReviewService {
     @Transactional(readOnly = true)
     public ReviewListResponse list(Long businessId) {
         requireApprovedBusiness(businessId);
-        List<Review> found = reviews.findByBusinessIdOrderByCreatedAtDescIdDesc(businessId);
+        List<Review> found = reviews.findByBusinessIdAndModerationStatusOrderByCreatedAtDescIdDesc(businessId, com.foody.reviews.entity.ReviewModerationStatus.APPROVED);
         Map<Long, User> reviewers = users.findAllById(found.stream().map(Review::getCustomerUserId).distinct().toList())
                 .stream().collect(Collectors.toMap(User::getId, Function.identity()));
         List<ReviewResponse> responses = found.stream()
                 .map(review -> ReviewResponse.from(review, reviewer(reviewers, review).getFullName()))
                 .toList();
-        ReviewRatingSummary summary = reviews.summarize(businessId);
+        ReviewRatingSummary summary = reviews.summarizeApproved(businessId);
         BigDecimal average = summary.getAverageRating() == null
                 ? BigDecimal.ZERO.setScale(2)
                 : BigDecimal.valueOf(summary.getAverageRating()).setScale(2, RoundingMode.HALF_UP);
@@ -84,6 +84,7 @@ class ReviewServiceImpl implements ReviewService {
         validate(request);
         Review review = ownedReview(businessId, customerUserId);
         apply(review, request);
+        review.setModerationStatus(com.foody.reviews.entity.ReviewModerationStatus.PENDING);
         return response(reviews.saveAndFlush(review));
     }
 
@@ -92,14 +93,6 @@ class ReviewServiceImpl implements ReviewService {
     public void delete(Long businessId, Long customerUserId) {
         requireCustomerTarget(businessId, customerUserId);
         reviews.delete(ownedReview(businessId, customerUserId));
-    }
-
-    @Override
-    @Transactional
-    public void deleteForAdmin(Long reviewId) {
-        Review review = reviews.findById(reviewId)
-                .orElseThrow(() -> new ResourceNotFoundException("Review not found: " + reviewId));
-        reviews.delete(review);
     }
 
     private void requireApprovedBusiness(Long businessId) {

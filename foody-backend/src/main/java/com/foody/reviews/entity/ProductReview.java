@@ -12,6 +12,7 @@ public class ProductReview {
     @Column(name = "reviewer_user_id", nullable = false) private Long reviewerUserId;
     @Column(nullable = false) private Integer rating;
     @Column(length = 2000) private String comment;
+    @Enumerated(EnumType.STRING) @Column(name="moderation_status",nullable=false) private ReviewModerationStatus moderationStatus=ReviewModerationStatus.PENDING;
     @Column(name = "created_at", nullable = false, updatable = false) private Instant createdAt;
     @Column(name = "updated_at", nullable = false) private Instant updatedAt;
     @PrePersist void onCreate(){Instant now=Instant.now().truncatedTo(ChronoUnit.MICROS);createdAt=now;updatedAt=now;}
@@ -19,5 +20,6 @@ public class ProductReview {
     public Long getId(){return id;} public Long getProductId(){return productId;} public void setProductId(Long v){productId=v;}
     public Long getReviewerUserId(){return reviewerUserId;} public void setReviewerUserId(Long v){reviewerUserId=v;}
     public Integer getRating(){return rating;} public void setRating(Integer v){rating=v;} public String getComment(){return comment;} public void setComment(String v){comment=v;}
+    public ReviewModerationStatus getModerationStatus(){return moderationStatus;} public void setModerationStatus(ReviewModerationStatus v){moderationStatus=v;}
     public Instant getCreatedAt(){return createdAt;} public Instant getUpdatedAt(){return updatedAt;}
 }

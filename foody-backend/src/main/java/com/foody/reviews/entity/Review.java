@@ -13,6 +13,8 @@ public class Review {
     @Column(name = "customer_user_id", nullable = false) private Long customerUserId;
     @Column(nullable = false) private Integer rating;
     @Column(length = 2000) private String comment;
+    @Enumerated(EnumType.STRING) @Column(name = "moderation_status", nullable = false)
+    private ReviewModerationStatus moderationStatus = ReviewModerationStatus.PENDING;
     @Column(name = "created_at", nullable = false, updatable = false) private Instant createdAt;
     @Column(name = "updated_at", nullable = false) private Instant updatedAt;
 
@@ -31,6 +33,8 @@ public class Review {
     public void setRating(Integer rating) { this.rating = rating; }
     public String getComment() { return comment; }
     public void setComment(String comment) { this.comment = comment; }
+    public ReviewModerationStatus getModerationStatus() { return moderationStatus; }
+    public void setModerationStatus(ReviewModerationStatus moderationStatus) { this.moderationStatus = moderationStatus; }
     public Instant getCreatedAt() { return createdAt; }
     public Instant getUpdatedAt() { return updatedAt; }
 }

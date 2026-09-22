@@ -76,7 +76,7 @@
 .review-card {
   border: 1px solid var(--line);
   border-radius: var(--r-md);
-  padding: 17px;
+  padding: 12px 14px;
   background: var(--paper);
 }
 .review-card-header {
@@ -87,10 +87,12 @@
 }
 .review-card-header h3 { font-size: 14px; font-weight: 750; }
 .review-card-header time { display: block; color: var(--ink-faint); font-size: 11px; margin-top: 4px; }
-.review-card-comment { color: var(--ink-soft); font-size: 13px; line-height: 1.8; margin-top: 14px; white-space: pre-wrap; }
+.review-card-comment { color: var(--ink-soft); font-size: 13px; line-height: 1.65; margin-top: 8px; white-space: pre-wrap; }
+.review-moderation-note { color: var(--pending); background: var(--pending-wash); border-radius: var(--r-sm); font-size: 12px; margin-top: 8px; padding: 6px 8px; }
 .review-card-mine { border-color: var(--ember); }
 .review-mine-label { margin-inline-start: 8px; color: var(--ember-deep); font-size: 11px; }
 .review-card-actions { display: flex; gap: 6px; margin-top: 12px; }
+.reviews-show-more { display: block; margin: 14px auto 0; }
 .review-icon-button { width: 30px; height: 30px; display: grid; place-items: center; border: 1px solid var(--line); border-radius: 50%; background: var(--paper); }
 .review-icon-danger { color: var(--danger); }
 .review-write-button, .product-review-panel { margin-top: 14px; }

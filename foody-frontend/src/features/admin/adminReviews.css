@@ -1,0 +1,15 @@
+.admin-review-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; }
+.admin-review-tabs button { border: 1px solid var(--line); border-radius: var(--r-pill); background: var(--paper); color: var(--ink-soft); padding: 7px 14px; }
+.admin-review-tabs button.active { border-color: var(--ember); background: var(--ember-wash); color: var(--ember-deep); }
+.admin-review-list { display: grid; gap: 10px; }
+.admin-review-row { display: flex; align-items: center; justify-content: space-between; gap: 18px; border: 1px solid var(--line); border-radius: var(--r-md); background: var(--paper); padding: 14px 16px; }
+.admin-review-main { min-width: 0; }
+.admin-review-heading, .admin-review-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+.admin-review-heading .review-stars { font-size: 13px; }
+.admin-review-context { color: var(--ink-faint); font-size: 12px; margin-top: 4px; }
+.admin-review-comment { color: var(--ink-soft); font-size: 13px; line-height: 1.7; margin-top: 7px; white-space: pre-wrap; }
+.admin-review-status { border-radius: var(--r-pill); padding: 3px 8px; font-size: 11px; }
+.admin-review-status-pending { background: var(--pending-wash); color: var(--pending); }
+.admin-review-status-approved { background: var(--ok-wash); color: var(--ok); }
+.admin-review-status-rejected { background: var(--danger-wash); color: var(--danger); }
+@media (max-width: 640px) { .admin-review-row { align-items: stretch; flex-direction: column; } .admin-review-actions .btn { flex: 1; } }

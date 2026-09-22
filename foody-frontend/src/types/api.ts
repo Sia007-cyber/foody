@@ -58,8 +58,21 @@ export interface Review {
   rating: number;
   comment: string | null;
   reviewerDisplayName: string;
+  moderationStatus: "PENDING" | "APPROVED" | "REJECTED";
   createdAt: string;
   updatedAt: string;
+}
+
+export interface AdminReview {
+  id: number;
+  reviewType: "BUSINESS" | "PRODUCT";
+  reviewerDisplayName: string;
+  businessName: string;
+  targetName: string;
+  rating: number;
+  comment: string | null;
+  moderationStatus: "PENDING" | "APPROVED" | "REJECTED";
+  createdAt: string;
 }
 
 export interface ReviewListResponse {

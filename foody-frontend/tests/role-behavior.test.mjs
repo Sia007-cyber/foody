@@ -34,6 +34,6 @@ test("admin can browse but receives no customer transaction controls", () => {
   assert.match(nav, /user\?\.role === "ADMIN"/);
   assert.match(nav, /to="\/admin"/);
   assert.doesNotMatch(detail, /user\?\.role === "ADMIN".*canUseCustomerActions/);
-  assert.match(reviews, /user\?\.role==="ADMIN".*حذف توسط مدیر/);
+  assert.doesNotMatch(reviews, /حذف توسط مدیر|adminRemove/);
   assert.match(offers, /const isCustomerActor = user\?\.role === "CUSTOMER" \|\| user\?\.role === "BUSINESS_OWNER"/);
 });

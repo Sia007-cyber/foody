@@ -10,6 +10,7 @@ import type {
   UserRole,
   UserStatus,
   TokenResponse,
+  AdminReview,
 } from "../../types/api";
 
 export const adminApi = {
@@ -35,4 +36,7 @@ export const adminApi = {
     apiRequest<AdminOrder[]>("/api/admin/orders", { query: { status, businessId } }),
 
   dashboardSummary: () => apiRequest<DashboardSummary>("/api/admin/dashboard/summary"),
+  reviews: (status: AdminReview["moderationStatus"]) => apiRequest<AdminReview[]>("/api/admin/reviews", { query: { status } }),
+  approveReview: ({ type, id }: { type: AdminReview["reviewType"]; id: number }) => apiRequest<AdminReview>(`/api/admin/reviews/${type.toLowerCase()}/${id}/approve`, { method: "PATCH" }),
+  rejectReview: ({ type, id }: { type: AdminReview["reviewType"]; id: number }) => apiRequest<AdminReview>(`/api/admin/reviews/${type.toLowerCase()}/${id}/reject`, { method: "PATCH" }),
 };

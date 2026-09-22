@@ -48,10 +48,14 @@ class RoleAuthorizationIntegrationTest extends AbstractContainerBaseTest {
         business = businesses.saveAndFlush(business);
         Review review = new Review(); review.setBusinessId(business.getId()); review.setCustomerUserId(customer.getId()); review.setRating(1);
         review = reviews.saveAndFlush(review);
-        mvc.perform(delete("/api/admin/reviews/{id}", review.getId()).header("Authorization", bearer(customer)))
+        mvc.perform(patch("/api/admin/reviews/business/{id}/approve", review.getId()).header("Authorization", bearer(customer)))
                 .andExpect(status().isForbidden());
-        mvc.perform(delete("/api/admin/reviews/{id}", review.getId()).header("Authorization", bearer(user(UserRole.ADMIN))))
-                .andExpect(status().isNoContent());
+        mvc.perform(patch("/api/admin/reviews/business/{id}/reject", review.getId()).header("Authorization", bearer(user(UserRole.BUSINESS_OWNER))))
+                .andExpect(status().isForbidden());
+        mvc.perform(patch("/api/admin/reviews/business/{id}/approve", review.getId()).header("Authorization", bearer(user(UserRole.ADMIN))))
+                .andExpect(status().isOk());
+        org.assertj.core.api.Assertions.assertThat(reviews.findById(review.getId()).orElseThrow().getModerationStatus())
+                .isEqualTo(com.foody.reviews.entity.ReviewModerationStatus.APPROVED);
     }
 
     @Test void personalWalletEndpointsAllowCustomersAndOwnersButNotAdmins() throws Exception {
