@@ -1,14 +1,20 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 
 const vite = readFileSync(new URL("../vite.config.ts", import.meta.url), "utf8");
 const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
-const foodyWordmark = readFileSync(new URL("../public/foody-wordmark.svg", import.meta.url), "utf8");
-const foodyMaskableWordmark = readFileSync(new URL("../public/foody-wordmark-maskable.svg", import.meta.url), "utf8");
+const foodyLogo = readFileSync(new URL("../public/foody-logo.svg", import.meta.url), "utf8");
+const publicAssets = readdirSync(new URL("../public/", import.meta.url));
 const lifecycle = readFileSync(new URL("../src/components/PwaLifecycle.tsx", import.meta.url), "utf8");
 const publicNav = readFileSync(new URL("../src/components/PublicNav.tsx", import.meta.url), "utf8");
 const dashboardShell = readFileSync(new URL("../src/components/DashboardShell.tsx", import.meta.url), "utf8");
+
+function pngDimensions(name) {
+  const png = readFileSync(new URL(`../public/${name}`, import.meta.url));
+  assert.equal(png.subarray(1, 4).toString(), "PNG");
+  return [png.readUInt32BE(16), png.readUInt32BE(20)];
+}
 
 test("PWA manifest is installable and uses the existing Foody identity", () => {
   assert.match(vite, /short_name:\s*['"]فودی['"]/);
@@ -20,20 +26,25 @@ test("PWA manifest is installable and uses the existing Foody identity", () => {
   assert.match(html, /rel="apple-touch-icon"/);
 });
 
-test("browser and PWA icons use the RTL Foody header wordmark instead of Vite branding", () => {
-  assert.match(html, /href="\/foody-wordmark\.svg"/);
+test("browser and PWA icons use the canonical Foody logo instead of legacy or Vite branding", () => {
+  assert.match(html, /href="\/foody-logo\.svg"/);
   assert.doesNotMatch(html, /favicon\.svg|vite/i);
-  assert.match(foodyWordmark, /direction="rtl"/);
-  assert.match(foodyWordmark, />فودی<\/text>/);
-  assert.match(foodyWordmark, /<circle cx="150" cy="330" r="14" fill="#ff5a36"/);
-  assert.match(foodyMaskableWordmark, /direction="rtl"/);
-  assert.match(foodyMaskableWordmark, />فودی<\/text>/);
-  assert.match(foodyMaskableWordmark, /<circle cx="173" cy="314" r="11" fill="#ff5a36"/);
-  assert.doesNotMatch(foodyWordmark, /#863bff|#7e14ff|vite/i);
-  assert.doesNotMatch(foodyMaskableWordmark, /#863bff|#7e14ff|vite/i);
+  assert.match(foodyLogo, /viewBox="0 0 512 512"/);
+  assert.match(foodyLogo, /direction="rtl"/);
+  assert.match(foodyLogo, />فودی<\/text>/);
+  assert.match(foodyLogo, /fill="#FF6B00"/);
+  assert.doesNotMatch(foodyLogo, /#863bff|#7e14ff|vite/i);
+  assert.deepEqual(
+    publicAssets.filter((asset) => /wordmark|foody-mark|foody-symbol|favicon\.svg|icons\.svg/i.test(asset)),
+    [],
+  );
   for (const icon of ["pwa-192x192.png", "pwa-512x512.png", "pwa-maskable-512x512.png"]) {
     assert.match(vite, new RegExp(icon));
   }
+  assert.deepEqual(pngDimensions("apple-touch-icon.png"), [180, 180]);
+  assert.deepEqual(pngDimensions("pwa-192x192.png"), [192, 192]);
+  assert.deepEqual(pngDimensions("pwa-512x512.png"), [512, 512]);
+  assert.deepEqual(pngDimensions("pwa-maskable-512x512.png"), [512, 512]);
 });
 
 test("service worker caches only built assets and excludes API and upload navigations", () => {
