@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { businessApi } from "../businesses/businessApi";
 import { DashboardShell } from "../../components/DashboardShell";
-import { Input, Textarea } from "../../components/Field";
+import { Input, Select, Textarea } from "../../components/Field";
 import { Button } from "../../components/Button";
 import { PageSpinner, ErrorState } from "../../components/Controls";
 import { BusinessStatusBadge } from "../../components/Badge";
@@ -18,6 +18,7 @@ export function OwnerProfilePage() {
   const { notify } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploadingCover, setUploadingCover] = useState(false);
+  const citiesQuery = useQuery({ queryKey: ["businesses", "cities"], queryFn: businessApi.cities });
   const {
     data: business,
     isLoading,
@@ -33,10 +34,11 @@ export function OwnerProfilePage() {
     name: string;
     description: string;
     address: string;
+    city: string;
     phone: string;
     latitude: number | null;
     longitude: number | null;
-  }>({ name: "", description: "", address: "", phone: "", latitude: null, longitude: null });
+  }>({ name: "", description: "", address: "", city: "", phone: "", latitude: null, longitude: null });
 
   useEffect(() => {
     if (business) {
@@ -44,6 +46,7 @@ export function OwnerProfilePage() {
         name: business.name ?? "",
         description: business.description ?? "",
         address: business.address ?? "",
+        city: business.city ?? "",
         phone: business.phone ?? "",
         latitude: business.latitude ?? null,
         longitude: business.longitude ?? null,
@@ -152,6 +155,10 @@ export function OwnerProfilePage() {
               value={form.address}
               onChange={(e) => setForm({ ...form, address: e.target.value })}
             />
+            <Select label="شهر" value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} required>
+              <option value="">یک شهر انتخاب کنید</option>
+              {(citiesQuery.data ?? []).map((option) => <option key={option} value={option}>{option}</option>)}
+            </Select>
             <LocationPicker
               latitude={form.latitude}
               longitude={form.longitude}

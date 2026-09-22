@@ -47,6 +47,7 @@ import { OffersPage } from "./features/offers/OffersPage";
 import { ImpersonationBanner } from "./components/ImpersonationBanner";
 import { AdminUserDetailPage } from "./features/admin/AdminUserDetailPage";
 import { PwaLifecycle } from "./components/PwaLifecycle";
+import { FavoritesPage } from "./features/favorites/FavoritesPage";
 
 export default function App() {
   return (
@@ -63,6 +64,10 @@ export default function App() {
                   <Route path="/offers" element={<OffersPage />} />
                   <Route element={<RequireAuth roles={["CUSTOMER", "BUSINESS_OWNER"]} />}>
                     <Route path="/wallet" element={<WalletPage />} />
+                  </Route>
+
+                  <Route element={<RequireAuth roles={["CUSTOMER"]} />}>
+                    <Route path="/favorites" element={<FavoritesPage />} />
                   </Route>
 
 

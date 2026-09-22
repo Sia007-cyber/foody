@@ -14,6 +14,7 @@ public record CreateBusinessRequest(
         @NotBlank(message = "managerNationalId is required") @Size(max = 255) String managerNationalId,
         @Size(max = 2000) String description,
         @Size(max = 255) String address,
+        @Size(max = 100) String city,
         @Size(max = 64) String phone) {
-    public CreateBusinessRequest(String name,String businessType,String description,String address,String phone){this(name,businessType,"1000000001",description,address,phone);}
+    public CreateBusinessRequest(String name,String businessType,String description,String address,String phone){this(name,businessType,"1000000001",description,address,"تهران",phone);}
 }

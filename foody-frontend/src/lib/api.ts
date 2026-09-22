@@ -77,7 +77,7 @@ function tryRefresh(ticket: SessionTicket): Promise<boolean> {
 }
 
 interface RequestOptions {
-  method?: "GET" | "POST" | "PATCH" | "DELETE";
+  method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
   body?: unknown;
   auth?: boolean;
   query?: Record<string, string | number | undefined | null>;

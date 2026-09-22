@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import type { Business } from "../../types/api";
 import { resolveMediaUrl } from "../../lib/api";
+import { FavoriteButton } from "../favorites/FavoriteButton";
 
 const typeLabel: Record<string, string> = {
   CAFE: "کافه",
@@ -21,6 +22,7 @@ export function BusinessCard({ business }: { business: Business }) {
         {business.coverImageUrl ? <img src={resolveMediaUrl(business.coverImageUrl) ?? undefined} alt="" /> :
           <span className="business-cover-emoji" aria-hidden="true">{typeEmoji[business.businessType] ?? "🍽️"}</span>}
       </div>
+      <FavoriteButton businessId={business.id} className="business-card-favorite" />
       <div className="business-card-body">
         <span className="business-card-name">{business.name}</span>
         <span className="business-card-meta">

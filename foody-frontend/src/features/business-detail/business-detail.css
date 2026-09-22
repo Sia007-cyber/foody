@@ -12,6 +12,7 @@
   font-weight: 800;
   letter-spacing: -0.02em;
 }
+.biz-favorite { position: static; margin-top: 2px; }
 .biz-header-meta {
   color: var(--ink-soft);
   font-size: 14px;

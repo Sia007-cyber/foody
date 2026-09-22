@@ -8,8 +8,13 @@ public record UpdateBusinessProfileRequest(
         @Size(max = 255) String name,
         @Size(max = 2000) String description,
         @Size(max = 255) String address,
+        @Size(max = 100) String city,
         BigDecimal latitude,
         BigDecimal longitude,
         @Size(max = 64) String phone,
         @Size(max = 512) String coverImageUrl) {
+    public UpdateBusinessProfileRequest(String name, String description, String address, BigDecimal latitude,
+                                        BigDecimal longitude, String phone, String coverImageUrl) {
+        this(name, description, address, null, latitude, longitude, phone, coverImageUrl);
+    }
 }

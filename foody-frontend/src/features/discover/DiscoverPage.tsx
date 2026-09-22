@@ -87,6 +87,7 @@ export function DiscoverPage() {
   });
 
   const featuredQuery = useQuery({ queryKey: ["businesses", "featured"], queryFn: businessApi.featured });
+  const citiesQuery = useQuery({ queryKey: ["businesses", "cities"], queryFn: businessApi.cities });
   const cityQuery = useQuery({ queryKey: ["businesses", "city", city], queryFn: () => businessApi.byCity(city), enabled: Boolean(city) });
   const topRatedQuery = useQuery({ queryKey: ["businesses", "top-rated"], queryFn: businessApi.topRated });
 
@@ -111,6 +112,7 @@ export function DiscoverPage() {
       {!user && <AnonymousDiscoverHero search={search} onSearchChange={setSearch} />}
       <CustomerHome
         featuredBusinesses={featuredQuery.data ?? []}
+        supportedCities={citiesQuery.data ?? []}
         cityBusinesses={cityQuery.data ?? []}
         topRatedBusinesses={topRatedQuery.data ?? []}
         city={city}

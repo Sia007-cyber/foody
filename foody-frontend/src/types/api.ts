@@ -44,6 +44,7 @@ export interface Business {
   description: string | null;
   businessType: string;
   address: string | null;
+  city: string | null;
   latitude: number | null;
   longitude: number | null;
   phone: string | null;

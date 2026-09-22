@@ -33,6 +33,7 @@ const HOME_HERO_STICKERS: { emoji: string; key: string; tier: "near" | "mid" | "
 
 interface CustomerHomeProps {
   featuredBusinesses: Business[];
+  supportedCities: string[];
   cityBusinesses: Business[];
   topRatedBusinesses: Business[];
   city: string;
@@ -42,9 +43,7 @@ interface CustomerHomeProps {
   showHero?: boolean;
 }
 
-const IRAN_CITIES = ["تهران", "مشهد", "اصفهان", "شیراز", "تبریز", "کرج", "اهواز", "قم", "کرمانشاه", "رشت", "زاهدان", "همدان", "ارومیه", "اردبیل", "بندرعباس", "بوشهر", "یزد", "کرمان", "سنندج", "خرم‌آباد", "ساری", "گرگان", "بیرجند", "بجنورد", "ایلام", "قزوین", "زنجان", "شهرکرد", "یاسوج", "اراک", "سمنان"];
-
-export function CustomerHome({ featuredBusinesses, cityBusinesses, topRatedBusinesses, city, onCityChange, search, onSearchChange, showHero = true }: CustomerHomeProps) {
+export function CustomerHome({ featuredBusinesses, supportedCities, cityBusinesses, topRatedBusinesses, city, onCityChange, search, onSearchChange, showHero = true }: CustomerHomeProps) {
   const { user } = useAuth();
   const navigate = useNavigate();
   const hasCustomerWallet = user?.role === "CUSTOMER" || user?.role === "BUSINESS_OWNER";
@@ -114,7 +113,7 @@ export function CustomerHome({ featuredBusinesses, cityBusinesses, topRatedBusin
         <div><span className="section-eyebrow">موقعیت شما</span><h2 id="city-selection-title">شهر را انتخاب کنید</h2></div>
         <select className="input city-select" value={city} onChange={(event) => onCityChange(event.target.value)} aria-label="انتخاب شهر">
           <option value="">یک شهر انتخاب کنید</option>
-          {IRAN_CITIES.map((option) => <option key={option} value={option}>{option}</option>)}
+          {supportedCities.map((option) => <option key={option} value={option}>{option}</option>)}
         </select>
       </section>
 

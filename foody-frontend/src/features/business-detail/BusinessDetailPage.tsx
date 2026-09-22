@@ -8,6 +8,7 @@ import { PageSpinner, EmptyState, ErrorState } from "../../components/Controls";
 import "./business-detail.css";
 import { useAuth } from "../auth/AuthContext";
 import { resolveMediaUrl } from "../../lib/api";
+import { FavoriteButton } from "../favorites/FavoriteButton";
 
 const typeLabel: Record<string, string> = { CAFE: "کافه", FAST_FOOD: "فست‌فود" };
 
@@ -46,6 +47,7 @@ export function BusinessDetailPage() {
       <div className="biz-header">
         {business.coverImageUrl && <img className="biz-header-cover" src={resolveMediaUrl(business.coverImageUrl) ?? undefined} alt="" />}
         <h1>{business.name}</h1>
+        <FavoriteButton businessId={business.id} className="biz-favorite" />
         <div className="biz-header-meta">
           <span>{typeLabel[business.businessType] ?? business.businessType}</span>
           {business.address && <span>{business.address}</span>}

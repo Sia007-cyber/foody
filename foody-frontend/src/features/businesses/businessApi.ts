@@ -5,6 +5,7 @@ export interface UpdateBusinessProfilePayload {
   name?: string;
   description?: string;
   address?: string;
+  city?: string;
   latitude?: number;
   longitude?: number;
   phone?: string;
@@ -17,6 +18,7 @@ export interface CreateBusinessPayload {
   managerNationalId: string;
   description?: string;
   address?: string;
+  city?: string;
   phone?: string;
 }
 
@@ -25,6 +27,8 @@ export const businessApi = {
     apiRequest<Business[]>("/api/businesses", { auth: false, query: params }),
 
   featured: () => apiRequest<Business[]>("/api/businesses/featured", { auth: false }),
+
+  cities: () => apiRequest<string[]>("/api/businesses/cities", { auth: false }),
 
   byCity: (city: string) => apiRequest<Business[]>("/api/businesses/by-city", { auth: false, query: { city } }),
 

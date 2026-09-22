@@ -29,6 +29,9 @@ public interface BusinessRepository extends JpaRepository<Business, Long> {
     @Query("SELECT b FROM Business b LEFT JOIN com.foody.reviews.entity.Review r ON r.businessId = b.id AND r.moderationStatus = com.foody.reviews.entity.ReviewModerationStatus.APPROVED WHERE b.status = :status GROUP BY b.id ORDER BY CASE WHEN COUNT(r) = 0 THEN 1 ELSE 0 END, AVG(r.rating) DESC, b.name ASC, b.id ASC")
     List<Business> findPublicOrderByRating(@Param("status") BusinessStatus status);
 
+    @Query("SELECT b FROM BusinessFavorite f JOIN Business b ON b.id = f.businessId WHERE f.customerUserId = :customerUserId AND b.status = :status ORDER BY f.createdAt DESC, b.id DESC")
+    List<Business> findPublicFavoritesByCustomerUserId(@Param("customerUserId") Long customerUserId, @Param("status") BusinessStatus status);
+
     // Admin dashboard summary.
     long countByStatus(BusinessStatus status);
 
