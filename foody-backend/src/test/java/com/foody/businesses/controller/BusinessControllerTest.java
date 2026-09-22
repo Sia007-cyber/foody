@@ -95,4 +95,21 @@ class BusinessControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(0)));
     }
+
+    @Test
+    void curatedEndpointsReturnOnlyTheirPublicBusinessRepresentations() throws Exception {
+        Business featured = approvedBusiness(1L, "Featured Cafe", "CAFE");
+        featured.setFeatured(true);
+        Business popular = approvedBusiness(2L, "Popular Food", "FAST_FOOD");
+        popular.setPopular(true);
+        when(businessService.findFeatured()).thenReturn(List.of(featured));
+        when(businessService.findPopular()).thenReturn(List.of(popular));
+
+        mockMvc.perform(get("/api/businesses/featured"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$[0].name").value("Featured Cafe"))
+                .andExpect(jsonPath("$[0].featured").doesNotExist());
+        mockMvc.perform(get("/api/businesses/popular"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$[0].name").value("Popular Food"))
+                .andExpect(jsonPath("$[0].popular").doesNotExist());
+    }
 }

@@ -21,6 +21,10 @@ public interface BusinessRepository extends JpaRepository<Business, Long> {
     // Admin panel: businesses awaiting/holding a given approval status.
     List<Business> findByStatusOrderByCreatedAtDesc(BusinessStatus status);
 
+    List<Business> findByStatusAndFeaturedTrueOrderByUpdatedAtDesc(BusinessStatus status);
+
+    List<Business> findByStatusAndPopularTrueOrderByUpdatedAtDesc(BusinessStatus status);
+
     // Admin dashboard summary.
     long countByStatus(BusinessStatus status);
 

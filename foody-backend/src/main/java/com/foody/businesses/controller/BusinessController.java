@@ -37,6 +37,16 @@ public class BusinessController {
                 .toList();
     }
 
+    @GetMapping("/featured")
+    public List<BusinessResponse> featured() {
+        return businessService.findFeatured().stream().map(BusinessResponse::from).toList();
+    }
+
+    @GetMapping("/popular")
+    public List<BusinessResponse> popular() {
+        return businessService.findPopular().stream().map(BusinessResponse::from).toList();
+    }
+
     @GetMapping("/{id}")
     public BusinessResponse getById(@PathVariable Long id) {
         Business business = businessService.findByIdAndStatus(id, BusinessStatus.APPROVED)

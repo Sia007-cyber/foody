@@ -23,6 +23,8 @@ public record AdminBusinessResponse(
         String phone,
         BusinessStatus status,
         String coverImageUrl,
+        boolean featured,
+        boolean popular,
         Instant createdAt,
         Instant updatedAt) {
 
@@ -30,7 +32,7 @@ public record AdminBusinessResponse(
         return new AdminBusinessResponse(
                 b.getId(), b.getOwnerUserId(), b.getName(), b.getDescription(),
                 b.getBusinessType(), b.getAddress(), b.getLatitude(), b.getLongitude(),
-                b.getPhone(), b.getStatus(), b.getCoverImageUrl(),
+                b.getPhone(), b.getStatus(), b.getCoverImageUrl(), b.isFeatured(), b.isPopular(),
                 b.getCreatedAt(), b.getUpdatedAt());
     }
 }

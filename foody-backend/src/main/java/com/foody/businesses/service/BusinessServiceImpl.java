@@ -68,6 +68,18 @@ class BusinessServiceImpl implements BusinessService {
         return businessRepository.search(BusinessStatus.APPROVED, normalizedType, normalizedSearch);
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public List<Business> findFeatured() {
+        return businessRepository.findByStatusAndFeaturedTrueOrderByUpdatedAtDesc(BusinessStatus.APPROVED);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Business> findPopular() {
+        return businessRepository.findByStatusAndPopularTrueOrderByUpdatedAtDesc(BusinessStatus.APPROVED);
+    }
+
     private static String blankToNull(String value) {
         return (value == null || value.isBlank()) ? null : value.trim();
     }
@@ -161,6 +173,31 @@ class BusinessServiceImpl implements BusinessService {
                 "BUSINESS", saved.getId());
 
         return saved;
+    }
+
+    @Override
+    @Transactional
+    public Business setFeatured(Long businessId, boolean featured) {
+        Business business = approvedBusinessForHomepagePlacement(businessId);
+        business.setFeatured(featured);
+        return businessRepository.saveAndFlush(business);
+    }
+
+    @Override
+    @Transactional
+    public Business setPopular(Long businessId, boolean popular) {
+        Business business = approvedBusinessForHomepagePlacement(businessId);
+        business.setPopular(popular);
+        return businessRepository.saveAndFlush(business);
+    }
+
+    private Business approvedBusinessForHomepagePlacement(Long businessId) {
+        Business business = businessRepository.findById(businessId)
+                .orElseThrow(() -> new ResourceNotFoundException("Business not found: " + businessId));
+        if (business.getStatus() != BusinessStatus.APPROVED) {
+            throw new InvalidStateTransitionException("Only approved businesses can be placed on the public homepage");
+        }
+        return business;
     }
 
     private String statusLabel(BusinessStatus status) {

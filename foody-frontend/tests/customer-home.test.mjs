@@ -4,10 +4,13 @@ import { readFile } from "node:fs/promises";
 
 const source = await readFile(new URL("../src/features/discover/CustomerHome.tsx", import.meta.url), "utf8");
 
-test("customer home uses a neutral discovery label for unranked business results", () => {
-  assert.match(source, /کشف کنید/);
-  assert.match(source, /کافه و فست‌فودها/);
-  assert.doesNotMatch(source, /کافه‌های محبوب نزدیک شما/);
+test("customer home has curated featured and popular sections and hides each empty section", () => {
+  assert.match(source, /بهترین کافه‌ها و فست‌فودهای بندرعباس/);
+  assert.match(source, /featuredBusinesses\.length > 0/);
+  assert.match(source, /کسب‌وکارهای ویژه/);
+  assert.match(source, /popularBusinesses\.length > 0/);
+  assert.match(source, /کسب‌وکارهای محبوب/);
+  assert.doesNotMatch(source, /nearbyBusinesses/);
 });
 
 test("customer home links to the wallet overview and shows the real aggregate balance", () => {

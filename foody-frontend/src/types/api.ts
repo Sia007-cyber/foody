@@ -53,6 +53,11 @@ export interface Business {
   updatedAt: string;
 }
 
+export interface AdminBusiness extends Business {
+  featured: boolean;
+  popular: boolean;
+}
+
 export interface Review {
   id: number;
   rating: number;

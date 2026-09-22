@@ -87,4 +87,21 @@ class AdminBusinessControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("SUSPENDED"));
     }
+
+    @Test
+    void homepagePlacement_returnsUpdatedBusiness() throws Exception {
+        Business featured = business(BusinessStatus.APPROVED);
+        featured.setFeatured(true);
+        Business popular = business(BusinessStatus.APPROVED);
+        popular.setPopular(true);
+        when(adminService.setBusinessFeatured(BUSINESS_ID, true)).thenReturn(featured);
+        when(adminService.setBusinessPopular(BUSINESS_ID, true)).thenReturn(popular);
+
+        mockMvc.perform(patch("/api/admin/businesses/{id}/featured", BUSINESS_ID)
+                        .contentType(org.springframework.http.MediaType.APPLICATION_JSON).content("{\"enabled\":true}"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.featured").value(true));
+        mockMvc.perform(patch("/api/admin/businesses/{id}/popular", BUSINESS_ID)
+                        .contentType(org.springframework.http.MediaType.APPLICATION_JSON).content("{\"enabled\":true}"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.popular").value(true));
+    }
 }

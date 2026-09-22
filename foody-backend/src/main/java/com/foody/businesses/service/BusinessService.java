@@ -28,6 +28,10 @@ public interface BusinessService {
     // Pass null/blank for either param to skip that filter.
     List<Business> search(String type, String search);
 
+    List<Business> findFeatured();
+
+    List<Business> findPopular();
+
     Business updateProfile(Long ownerUserId, UpdateBusinessProfileRequest request);
 
     ImageReplacement<Business> replaceCoverImage(Long ownerUserId, String imageUrl);
@@ -38,6 +42,10 @@ public interface BusinessService {
     // Admin panel: PENDING -> APPROVED/REJECTED, APPROVED -> SUSPENDED.
     // Throws InvalidStateTransitionException for any other transition.
     Business updateStatus(Long businessId, BusinessStatus newStatus);
+
+    Business setFeatured(Long businessId, boolean featured);
+
+    Business setPopular(Long businessId, boolean popular);
 
     // Admin dashboard summary.
     long countByStatus(BusinessStatus status);

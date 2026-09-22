@@ -75,6 +75,46 @@ class BusinessCatalogIntegrityIntegrationTest extends AbstractContainerBaseTest 
     }
 
     @Test
+    void homepagePlacementIsOptInAndOnlyReturnsApprovedBusinesses() {
+        User owner = user(UserRole.BUSINESS_OWNER);
+        Business approved = businessService.createForOwner(owner.getId(),
+                new CreateBusinessRequest("Featured cafe", "CAFE", null, null, null));
+        approved = businessService.updateStatus(approved.getId(), BusinessStatus.APPROVED);
+        assertThat(approved.isFeatured()).isFalse();
+        assertThat(approved.isPopular()).isFalse();
+
+        businessService.setFeatured(approved.getId(), true);
+        businessService.setPopular(approved.getId(), true);
+
+        Business pending = businessService.createForOwner(user(UserRole.BUSINESS_OWNER).getId(),
+                new CreateBusinessRequest("Hidden cafe", "CAFE", null, null, null));
+        pending.setFeatured(true);
+        pending.setPopular(true);
+        businessRepository.saveAndFlush(pending);
+
+        Business rejected = businessService.createForOwner(user(UserRole.BUSINESS_OWNER).getId(),
+                new CreateBusinessRequest("Rejected cafe", "CAFE", null, null, null));
+        rejected.setStatus(BusinessStatus.REJECTED);
+        rejected.setFeatured(true);
+        rejected.setPopular(true);
+        businessRepository.saveAndFlush(rejected);
+
+        Business suspended = businessService.createForOwner(user(UserRole.BUSINESS_OWNER).getId(),
+                new CreateBusinessRequest("Suspended cafe", "CAFE", null, null, null));
+        suspended.setStatus(BusinessStatus.SUSPENDED);
+        suspended.setFeatured(true);
+        suspended.setPopular(true);
+        businessRepository.saveAndFlush(suspended);
+
+        assertThat(businessService.findFeatured()).extracting(Business::getId)
+                .contains(approved.getId()).doesNotContain(pending.getId(), rejected.getId(), suspended.getId());
+        assertThat(businessService.findPopular()).extracting(Business::getId)
+                .contains(approved.getId()).doesNotContain(pending.getId(), rejected.getId(), suspended.getId());
+        assertThatThrownBy(() -> businessService.setFeatured(pending.getId(), true))
+                .isInstanceOf(com.foody.common.exception.InvalidStateTransitionException.class);
+    }
+
+    @Test
     void deletingCatalogPreservesHistoricalOrderItemSnapshot() {
         User owner = user(UserRole.BUSINESS_OWNER);
         User customer = user(UserRole.CUSTOMER);

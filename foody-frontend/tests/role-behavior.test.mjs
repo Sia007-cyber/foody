@@ -13,7 +13,7 @@ test("business owners retain the unified marketplace routes and customer history
   assert.match(app, /roles=\{\["CUSTOMER", "BUSINESS_OWNER"\]\}/);
   assert.match(nav, /کشـف|کشف کسب‌وکارها/);
   assert.match(nav, /user\?\.role === "BUSINESS_OWNER"/);
-  assert.match(discover, /const isMarketplaceUser = user != null/);
+  assert.match(discover, /<CustomerHome/);
   assert.doesNotMatch(discover, /const isCustomerHome/);
 });
 

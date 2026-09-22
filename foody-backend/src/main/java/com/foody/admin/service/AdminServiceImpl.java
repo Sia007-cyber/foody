@@ -63,6 +63,18 @@ class AdminServiceImpl implements AdminService {
     }
 
     @Override
+    @Transactional
+    public Business setBusinessFeatured(Long businessId, boolean featured) {
+        return businessService.setFeatured(businessId, featured);
+    }
+
+    @Override
+    @Transactional
+    public Business setBusinessPopular(Long businessId, boolean popular) {
+        return businessService.setPopular(businessId, popular);
+    }
+
+    @Override
     @Transactional(readOnly = true)
     public List<User> getUsers(UserRole roleFilter, UserStatus statusFilter) {
         return userService.findAll(roleFilter, statusFilter);

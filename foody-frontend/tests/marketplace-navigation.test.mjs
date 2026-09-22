@@ -9,10 +9,10 @@ const app = await readFile(new URL("../src/App.tsx", import.meta.url), "utf8");
 const detail = await readFile(new URL("../src/features/business-detail/BusinessDetailPage.tsx", import.meta.url), "utf8");
 const offers = await readFile(new URL("../src/features/offers/OffersPage.tsx", import.meta.url), "utf8");
 
-test("all signed-in roles use the same shared discovery page and components", () => {
-  assert.match(discover, /const isMarketplaceUser = user != null/);
-  assert.match(discover, /if \(isMarketplaceUser\)/);
-  assert.match(discover, /<CustomerHome nearbyBusinesses=/);
+test("public and signed-in users share the curated discovery page and components", () => {
+  assert.match(discover, /<CustomerHome/);
+  assert.match(discover, /featuredBusinesses=\{featuredQuery\.data \?\? \[\]\}/);
+  assert.match(discover, /popularBusinesses=\{popularQuery\.data \?\? \[\]\}/);
   assert.doesNotMatch(discover, /user\?\.role === "CUSTOMER"/);
   assert.match(home, /enabled: hasCustomerWallet/);
 });

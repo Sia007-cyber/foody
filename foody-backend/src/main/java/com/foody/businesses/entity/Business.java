@@ -62,6 +62,12 @@ public class Business {
     @Column(name = "cover_image_url", length = 512)
     private String coverImageUrl;
 
+    @Column(nullable = false)
+    private boolean featured = false;
+
+    @Column(nullable = false)
+    private boolean popular = false;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
@@ -104,6 +110,10 @@ public class Business {
     public void setStatus(BusinessStatus status) { this.status = status; }
     public String getCoverImageUrl() { return coverImageUrl; }
     public void setCoverImageUrl(String coverImageUrl) { this.coverImageUrl = coverImageUrl; }
+    public boolean isFeatured() { return featured; }
+    public void setFeatured(boolean featured) { this.featured = featured; }
+    public boolean isPopular() { return popular; }
+    public void setPopular(boolean popular) { this.popular = popular; }
     public Instant getCreatedAt() { return createdAt; }
     public Instant getUpdatedAt() { return updatedAt; }
     public Long getVersion() { return version; }

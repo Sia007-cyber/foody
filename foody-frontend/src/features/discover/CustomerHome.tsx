@@ -32,12 +32,14 @@ const HOME_HERO_STICKERS: { emoji: string; key: string; tier: "near" | "mid" | "
 ];
 
 interface CustomerHomeProps {
-  nearbyBusinesses: Business[];
+  featuredBusinesses: Business[];
+  popularBusinesses: Business[];
   search: string;
   onSearchChange: (value: string) => void;
+  showHero?: boolean;
 }
 
-export function CustomerHome({ nearbyBusinesses, search, onSearchChange }: CustomerHomeProps) {
+export function CustomerHome({ featuredBusinesses, popularBusinesses, search, onSearchChange, showHero = true }: CustomerHomeProps) {
   const { user } = useAuth();
   const navigate = useNavigate();
   const hasCustomerWallet = user?.role === "CUSTOMER" || user?.role === "BUSINESS_OWNER";
@@ -56,7 +58,7 @@ export function CustomerHome({ nearbyBusinesses, search, onSearchChange }: Custo
       key: "reserve",
       label: "رزرو میز",
       icon: <CalendarCheckIcon size={20} />,
-      onClick: () => document.getElementById("nearby-businesses")?.scrollIntoView({ behavior: "smooth" }),
+      onClick: () => document.getElementById("all-businesses")?.scrollIntoView({ behavior: "smooth" }),
       accent: "ember",
     },
     ...(hasCustomerWallet ? [{
@@ -77,7 +79,7 @@ export function CustomerHome({ nearbyBusinesses, search, onSearchChange }: Custo
 
   return (
     <div className="customer-home container">
-      <section className="home-hero">
+      {showHero && <section className="home-hero">
         <div className="home-hero-orb home-hero-orb-violet" aria-hidden="true" />
         <div className="home-hero-orb home-hero-orb-pistachio" aria-hidden="true" />
         <div className="home-hero-stickers" aria-hidden="true">
@@ -89,7 +91,7 @@ export function CustomerHome({ nearbyBusinesses, search, onSearchChange }: Custo
         </div>
         <div className="home-hero-content">
           <span className="home-hero-kicker">{firstName ? `سلام ${firstName} 👋` : "سلام 👋"}</span>
-          <h1 className="home-hero-title">امروز هوس چی کردی؟</h1>
+          <h1 className="home-hero-title">بهترین کافه‌ها و فست‌فودهای بندرعباس</h1>
           <p className="home-hero-subtitle">کافه و فست‌فودها رو پیدا کن، منوها رو ببین یا میز رزرو کن.</p>
           <div className="home-hero-search">
             <input
@@ -101,7 +103,7 @@ export function CustomerHome({ nearbyBusinesses, search, onSearchChange }: Custo
             />
           </div>
         </div>
-      </section>
+      </section>}
 
       {hasCustomerWallet && <button type="button" className="wallet-preview" onClick={() => navigate("/wallet")}>
         <span className="wallet-preview-left">
@@ -136,16 +138,32 @@ export function CustomerHome({ nearbyBusinesses, search, onSearchChange }: Custo
         ))}
       </section>
 
-      {nearbyBusinesses.length > 0 && (
-        <section id="nearby-businesses" className="nearby-section">
+      {featuredBusinesses.length > 0 && (
+        <section className="nearby-section" aria-labelledby="featured-businesses-title">
           <div className="nearby-section-head">
             <div>
-              <span className="section-eyebrow">کشف کنید</span>
-              <h2>کافه و فست‌فودها</h2>
+              <span className="section-eyebrow">انتخاب فودی</span>
+              <h2 id="featured-businesses-title">کسب‌وکارهای ویژه</h2>
             </div>
           </div>
           <div className="nearby-scroll">
-            {nearbyBusinesses.map((b) => (
+            {featuredBusinesses.map((b) => (
+              <NearbyBusinessCard key={b.id} business={b} />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {popularBusinesses.length > 0 && (
+        <section className="nearby-section" aria-labelledby="popular-businesses-title">
+          <div className="nearby-section-head">
+            <div>
+              <span className="section-eyebrow">پیشنهاد فودی</span>
+              <h2 id="popular-businesses-title">کسب‌وکارهای محبوب</h2>
+            </div>
+          </div>
+          <div className="nearby-scroll">
+            {popularBusinesses.map((b) => (
               <NearbyBusinessCard key={b.id} business={b} />
             ))}
           </div>

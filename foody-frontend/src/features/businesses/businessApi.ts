@@ -24,6 +24,10 @@ export const businessApi = {
   discover: (params: { type?: string; search?: string }) =>
     apiRequest<Business[]>("/api/businesses", { auth: false, query: params }),
 
+  featured: () => apiRequest<Business[]>("/api/businesses/featured", { auth: false }),
+
+  popular: () => apiRequest<Business[]>("/api/businesses/popular", { auth: false }),
+
   getById: (id: number) => apiRequest<Business>(`/api/businesses/${id}`, { auth: false }),
 
   myProfile: () => apiRequest<Business>("/api/business/profile"),

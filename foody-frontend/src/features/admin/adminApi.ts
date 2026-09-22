@@ -2,7 +2,7 @@ import { apiRequest } from "../../lib/api";
 import type {
   AdminOrder,
   AdminUserDetail,
-  Business,
+  AdminBusiness,
   BusinessStatus,
   DashboardSummary,
   OrderStatus,
@@ -15,11 +15,15 @@ import type {
 
 export const adminApi = {
   businesses: (status?: BusinessStatus) =>
-    apiRequest<Business[]>("/api/admin/businesses", { query: { status } }),
+    apiRequest<AdminBusiness[]>("/api/admin/businesses", { query: { status } }),
 
-  approve: (id: number) => apiRequest<Business>(`/api/admin/businesses/${id}/approve`, { method: "PATCH" }),
-  reject: (id: number) => apiRequest<Business>(`/api/admin/businesses/${id}/reject`, { method: "PATCH" }),
-  suspend: (id: number) => apiRequest<Business>(`/api/admin/businesses/${id}/suspend`, { method: "PATCH" }),
+  approve: (id: number) => apiRequest<AdminBusiness>(`/api/admin/businesses/${id}/approve`, { method: "PATCH" }),
+  reject: (id: number) => apiRequest<AdminBusiness>(`/api/admin/businesses/${id}/reject`, { method: "PATCH" }),
+  suspend: (id: number) => apiRequest<AdminBusiness>(`/api/admin/businesses/${id}/suspend`, { method: "PATCH" }),
+  setFeatured: ({ id, enabled }: { id: number; enabled: boolean }) =>
+    apiRequest<AdminBusiness>(`/api/admin/businesses/${id}/featured`, { method: "PATCH", body: { enabled } }),
+  setPopular: ({ id, enabled }: { id: number; enabled: boolean }) =>
+    apiRequest<AdminBusiness>(`/api/admin/businesses/${id}/popular`, { method: "PATCH", body: { enabled } }),
 
   users: (role?: UserRole, status?: UserStatus) =>
     apiRequest<User[]>("/api/admin/users", { query: { role, status } }),

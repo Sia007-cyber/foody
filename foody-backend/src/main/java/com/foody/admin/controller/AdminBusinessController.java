@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -53,4 +54,16 @@ public class AdminBusinessController {
         Business business = adminService.suspendBusiness(id);
         return AdminBusinessResponse.from(business);
     }
+
+    @PatchMapping("/{id}/featured")
+    public AdminBusinessResponse setFeatured(@PathVariable Long id, @RequestBody HomepagePlacementRequest request) {
+        return AdminBusinessResponse.from(adminService.setBusinessFeatured(id, request.enabled()));
+    }
+
+    @PatchMapping("/{id}/popular")
+    public AdminBusinessResponse setPopular(@PathVariable Long id, @RequestBody HomepagePlacementRequest request) {
+        return AdminBusinessResponse.from(adminService.setBusinessPopular(id, request.enabled()));
+    }
+
+    public record HomepagePlacementRequest(boolean enabled) {}
 }

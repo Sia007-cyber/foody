@@ -56,6 +56,14 @@ export function AdminBusinessesPage() {
     mutationFn: adminApi.suspend,
     ...onMutationSettled("کسب‌وکار معلق شد"),
   });
+  const featuredMutation = useMutation({
+    mutationFn: adminApi.setFeatured,
+    ...onMutationSettled("نمایش کسب‌وکار در بخش ویژه به‌روزرسانی شد"),
+  });
+  const popularMutation = useMutation({
+    mutationFn: adminApi.setPopular,
+    ...onMutationSettled("نمایش کسب‌وکار در بخش محبوب‌ها به‌روزرسانی شد"),
+  });
 
   return (
     <DashboardShell
@@ -114,13 +122,17 @@ export function AdminBusinessesPage() {
                   </>
                 )}
                 {b.status === "APPROVED" && (
-                  <Button
-                    size="sm"
-                    variant="danger"
-                    onClick={() => suspendMutation.mutate(b.id)}
-                  >
-                    معلق کردن
-                  </Button>
+                  <>
+                    <Button size="sm" variant="secondary" onClick={() => featuredMutation.mutate({ id: b.id, enabled: !b.featured })}>
+                      {b.featured ? "حذف از ویژه‌ها" : "نمایش در ویژه‌ها"}
+                    </Button>
+                    <Button size="sm" variant="secondary" onClick={() => popularMutation.mutate({ id: b.id, enabled: !b.popular })}>
+                      {b.popular ? "حذف از محبوب‌ها" : "نمایش در محبوب‌ها"}
+                    </Button>
+                    <Button size="sm" variant="danger" onClick={() => suspendMutation.mutate(b.id)}>
+                      معلق کردن
+                    </Button>
+                  </>
                 )}
                 {b.status === "SUSPENDED" && (
                   <Button

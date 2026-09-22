@@ -67,6 +67,20 @@ class RoleAuthorizationIntegrationTest extends AbstractContainerBaseTest {
                 .andExpect(status().isForbidden());
     }
 
+    @Test void onlyAdminsCanCurateApprovedBusinessesForTheHomepage() throws Exception {
+        Business business = new Business(); business.setOwnerUserId(user(UserRole.BUSINESS_OWNER).getId());
+        business.setName("Curated cafe"); business.setBusinessType("CAFE"); business.setStatus(BusinessStatus.APPROVED);
+        business = businesses.saveAndFlush(business);
+        String body = "{\"enabled\":true}";
+
+        mvc.perform(patch("/api/admin/businesses/{id}/featured", business.getId()).header("Authorization", bearer(user(UserRole.CUSTOMER))).contentType(MediaType.APPLICATION_JSON).content(body)).andExpect(status().isForbidden());
+        mvc.perform(patch("/api/admin/businesses/{id}/popular", business.getId()).header("Authorization", bearer(user(UserRole.BUSINESS_OWNER))).contentType(MediaType.APPLICATION_JSON).content(body)).andExpect(status().isForbidden());
+        mvc.perform(patch("/api/admin/businesses/{id}/featured", business.getId()).header("Authorization", bearer(user(UserRole.ADMIN))).contentType(MediaType.APPLICATION_JSON).content(body)).andExpect(status().isOk());
+        mvc.perform(patch("/api/admin/businesses/{id}/popular", business.getId()).header("Authorization", bearer(user(UserRole.ADMIN))).contentType(MediaType.APPLICATION_JSON).content(body)).andExpect(status().isOk());
+        org.assertj.core.api.Assertions.assertThat(businesses.findById(business.getId()).orElseThrow().isFeatured()).isTrue();
+        org.assertj.core.api.Assertions.assertThat(businesses.findById(business.getId()).orElseThrow().isPopular()).isTrue();
+    }
+
     private User user(UserRole role) {
         User user = new User(); user.setEmail(UUID.randomUUID()+"@role.test"); user.setFullName("Role test");
         user.setPasswordHash("unused"); user.setRole(role); user.setStatus(UserStatus.ACTIVE); return users.saveAndFlush(user);

@@ -26,6 +26,10 @@ public interface AdminService {
 
     Business suspendBusiness(Long businessId);
 
+    Business setBusinessFeatured(Long businessId, boolean featured);
+
+    Business setBusinessPopular(Long businessId, boolean popular);
+
     // roleFilter/statusFilter are optional — pass null to not filter on that field.
     List<User> getUsers(UserRole roleFilter, UserStatus statusFilter);
 
