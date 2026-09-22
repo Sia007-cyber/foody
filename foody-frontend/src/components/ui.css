@@ -453,6 +453,15 @@
 .image-picker-hint.uploading {
   color: var(--ember);
 }
+.upload-guidance {
+  color: var(--ink-soft);
+  font-size: 11px;
+  line-height: 1.7;
+}
+.image-picker-copy {
+  display: grid;
+  gap: 3px;
+}
 .image-picker-row {
   display: flex;
   align-items: center;

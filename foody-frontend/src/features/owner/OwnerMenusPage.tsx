@@ -335,6 +335,7 @@ function ProductImagePicker({
         onClick={() => fileInputRef.current?.click()}
         disabled={uploading}
         aria-label="آپلود عکس محصول"
+        aria-describedby="product-image-guidance"
       >
         {previewUrl ? (
           <img src={previewUrl} alt="" className="image-picker-img" />
@@ -352,11 +353,15 @@ function ProductImagePicker({
         type="file"
         accept="image/jpeg,image/png,image/webp"
         hidden
+        aria-describedby="product-image-guidance"
         onChange={handleFileChange}
       />
-      <span className={`image-picker-hint${uploading ? " uploading" : ""}`}>
-        {uploading ? "در حال آپلود عکس..." : "برای آپلود عکس از گوشی یا کامپیوتر کلیک کن"}
-      </span>
+      <div className="image-picker-copy">
+        <span className={`image-picker-hint${uploading ? " uploading" : ""}`}>
+          {uploading ? "در حال آپلود عکس..." : "برای آپلود عکس از گوشی یا کامپیوتر کلیک کن"}
+        </span>
+        <span id="product-image-guidance" className="upload-guidance">پیشنهاد برای آماده‌سازی: ۱۲۰۰×۱۲۰۰ پیکسل (۱:۱) · JPG، PNG یا WebP · حداکثر ۵ مگابایت</span>
+      </div>
     </div>
   );
 }

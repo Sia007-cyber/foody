@@ -111,6 +111,7 @@ export function ProfilePage() {
           onClick={() => fileInputRef.current?.click()}
           disabled={uploadingPhoto}
           aria-label="تغییر عکس پروفایل"
+          aria-describedby="profile-image-guidance"
         >
           {photoUrl ? (
             <img src={photoUrl} alt="" className="profile-avatar-img" />
@@ -128,11 +129,13 @@ export function ProfilePage() {
           type="file"
           accept="image/jpeg,image/png,image/webp"
           hidden
+          aria-describedby="profile-image-guidance"
           onChange={handlePhotoChange}
         />
         <div className="profile-avatar-meta">
           <span className="profile-avatar-name">{user.fullName}</span>
           <span className="profile-avatar-role">{ROLE_LABEL[user.role] ?? user.role}</span>
+          <span id="profile-image-guidance" className="upload-guidance">پیشنهاد برای آماده‌سازی: ۸۰۰×۸۰۰ پیکسل (۱:۱) · JPG، PNG یا WebP · حداکثر ۵ مگابایت</span>
           {uploadingPhoto && <span className="profile-avatar-uploading">در حال آپلود عکس...</span>}
         </div>
       </div>

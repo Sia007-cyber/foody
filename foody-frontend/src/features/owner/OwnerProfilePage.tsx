@@ -115,6 +115,7 @@ export function OwnerProfilePage() {
               onClick={() => fileInputRef.current?.click()}
               disabled={uploadingCover}
               aria-label="تغییر عکس کسب‌وکار"
+              aria-describedby="business-cover-guidance"
             >
               {business.coverImageUrl ? (
                 <img src={resolveMediaUrl(business.coverImageUrl) ?? undefined} alt="" className="owner-cover-img" />
@@ -132,11 +133,15 @@ export function OwnerProfilePage() {
               type="file"
               accept="image/jpeg,image/png,image/webp"
               hidden
+              aria-describedby="business-cover-guidance"
               onChange={handleCoverChange}
             />
-            <span className="owner-cover-hint">
-              {uploadingCover ? "در حال آپلود عکس..." : "برای تغییر عکس کسب‌وکار کلیک کن"}
-            </span>
+            <div className="owner-cover-copy">
+              <span className="owner-cover-hint">
+                {uploadingCover ? "در حال آپلود عکس..." : "برای تغییر عکس کسب‌وکار کلیک کن"}
+              </span>
+              <span id="business-cover-guidance" className="upload-guidance">پیشنهاد برای آماده‌سازی: ۱۶۰۰×۹۰۰ پیکسل (۱۶:۹) · JPG، PNG یا WebP · حداکثر ۵ مگابایت · نمایش واکنش‌گراست</span>
+            </div>
           </div>
 
           <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 14 }}>

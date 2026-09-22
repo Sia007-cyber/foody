@@ -1417,3 +1417,7 @@
   font-size: 13px;
   color: var(--ink-soft);
 }
+.owner-cover-copy {
+  display: grid;
+  gap: 3px;
+}
