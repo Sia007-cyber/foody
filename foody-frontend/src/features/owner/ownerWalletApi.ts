@@ -1,5 +1,5 @@
 import { apiRequest } from "../../lib/api";
-import type { CustomerLookup, DebitRequest, OwnerWallet, PurchaseHistory } from "../../types/api";
+import type { CustomerLookup, CustomerSearchResponse, DebitRequest, OwnerWallet, PurchaseHistory } from "../../types/api";
 
 /** Owner wallet endpoints derive the business exclusively from the authenticated owner. */
 export const ownerWalletApi = {
@@ -7,6 +7,9 @@ export const ownerWalletApi = {
 
   lookupCustomer: (publicId: string) =>
     apiRequest<CustomerLookup>(`/api/business/wallets/customers/${encodeURIComponent(publicId)}`),
+
+  searchCustomers: (query: string, page = 0) =>
+    apiRequest<CustomerSearchResponse>(`/api/business/wallets/customers/search?q=${encodeURIComponent(query)}&page=${page}&limit=10`),
 
   creditCustomer: (publicId: string, amount: string) =>
     apiRequest<OwnerWallet>(`/api/business/wallets/customers/${encodeURIComponent(publicId)}/credit`, {

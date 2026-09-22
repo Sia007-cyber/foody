@@ -17,6 +17,17 @@
 .owner-customer-confirmation { display: grid; gap: 12px; padding-top: 14px; border-top: 1px solid var(--line); }
 .owner-customer-confirmation code, .owner-wallet-summary code { direction: ltr; color: var(--ink-soft); }
 
+.customer-picker { display: grid; gap: 10px; }
+.customer-picker-search { max-width: 720px; }
+.customer-picker-help, .customer-picker-empty { margin: 0; color: var(--ink-soft); font-size: 13px; }
+.customer-picker-results { display: grid; gap: 8px; }
+.customer-picker-result { display: flex; justify-content: space-between; align-items: center; gap: 12px; width: 100%; padding: 11px 13px; border: 1px solid var(--line); border-radius: var(--r-md); background: var(--paper); color: var(--ink); text-align: right; cursor: pointer; }
+.customer-picker-result:hover, .customer-picker-result:focus-visible { border-color: var(--ember); background: var(--ember-wash); outline: none; }
+.customer-picker-result.is-selected { border-color: var(--ember); box-shadow: 0 0 0 2px var(--ember-wash); }
+.customer-picker-result span { font-weight: 700; }
+.customer-picker-result code { direction: ltr; color: var(--ink-soft); white-space: nowrap; }
+.customer-picker-pagination { display: flex; align-items: center; justify-content: center; gap: 10px; color: var(--ink-soft); font-size: 13px; }
+
 .owner-wallet-card {
   border: 1px solid var(--line);
   border-radius: var(--r-lg);
@@ -95,4 +106,5 @@
 @media (max-width: 440px) {
   .owner-wallet-action-form { align-items: stretch; flex-direction: column; }
   .owner-wallet-debit-controls { align-items: flex-start; flex-direction: column; }
+  .customer-picker-result { align-items: flex-start; flex-direction: column; }
 }

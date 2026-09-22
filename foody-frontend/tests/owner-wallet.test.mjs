@@ -4,6 +4,8 @@ import { readFile } from "node:fs/promises";
 
 const page = await readFile(new URL("../src/features/owner/OwnerWalletPage.tsx", import.meta.url), "utf8");
 const api = await readFile(new URL("../src/features/owner/ownerWalletApi.ts", import.meta.url), "utf8");
+const picker = await readFile(new URL("../src/features/owner/CustomerPicker.tsx", import.meta.url), "utf8");
+const sale = await readFile(new URL("../src/features/owner/OwnerNewSalePage.tsx", import.meta.url), "utf8");
 
 test("owner wallet renders every backend wallet with its returned customer identity and balance", () => {
   assert.match(page, /walletsQuery\.data\.map\(\(wallet\)/);
@@ -26,13 +28,26 @@ test("owner debit action creates a request instead of a direct debit", () => {
   assert.match(page, /تا تأیید مشتری، از موجودی کم نمی‌شود/);
 });
 
-test("owner can look up an exact public ID, confirm identity, and grant first credit", () => {
-  assert.match(api, /lookupCustomer: \(publicId: string\)/);
+test("owner searches a bounded customer picker by name or Foody ID and grants first credit", () => {
+  assert.match(api, /searchCustomers: \(query: string, page = 0\)/);
+  assert.match(api, /customers\/search\?q=.*page=.*limit=10/);
+  assert.match(picker, /نام یا شناسه فودی مشتری/);
+  assert.match(picker, /minLength=\{2\}/);
+  assert.match(picker, /customer\.displayName/);
+  assert.match(picker, /customer\.publicId/);
+  assert.match(picker, /role="listbox"/);
   assert.match(page, /foundCustomer\.displayName/);
   assert.match(page, /foundCustomer\.publicId/);
   assert.match(page, /ownerWalletApi\.creditCustomer\(foundCustomer!\.publicId, firstCreditAmount\)/);
-  assert.match(page, /جست‌وجوی مشتری/);
   assert.match(page, /افزودن اعتبار/);
+});
+
+test("selected customer integrates with debit request and purchase approval flows", () => {
+  assert.match(page, /ownerWalletApi\.createDebitRequest\(foundCustomer!\.publicId, debitAmount\)/);
+  assert.match(page, /برداشت فقط پس از تأیید مشتری/);
+  assert.match(sale, /ownerWalletApi\.createPurchase\(customer!\.publicId/);
+  assert.match(sale, /CustomerPicker selected=\{customer\}/);
+  assert.match(sale, /درخواست خرید برای تایید مشتری ثبت شد/);
 });
 
 test("debit requests have no local balance update and successful actions invalidate owner wallets", () => {

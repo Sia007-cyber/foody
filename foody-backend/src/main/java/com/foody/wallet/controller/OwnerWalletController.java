@@ -4,6 +4,7 @@ import org.springframework.http.*; import org.springframework.security.access.pr
 @RestController @RequestMapping("/api/business/wallets") @PreAuthorize("hasRole('BUSINESS_OWNER')")
 public class OwnerWalletController {private final WalletService service;public OwnerWalletController(WalletService s){service=s;}
  @GetMapping public List<OwnerWalletResponse> wallets(@AuthenticationPrincipal FoodyUserPrincipal p){return service.ownerWallets(p.getUserId());}
+ @GetMapping("/customers/search") public CustomerSearchResponse search(@AuthenticationPrincipal FoodyUserPrincipal p,@RequestParam String q,@RequestParam(defaultValue="0") int page,@RequestParam(defaultValue="10") int limit){return service.ownerSearchCustomers(p.getUserId(),q,page,limit);}
  @GetMapping("/customers/{publicId}") public CustomerLookupResponse lookup(@AuthenticationPrincipal FoodyUserPrincipal p,@PathVariable String publicId){return service.ownerLookupCustomer(p.getUserId(),publicId);}
  @PostMapping("/customers/{publicId}/credit") public OwnerWalletResponse credit(@AuthenticationPrincipal FoodyUserPrincipal p,@PathVariable String publicId,@Valid @RequestBody AmountRequest r){return service.ownerCreditByPublicId(p.getUserId(),publicId,r.amount());}
  @PostMapping("/customers/{publicId}/debit-requests") @ResponseStatus(HttpStatus.CREATED) public DebitRequestResponse debit(@AuthenticationPrincipal FoodyUserPrincipal p,@PathVariable String publicId,@Valid @RequestBody AmountRequest r){return service.ownerRequestDebitByPublicId(p.getUserId(),publicId,r.amount());}

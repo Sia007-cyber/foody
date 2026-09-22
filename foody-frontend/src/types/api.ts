@@ -226,6 +226,12 @@ export interface CustomerLookup {
   displayName: string;
 }
 
+export interface CustomerSearchResponse {
+  items: CustomerLookup[];
+  page: number;
+  hasMore: boolean;
+}
+
 export interface WalletTransaction {
   id: number;
   walletId: number;

@@ -67,6 +67,13 @@ class RoleAuthorizationIntegrationTest extends AbstractContainerBaseTest {
                 .andExpect(status().isForbidden());
     }
 
+    @Test void ownerCustomerLookupRejectsCustomerAndAdminRoles() throws Exception {
+        mvc.perform(get("/api/business/wallets/customers/search").param("q", "Sara").header("Authorization", bearer(user(UserRole.CUSTOMER))))
+                .andExpect(status().isForbidden());
+        mvc.perform(get("/api/business/wallets/customers/search").param("q", "Sara").header("Authorization", bearer(user(UserRole.ADMIN))))
+                .andExpect(status().isForbidden());
+    }
+
     @Test void onlyAdminsCanCurateApprovedBusinessesForTheHomepage() throws Exception {
         Business business = new Business(); business.setOwnerUserId(user(UserRole.BUSINESS_OWNER).getId());
         business.setName("Curated cafe"); business.setBusinessType("CAFE"); business.setStatus(BusinessStatus.APPROVED);

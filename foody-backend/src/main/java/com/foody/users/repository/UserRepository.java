@@ -10,6 +10,8 @@ import org.springframework.data.jpa.repository.Lock;
 import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -38,6 +40,24 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findPrimaryAdminForUpdate();
 
     boolean existsByPublicId(String publicId);
+
+    @Query("""
+            SELECT u FROM User u
+            WHERE u.status = com.foody.users.entity.UserStatus.ACTIVE
+              AND u.role IN (com.foody.users.entity.UserRole.CUSTOMER, com.foody.users.entity.UserRole.BUSINESS_OWNER)
+              AND u.id <> :ownerId
+              AND (LOWER(u.fullName) LIKE LOWER(CONCAT('%', :query, '%')) ESCAPE '!'
+                   OR UPPER(u.publicId) LIKE UPPER(CONCAT('%', :query, '%')) ESCAPE '!')
+            ORDER BY CASE WHEN u.publicId = :exactPublicId THEN 0 ELSE 1 END,
+                     CASE WHEN EXISTS (SELECT w.id FROM Wallet w
+                                       WHERE w.customerUserId = u.id AND w.businessId = :businessId) THEN 0 ELSE 1 END,
+                     u.fullName ASC, u.publicId ASC
+            """)
+    Slice<User> searchWalletCustomers(@Param("ownerId") Long ownerId,
+                                     @Param("businessId") Long businessId,
+                                     @Param("query") String query,
+                                     @Param("exactPublicId") String exactPublicId,
+                                     Pageable pageable);
 
     // Admin panel: full user list, optionally filtered by role and/or status.
     // Passing null for a param means "don't filter on it" — mirrors BusinessRepository.search.

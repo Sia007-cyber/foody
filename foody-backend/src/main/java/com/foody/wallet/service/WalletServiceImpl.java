@@ -3,7 +3,7 @@ import com.foody.businesses.entity.Business; import com.foody.businesses.reposit
 import com.foody.common.exception.*; import com.foody.users.entity.User; import com.foody.users.entity.UserRole; import com.foody.users.repository.UserRepository;
 import com.foody.wallet.dto.*; import com.foody.wallet.entity.*; import com.foody.wallet.repository.*;
 import com.foody.products.entity.Product; import com.foody.products.repository.ProductRepository;
-import java.math.BigDecimal; import java.time.Instant; import java.util.*; import java.util.function.Function; import java.util.stream.Collectors; import org.springframework.data.domain.Sort; import org.springframework.security.access.AccessDeniedException; import org.springframework.stereotype.Service; import org.springframework.transaction.annotation.Transactional;
+import java.math.BigDecimal; import java.time.Instant; import java.util.*; import java.util.function.Function; import java.util.stream.Collectors; import org.springframework.data.domain.PageRequest; import org.springframework.data.domain.Sort; import org.springframework.security.access.AccessDeniedException; import org.springframework.stereotype.Service; import org.springframework.transaction.annotation.Transactional;
 @Service class WalletServiceImpl implements WalletService {
  private final WalletRepository wallets; private final WalletTransactionRepository txs; private final OwnerDebitRequestRepository requests; private final BusinessRepository businesses; private final UserRepository users; private final ProductRepository products; private final WalletPurchaseItemRepository purchaseItems;
  WalletServiceImpl(WalletRepository w,WalletTransactionRepository t,OwnerDebitRequestRepository r,BusinessRepository b,UserRepository u,ProductRepository p,WalletPurchaseItemRepository pi){wallets=w;txs=t;requests=r;businesses=b;users=u;products=p;purchaseItems=pi;}
@@ -14,6 +14,14 @@ import java.math.BigDecimal; import java.time.Instant; import java.util.*; impor
  @Transactional public DebitRequestResponse reject(Long cid,Long rid){User customer=walletCustomer(cid);OwnerDebitRequest r=lockedOwnRequest(cid,rid);ensureNotOwnBusiness(customer,r.getBusinessId());ensurePending(r);r.setStatus(DebitRequestStatus.REJECTED);r.setResolvedAt(Instant.now());return DebitRequestResponse.from(requests.save(r));}
  @Transactional(readOnly=true) public List<OwnerWalletResponse> ownerWallets(Long oid){return wallets.findByBusinessIdOrderByCreatedAtDesc(ownerBusiness(oid).getId()).stream().map(w->OwnerWalletResponse.from(w,customer(w.getCustomerUserId()))).toList();}
  @Transactional(readOnly=true) public CustomerLookupResponse ownerLookupCustomer(Long oid,String publicId){Business business=ownerBusiness(oid);User customer=customer(publicId);ensureNotOwnBusiness(customer,business.getId());return CustomerLookupResponse.from(customer);}
+ @Transactional(readOnly=true) public CustomerSearchResponse ownerSearchCustomers(Long oid,String rawQuery,int page,int limit){
+  Business business=ownerBusiness(oid); String query=normalizeSearch(rawQuery);
+  if(page<0||page>100)throw new InvalidRequestException("Search page must be between 0 and 100");
+  if(limit<1||limit>20)throw new InvalidRequestException("Search limit must be between 1 and 20");
+  var found=users.searchWalletCustomers(oid,business.getId(),escapeLike(query),query.toUpperCase(Locale.ROOT),PageRequest.of(page,limit));
+  List<CustomerLookupResponse> items=found.getContent().stream().map(CustomerLookupResponse::from).toList();
+  return new CustomerSearchResponse(items,page,found.hasNext());
+ }
  @Transactional public OwnerWalletResponse ownerCreditByPublicId(Long oid,String publicId,BigDecimal amount){Business b=ownerBusiness(oid);User customer=customer(publicId);Wallet w=getOrCreate(customer.getId(),b.getId());apply(w,amount,true,WalletTransactionType.OWNER_CREDIT,oid,WalletActorType.OWNER,null);return OwnerWalletResponse.from(w,customer);}
  @Transactional public DebitRequestResponse ownerRequestDebitByPublicId(Long oid,String publicId,BigDecimal amount){return ownerRequestDebit(oid,customer(publicId).getId(),amount);}
  @Transactional public DebitRequestResponse ownerCreatePurchase(Long oid,String publicId,CreatePurchaseRequest request){
@@ -45,11 +53,17 @@ import java.math.BigDecimal; import java.time.Instant; import java.util.*; impor
  private User customer(String publicId){if(publicId==null||!publicId.matches("F-[0-9A-F]{16}"))throw new ResourceNotFoundException("Customer not found");return users.findByPublicId(publicId).filter(this::isWalletCustomer).orElseThrow(()->new ResourceNotFoundException("Customer not found"));}
  private User customer(Long id){return walletCustomer(id);}
  private User walletCustomer(Long id){return users.findById(id).filter(this::isWalletCustomer).orElseThrow(()->new ResourceNotFoundException("Customer not found: "+id));}
- private boolean isWalletCustomer(User user){return user.getRole()==UserRole.CUSTOMER||user.getRole()==UserRole.BUSINESS_OWNER;}
+ private boolean isWalletCustomer(User user){return user.getStatus()==com.foody.users.entity.UserStatus.ACTIVE&&(user.getRole()==UserRole.CUSTOMER||user.getRole()==UserRole.BUSINESS_OWNER);}
  private Wallet getOrCreate(Long cid,Long bid){User customer=walletCustomer(cid);ensureNotOwnBusiness(customer,bid);return wallets.findByCustomerUserIdAndBusinessId(cid,bid).orElseGet(()->{Wallet w=new Wallet();w.setCustomerUserId(cid);w.setBusinessId(bid);return wallets.saveAndFlush(w);});}
  private boolean canUseAt(User customer,Long businessId){return customer.getRole()!=UserRole.BUSINESS_OWNER||businesses.findByOwnerUserId(customer.getId()).map(b->!b.getId().equals(businessId)).orElse(true);}
  private void ensureNotOwnBusiness(User customer,Long businessId){if(!canUseAt(customer,businessId))throw new AccessDeniedException("Business owners cannot use a personal wallet at their own business");}
  private void apply(Wallet w,BigDecimal a,boolean credit,WalletTransactionType type,Long actor,WalletActorType actorType,Long req){requirePositive(a);Wallet locked=wallets.findByIdForUpdate(w.getId()).orElseThrow();if(!credit&&locked.getBalance().compareTo(a)<0)throw new InsufficientBalanceException("Insufficient wallet balance");locked.setBalance(credit?locked.getBalance().add(a):locked.getBalance().subtract(a));wallets.save(locked);ledger(locked,a,type,actor,actorType,req);w.setBalance(locked.getBalance());}
  private void requirePositive(BigDecimal amount){if(amount==null||amount.signum()<=0||amount.scale()>2)throw new InvalidRequestException("Amount must be positive with at most two decimal places");}
+ private String normalizeSearch(String value){
+  String normalized=value==null?"":value.strip().replaceAll("\\s+"," ");
+  if(normalized.length()<2||normalized.length()>80)throw new InvalidRequestException("Search query must be between 2 and 80 characters");
+  return normalized;
+ }
+ private String escapeLike(String value){return value.replace("!","!!").replace("%","!%").replace("_","!_");}
  private void ledger(Wallet w,BigDecimal a,WalletTransactionType type,Long actor,WalletActorType at,Long req){WalletTransaction t=new WalletTransaction();t.setWalletId(w.getId());t.setAmount(a);t.setType(type);t.setActorUserId(actor);t.setActorType(at);t.setBalanceAfter(w.getBalance());t.setDebitRequestId(req);txs.save(t);}
 }

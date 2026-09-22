@@ -10,6 +10,7 @@ import { formatToman } from "../../lib/format";
 import type { CustomerLookup, OwnerWallet } from "../../types/api";
 import { ownerNavItems } from "./ownerNav";
 import { ownerWalletApi } from "./ownerWalletApi";
+import { CustomerPicker } from "./CustomerPicker";
 import "./ownerWallet.css";
 
 const OWNER_WALLETS_QUERY_KEY = ["business", "wallets"] as const;
@@ -19,37 +20,32 @@ export function OwnerWalletPage() {
     queryKey: OWNER_WALLETS_QUERY_KEY,
     queryFn: ownerWalletApi.getWallets,
   });
-  const [publicId, setPublicId] = useState("");
   const [foundCustomer, setFoundCustomer] = useState<CustomerLookup | null>(null);
   const [firstCreditAmount, setFirstCreditAmount] = useState("");
+  const [debitAmount, setDebitAmount] = useState("");
   const queryClient = useQueryClient();
   const { notify } = useToast();
-  const lookupMutation = useMutation({
-    mutationFn: () => ownerWalletApi.lookupCustomer(publicId.trim().toUpperCase()),
-    onSuccess: setFoundCustomer,
-    onError: (error) => { setFoundCustomer(null); notify(errorMessage(error), "danger"); },
-  });
   const firstCreditMutation = useMutation({
     mutationFn: () => ownerWalletApi.creditCustomer(foundCustomer!.publicId, firstCreditAmount),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: OWNER_WALLETS_QUERY_KEY });
       setFirstCreditAmount("");
       setFoundCustomer(null);
-      setPublicId("");
       notify("اعتبار مشتری اضافه شد", "ok");
     },
+    onError: (error) => notify(errorMessage(error), "danger"),
+  });
+  const firstDebitMutation = useMutation({
+    mutationFn: () => ownerWalletApi.createDebitRequest(foundCustomer!.publicId, debitAmount),
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: OWNER_WALLETS_QUERY_KEY }); setDebitAmount(""); setFoundCustomer(null); notify("درخواست برداشت ثبت شد", "ok"); },
     onError: (error) => notify(errorMessage(error), "danger"),
   });
 
   return (
     <DashboardShell navItems={ownerNavItems} title="مدیریت اعتبار مشتری‌ها">
       <section className="owner-customer-lookup" aria-labelledby="customer-lookup-title">
-        <h2 id="customer-lookup-title">افزودن اعتبار با شناسه فودی</h2>
-        <form onSubmit={(event) => { event.preventDefault(); lookupMutation.mutate(); }} className="owner-wallet-action-form">
-          <Input label="شناسه فودی مشتری" dir="ltr" placeholder="F-…" required value={publicId}
-            onChange={(event) => { setPublicId(event.target.value); setFoundCustomer(null); }} />
-          <Button type="submit" size="sm" loading={lookupMutation.isPending}>جست‌وجوی مشتری</Button>
-        </form>
+        <h2 id="customer-lookup-title">انتخاب مشتری</h2>
+        <CustomerPicker selected={foundCustomer} onSelect={setFoundCustomer} />
         {foundCustomer && (
           <div className="owner-customer-confirmation">
             <p><strong>{foundCustomer.displayName}</strong></p>
@@ -58,6 +54,14 @@ export function OwnerWalletPage() {
               <Input label="مبلغ اعتبار" inputMode="decimal" min="0.01" required step="0.01" type="number"
                 value={firstCreditAmount} onChange={(event) => setFirstCreditAmount(event.target.value)} />
               <Button type="submit" size="sm" loading={firstCreditMutation.isPending}>افزودن اعتبار</Button>
+            </form>
+            <form onSubmit={(event) => { event.preventDefault(); firstDebitMutation.mutate(); }} className="owner-wallet-action-form owner-wallet-debit-form">
+              <Input label="مبلغ درخواست برداشت" inputMode="decimal" min="0.01" required step="0.01" type="number"
+                value={debitAmount} onChange={(event) => setDebitAmount(event.target.value)} />
+              <div className="owner-wallet-debit-controls">
+                <Button type="submit" size="sm" variant="secondary" loading={firstDebitMutation.isPending}>ثبت درخواست برداشت</Button>
+                <p>برداشت فقط پس از تأیید مشتری انجام می‌شود.</p>
+              </div>
             </form>
           </div>
         )}
