@@ -8,7 +8,6 @@ import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.when;
 
 import com.foody.businesses.dto.CreateBusinessRequest;
-import com.foody.businesses.dto.UpdateBusinessProfileRequest;
 import com.foody.businesses.entity.Business;
 import com.foody.businesses.entity.BusinessStatus;
 import com.foody.businesses.repository.BusinessRepository;
@@ -112,7 +111,7 @@ class BusinessServiceImplTest {
     @Test
     void search_delegatesToRepositoryWithApprovedStatusOnly() {
         Business business = businessWithStatus(BusinessStatus.APPROVED);
-        when(businessRepository.search(eq(BusinessStatus.APPROVED), isNull(), isNull()))
+        when(businessRepository.search(eq(BusinessStatus.APPROVED), isNull(), isNull(), any()))
                 .thenReturn(List.of(business));
 
         List<Business> result = businessService.search(null, null);
@@ -122,7 +121,7 @@ class BusinessServiceImplTest {
 
     @Test
     void search_passesThroughTypeAndSearchFilters() {
-        when(businessRepository.search(eq(BusinessStatus.APPROVED), eq("CAFE"), eq("sunrise")))
+        when(businessRepository.search(eq(BusinessStatus.APPROVED), eq("CAFE"), eq("sunrise"), any()))
                 .thenReturn(List.of());
 
         businessService.search("CAFE", "sunrise");
@@ -133,7 +132,7 @@ class BusinessServiceImplTest {
 
     @Test
     void search_treatsBlankFiltersAsNull() {
-        when(businessRepository.search(eq(BusinessStatus.APPROVED), isNull(), isNull()))
+        when(businessRepository.search(eq(BusinessStatus.APPROVED), isNull(), isNull(), any()))
                 .thenReturn(List.of());
 
         businessService.search("  ", "");
@@ -141,24 +140,10 @@ class BusinessServiceImplTest {
 
     @Test
     void search_trimsWhitespaceFromFilters() {
-        when(businessRepository.search(eq(BusinessStatus.APPROVED), eq("CAFE"), eq("sunrise")))
+        when(businessRepository.search(eq(BusinessStatus.APPROVED), eq("CAFE"), eq("sunrise"), any()))
                 .thenReturn(List.of());
 
         businessService.search(" CAFE ", " sunrise ");
-    }
-
-    @Test
-    void findByCity_normalizesSupportedPersianCharacters() {
-        when(businessRepository.findPublicByCityOrderByRating(BusinessStatus.APPROVED, "کرمان"))
-                .thenReturn(List.of());
-
-        businessService.findByCity("  كرمان  ");
-    }
-
-    @Test
-    void findByCity_rejectsUnsupportedCity() {
-        assertThatThrownBy(() -> businessService.findByCity("شهر ناشناخته"))
-                .isInstanceOf(InvalidRequestException.class);
     }
 
     static final Long OWNER_ID = 42L;
@@ -168,34 +153,14 @@ class BusinessServiceImplTest {
         when(businessRepository.findByOwnerUserId(OWNER_ID)).thenReturn(Optional.empty());
         when(businessRepository.saveAndFlush(any(Business.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        CreateBusinessRequest request = new CreateBusinessRequest("کافه رها", "CAFE", null, "تهران", "021");
+        CreateBusinessRequest request = new CreateBusinessRequest("کافه رها", "CAFE", null, "خیابان ساحلی", "021");
         Business result = businessService.createForOwner(OWNER_ID, request);
 
         assertThat(result.getOwnerUserId()).isEqualTo(OWNER_ID);
         assertThat(result.getName()).isEqualTo("کافه رها");
         assertThat(result.getBusinessType()).isEqualTo("CAFE");
         assertThat(result.getStatus()).isEqualTo(BusinessStatus.PENDING);
-        assertThat(result.getCity()).isEqualTo("تهران");
-    }
-
-    @Test
-    void createForOwner_acceptsAndNormalizesSupportedCity() {
-        when(businessRepository.findByOwnerUserId(OWNER_ID)).thenReturn(Optional.empty());
-        when(businessRepository.saveAndFlush(any(Business.class))).thenAnswer(inv -> inv.getArgument(0));
-        CreateBusinessRequest request = new CreateBusinessRequest(
-                "کافه", "CAFE", "1000000001", null, null, "  كرمان  ", null);
-
-        assertThat(businessService.createForOwner(OWNER_ID, request).getCity()).isEqualTo("کرمان");
-    }
-
-    @Test
-    void createForOwner_rejectsUnsupportedCity() {
-        when(businessRepository.findByOwnerUserId(OWNER_ID)).thenReturn(Optional.empty());
-        CreateBusinessRequest request = new CreateBusinessRequest(
-                "کافه", "CAFE", "1000000001", null, null, "لندن", null);
-
-        assertThatThrownBy(() -> businessService.createForOwner(OWNER_ID, request))
-                .isInstanceOf(InvalidRequestException.class);
+        assertThat(result.getAddress()).isEqualTo("خیابان ساحلی");
     }
 
     @Test
@@ -219,25 +184,4 @@ class BusinessServiceImplTest {
                 .isInstanceOf(InvalidRequestException.class);
     }
 
-    @Test
-    void updateProfile_normalizesSupportedCity() {
-        Business business = businessWithStatus(BusinessStatus.APPROVED);
-        when(businessRepository.findByOwnerUserId(OWNER_ID)).thenReturn(Optional.of(business));
-        when(businessRepository.save(any(Business.class))).thenAnswer(inv -> inv.getArgument(0));
-
-        Business updated = businessService.updateProfile(OWNER_ID,
-                new UpdateBusinessProfileRequest(null, null, null, "  يزد  ", null, null, null, null));
-
-        assertThat(updated.getCity()).isEqualTo("یزد");
-    }
-
-    @Test
-    void updateProfile_rejectsUnsupportedCity() {
-        when(businessRepository.findByOwnerUserId(OWNER_ID))
-                .thenReturn(Optional.of(businessWithStatus(BusinessStatus.APPROVED)));
-
-        assertThatThrownBy(() -> businessService.updateProfile(OWNER_ID,
-                new UpdateBusinessProfileRequest(null, null, null, "دبی", null, null, null, null)))
-                .isInstanceOf(InvalidRequestException.class);
-    }
 }

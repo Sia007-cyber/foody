@@ -8,6 +8,8 @@ import { EmptyState, ErrorState, PageSpinner } from "../../components/Controls";
 import { Button } from "../../components/Button";
 import { useAuth } from "../auth/AuthContext";
 import { CustomerHome } from "./CustomerHome";
+import { ProductCard } from "./ProductCard";
+import { productApi } from "../catalog/catalogApi";
 import "./discover.css";
 
 type TypeFilter = "" | "CAFE" | "FAST_FOOD";
@@ -50,7 +52,7 @@ function AnonymousDiscoverHero({ search, onSearchChange }: { search: string; onS
         <input
           className="input"
           type="search"
-          placeholder="جستجوی نام کسب‌وکار..."
+          placeholder="جستجوی کسب‌وکار یا محصول..."
           value={search}
           onChange={(event) => onSearchChange(event.target.value)}
         />
@@ -68,7 +70,6 @@ export function DiscoverPage() {
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [type, setType] = useState<TypeFilter>("");
-  const [city, setCity] = useState("");
 
   useEffect(() => {
     const t = setTimeout(() => setDebouncedSearch(search.trim()), 350);
@@ -83,13 +84,19 @@ export function DiscoverPage() {
     refetch,
   } = useQuery({
     queryKey: ["businesses", "discover", type, debouncedSearch],
-    queryFn: () => businessApi.discover({ type: type || undefined, search: debouncedSearch || undefined }),
+    queryFn: () => businessApi.discover({ type: debouncedSearch ? undefined : type || undefined, search: debouncedSearch || undefined }),
   });
 
   const featuredQuery = useQuery({ queryKey: ["businesses", "featured"], queryFn: businessApi.featured });
-  const citiesQuery = useQuery({ queryKey: ["businesses", "cities"], queryFn: businessApi.cities });
-  const cityQuery = useQuery({ queryKey: ["businesses", "city", city], queryFn: () => businessApi.byCity(city), enabled: Boolean(city) });
   const topRatedQuery = useQuery({ queryKey: ["businesses", "top-rated"], queryFn: businessApi.topRated });
+  const topProductsQuery = useQuery({ queryKey: ["products", "top-rated"], queryFn: productApi.topRated });
+  const productSearchQuery = useQuery({
+    queryKey: ["products", "search", debouncedSearch],
+    queryFn: () => productApi.search(debouncedSearch),
+    enabled: Boolean(debouncedSearch),
+  });
+  const searchActive = Boolean(search.trim());
+  const searchIsSettled = search.trim() === debouncedSearch;
 
   // Signed-in users share one marketplace discovery experience. Actions that are
   // not available to a role are handled inside the shared home component.
@@ -112,24 +119,22 @@ export function DiscoverPage() {
       {!user && <AnonymousDiscoverHero search={search} onSearchChange={setSearch} />}
       <CustomerHome
         featuredBusinesses={featuredQuery.data ?? []}
-        supportedCities={citiesQuery.data ?? []}
-        cityBusinesses={cityQuery.data ?? []}
         topRatedBusinesses={topRatedQuery.data ?? []}
-        city={city}
-        onCityChange={setCity}
+        topProducts={topProductsQuery.data ?? []}
         search={search}
         onSearchChange={setSearch}
         showHero={user != null}
+        showDiscoveryContent={!searchActive}
       />
 
       <section id="all-businesses" className="container discover-section discover-section-customer">
           <div className="discover-section-head">
             <span className="section-eyebrow">جستجو</span>
             <h2 className="discover-section-title">
-              {debouncedSearch ? `نتیجه‌ی جستجو برای «${debouncedSearch}»` : "همه‌ی کسب‌وکارها"}
+              {searchActive ? `نتیجه‌ی جستجو برای «${search.trim()}»` : "همه‌ی کسب‌وکارها"}
             </h2>
           </div>
-          <div className="discover-search-row">
+          {!searchActive && <div className="discover-search-row">
             <Segmented
               value={type}
               onChange={setType}
@@ -139,8 +144,22 @@ export function DiscoverPage() {
                 { value: "FAST_FOOD", label: "فست‌فود" },
               ]}
             />
-          </div>
-          {businessResults}
+          </div>}
+          {searchActive ? (
+            !searchIsSettled || isLoading || productSearchQuery.isLoading ? <PageSpinner /> :
+            isError || productSearchQuery.isError ? <ErrorState error={error ?? productSearchQuery.error} onRetry={() => { void refetch(); void productSearchQuery.refetch(); }} title="جستجو انجام نشد" /> : (
+              <div className="search-results-groups" aria-live="polite">
+                <section aria-labelledby="business-search-results-title">
+                  <h3 id="business-search-results-title">کسب‌وکارها</h3>
+                  {businesses?.length ? <div className="business-grid search-result-grid">{businesses.map((b) => <BusinessCard key={b.id} business={b} />)}</div> : <p className="section-empty">کسب‌وکاری پیدا نشد.</p>}
+                </section>
+                <section aria-labelledby="product-search-results-title">
+                  <h3 id="product-search-results-title">محصولات</h3>
+                  {productSearchQuery.data?.length ? <div className="product-discovery-grid">{productSearchQuery.data.map((product) => <ProductCard key={product.id} product={product} />)}</div> : <p className="section-empty">محصولی پیدا نشد.</p>}
+                </section>
+              </div>
+            )
+          ) : businessResults}
       </section>
     </div>
   );

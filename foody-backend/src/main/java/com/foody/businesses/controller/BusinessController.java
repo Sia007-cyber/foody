@@ -5,7 +5,6 @@ import com.foody.businesses.entity.Business;
 import com.foody.businesses.entity.BusinessStatus;
 import com.foody.businesses.service.BusinessService;
 import com.foody.common.exception.ResourceNotFoundException;
-import com.foody.businesses.validation.SupportedIranianCities;
 import java.util.List;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -37,22 +36,12 @@ public class BusinessController {
 
     @GetMapping("/featured")
     public List<BusinessResponse> featured() {
-        return businessService.findFeatured().stream().map(BusinessResponse::from).toList();
-    }
-
-    @GetMapping("/cities")
-    public List<String> cities() {
-        return SupportedIranianCities.values();
-    }
-
-    @GetMapping("/by-city")
-    public List<BusinessResponse> byCity(@RequestParam String city) {
-        return businessService.findByCity(city).stream().map(BusinessResponse::from).toList();
+        return businessService.findFeatured().stream().limit(12).map(BusinessResponse::from).toList();
     }
 
     @GetMapping("/top-rated")
     public List<BusinessResponse> topRated() {
-        return businessService.findTopRated().stream().map(BusinessResponse::from).toList();
+        return businessService.findTopRated().stream().limit(12).map(BusinessResponse::from).toList();
     }
 
     @GetMapping("/{id}")

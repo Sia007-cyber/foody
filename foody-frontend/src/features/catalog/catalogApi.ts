@@ -1,5 +1,5 @@
 import { apiRequest, apiUpload } from "../../lib/api";
-import type { Menu, Product } from "../../types/api";
+import type { DiscoveryProduct, Menu, Product } from "../../types/api";
 
 export const menuApi = {
   listForBusiness: (businessId: number) =>
@@ -20,6 +20,8 @@ export const menuApi = {
 };
 
 export const productApi = {
+  topRated: () => apiRequest<DiscoveryProduct[]>("/api/products/top-rated", { auth: false }),
+  search: (query: string) => apiRequest<DiscoveryProduct[]>("/api/products/search", { auth: false, query: { q: query } }),
   listMine: (menuId: number) => apiRequest<Product[]>("/api/business/products", { query: { menuId } }),
   listForMenu: (menuId: number) =>
     apiRequest<Product[]>(`/api/menus/${menuId}/products`, { auth: false }),

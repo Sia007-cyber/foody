@@ -25,7 +25,6 @@ export function OwnerRegisterBusinessPage() {
   const [businessType, setBusinessType] = useState("CAFE");
   const [managerNationalId, setManagerNationalId] = useState(() => sessionStorage.getItem(OWNER_NATIONAL_ID_STORAGE_KEY) ?? "");
   const [address, setAddress] = useState("");
-  const [city, setCity] = useState("");
   const [phone, setPhone] = useState("");
   const [description, setDescription] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -38,7 +37,6 @@ export function OwnerRegisterBusinessPage() {
     queryFn: businessApi.myProfile,
     retry: false,
   });
-  const citiesQuery = useQuery({ queryKey: ["businesses", "cities"], queryFn: businessApi.cities });
 
   if (checkingExisting) return <PageSpinner />;
   if (existingBusiness) return <Navigate to="/business" replace />;
@@ -53,7 +51,6 @@ export function OwnerRegisterBusinessPage() {
         businessType,
         managerNationalId: managerNationalId.trim(),
         address: address || undefined,
-        city: city || undefined,
         phone: phone || undefined,
         description: description || undefined,
       };
@@ -95,10 +92,6 @@ export function OwnerRegisterBusinessPage() {
           </Select>
 
           <Input label="آدرس (اختیاری)" value={address} onChange={(e) => setAddress(e.target.value)} />
-          <Select label="شهر" value={city} onChange={(e) => setCity(e.target.value)} required>
-            <option value="">یک شهر انتخاب کنید</option>
-            {(citiesQuery.data ?? []).map((option) => <option key={option} value={option}>{option}</option>)}
-          </Select>
           <Input
             label="شماره تماس (اختیاری)"
             type="tel"

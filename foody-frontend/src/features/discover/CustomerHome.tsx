@@ -1,12 +1,13 @@
 import type { ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import type { Business } from "../../types/api";
+import type { Business, DiscoveryProduct } from "../../types/api";
 import { useAuth } from "../auth/AuthContext";
 import { ChevronStartIcon, WalletIcon, CalendarCheckIcon } from "../../components/icons";
 import { formatToman } from "../../lib/format";
 import { walletApi } from "../wallet/walletApi";
 import { NearbyBusinessCard } from "./NearbyBusinessCard";
+import { ProductCard } from "./ProductCard";
 
 interface QuickAction {
   key: string;
@@ -33,17 +34,15 @@ const HOME_HERO_STICKERS: { emoji: string; key: string; tier: "near" | "mid" | "
 
 interface CustomerHomeProps {
   featuredBusinesses: Business[];
-  supportedCities: string[];
-  cityBusinesses: Business[];
   topRatedBusinesses: Business[];
-  city: string;
-  onCityChange: (city: string) => void;
+  topProducts: DiscoveryProduct[];
   search: string;
   onSearchChange: (value: string) => void;
   showHero?: boolean;
+  showDiscoveryContent?: boolean;
 }
 
-export function CustomerHome({ featuredBusinesses, supportedCities, cityBusinesses, topRatedBusinesses, city, onCityChange, search, onSearchChange, showHero = true }: CustomerHomeProps) {
+export function CustomerHome({ featuredBusinesses, topRatedBusinesses, topProducts, search, onSearchChange, showHero = true, showDiscoveryContent = true }: CustomerHomeProps) {
   const { user } = useAuth();
   const navigate = useNavigate();
   const hasCustomerWallet = user?.role === "CUSTOMER" || user?.role === "BUSINESS_OWNER";
@@ -101,7 +100,7 @@ export function CustomerHome({ featuredBusinesses, supportedCities, cityBusiness
             <input
               className="input"
               type="search"
-              placeholder="جستجوی نام کسب‌وکار..."
+              placeholder="جستجوی کسب‌وکار یا محصول..."
               value={search}
               onChange={(e) => onSearchChange(e.target.value)}
             />
@@ -109,15 +108,28 @@ export function CustomerHome({ featuredBusinesses, supportedCities, cityBusiness
         </div>
       </section>}
 
-      <section className="city-selection" aria-labelledby="city-selection-title">
-        <div><span className="section-eyebrow">موقعیت شما</span><h2 id="city-selection-title">شهر را انتخاب کنید</h2></div>
-        <select className="input city-select" value={city} onChange={(event) => onCityChange(event.target.value)} aria-label="انتخاب شهر">
-          <option value="">یک شهر انتخاب کنید</option>
-          {supportedCities.map((option) => <option key={option} value={option}>{option}</option>)}
-        </select>
-      </section>
+      {showDiscoveryContent && topRatedBusinesses.length > 0 && (
+        <section className="nearby-section" aria-labelledby="top-rated-businesses-title">
+          <div className="nearby-section-head"><div><span className="section-eyebrow">بر اساس نظر مشتری‌ها</span><h2 id="top-rated-businesses-title">کسب‌وکارهای برتر</h2></div></div>
+          <div className="nearby-scroll">{topRatedBusinesses.map((b) => <NearbyBusinessCard key={b.id} business={b} />)}</div>
+        </section>
+      )}
 
-      {hasCustomerWallet && <button type="button" className="wallet-preview" onClick={() => navigate("/wallet")}>
+      {showDiscoveryContent && featuredBusinesses.length > 0 && (
+        <section className="nearby-section" aria-labelledby="featured-businesses-title">
+          <div className="nearby-section-head"><div><span className="section-eyebrow">انتخاب فودی</span><h2 id="featured-businesses-title">کسب‌وکارهای پیشنهادی</h2></div></div>
+          <div className="nearby-scroll">{featuredBusinesses.map((b) => <NearbyBusinessCard key={b.id} business={b} />)}</div>
+        </section>
+      )}
+
+      {showDiscoveryContent && topProducts.length > 0 && (
+        <section className="nearby-section" aria-labelledby="top-products-title">
+          <div className="nearby-section-head"><div><span className="section-eyebrow">محبوب نزد مشتری‌ها</span><h2 id="top-products-title">محصولات برتر</h2></div></div>
+          <div className="product-discovery-scroll">{topProducts.map((product) => <ProductCard key={product.id} product={product} />)}</div>
+        </section>
+      )}
+
+      {showDiscoveryContent && hasCustomerWallet && <button type="button" className="wallet-preview" onClick={() => navigate("/wallet")}>
         <span className="wallet-preview-left">
           <span className="wallet-preview-icon">
             <WalletIcon size={22} />
@@ -141,51 +153,14 @@ export function CustomerHome({ featuredBusinesses, supportedCities, cityBusiness
         </span>
       </button>}
 
-      <section className="quick-actions">
+      {showDiscoveryContent && <section className="quick-actions">
         {quickActions.map((a) => (
           <button key={a.key} type="button" className={`quick-action quick-action-accent-${a.accent}`} onClick={a.onClick}>
             <span className={`quick-action-icon ${a.accent !== "ember" ? `quick-action-icon-${a.accent}` : ""}`}>{a.icon}</span>
             <span className="quick-action-label">{a.label}</span>
           </button>
         ))}
-      </section>
-
-      <section className="nearby-section" aria-labelledby="city-businesses-title">
-        <div className="nearby-section-head"><div><span className="section-eyebrow">نزدیک شما</span><h2 id="city-businesses-title">{city ? `کسب‌وکارهای ${city}` : "کسب‌وکارهای شهر انتخابی"}</h2></div></div>
-        {city ? (cityBusinesses.length ? <div className="nearby-scroll">{cityBusinesses.map((b) => <NearbyBusinessCard key={b.id} business={b} />)}</div> : <p className="section-empty">کسب‌وکار عمومی در این شهر پیدا نشد.</p>) : <p className="section-empty">برای دیدن کسب‌وکارها، شهر خود را انتخاب کنید.</p>}
-      </section>
-
-      {featuredBusinesses.length > 0 && (
-        <section className="nearby-section" aria-labelledby="featured-businesses-title">
-          <div className="nearby-section-head">
-            <div>
-              <span className="section-eyebrow">انتخاب فودی</span>
-              <h2 id="featured-businesses-title">کسب‌وکارهای پیشنهادی</h2>
-            </div>
-          </div>
-          <div className="nearby-scroll">
-            {featuredBusinesses.map((b) => (
-              <NearbyBusinessCard key={b.id} business={b} />
-            ))}
-          </div>
-        </section>
-      )}
-
-      {topRatedBusinesses.length > 0 && (
-        <section className="nearby-section" aria-labelledby="top-rated-businesses-title">
-          <div className="nearby-section-head">
-            <div>
-              <span className="section-eyebrow">بر اساس نظر مشتری‌ها</span>
-              <h2 id="top-rated-businesses-title">کسب‌وکارهای برتر</h2>
-            </div>
-          </div>
-          <div className="nearby-scroll">
-            {topRatedBusinesses.map((b) => (
-              <NearbyBusinessCard key={b.id} business={b} />
-            ))}
-          </div>
-        </section>
-      )}
+      </section>}
     </div>
   );
 }

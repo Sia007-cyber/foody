@@ -46,8 +46,6 @@ public class Business {
     private String businessType;
 
     private String address;
-    @Column(length = 100) private String city;
-
     @Column(precision = 10, scale = 8)
     private BigDecimal latitude;
 
@@ -99,8 +97,6 @@ public class Business {
     public void setBusinessType(String businessType) { this.businessType = businessType; }
     public String getAddress() { return address; }
     public void setAddress(String address) { this.address = address; }
-    public String getCity() { return city; }
-    public void setCity(String city) { this.city = city; }
     public BigDecimal getLatitude() { return latitude; }
     public void setLatitude(BigDecimal latitude) { this.latitude = latitude; }
     public BigDecimal getLongitude() { return longitude; }

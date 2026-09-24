@@ -13,6 +13,7 @@ import com.foody.common.exception.GlobalExceptionHandler;
 import com.foody.menus.entity.Menu;
 import com.foody.menus.service.MenuService;
 import com.foody.products.entity.Product;
+import com.foody.products.dto.ProductDiscoveryResponse;
 import com.foody.products.service.ProductService;
 import java.math.BigDecimal;
 import java.util.List;
@@ -121,6 +122,30 @@ class ProductControllerTest {
 
         mockMvc.perform(get("/api/menus/5/products"))
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void topRated_returnsPersistedProductCards() throws Exception {
+        when(productService.findTopRatedPublic()).thenReturn(List.of(
+                new ProductDiscoveryResponse(1L, 5L, 10L, "Cafe", "Latte",
+                        new BigDecimal("4.50"), "/latte.jpg", 4.8, 12L)));
+
+        mockMvc.perform(get("/api/products/top-rated"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].name").value("Latte"))
+                .andExpect(jsonPath("$[0].businessName").value("Cafe"))
+                .andExpect(jsonPath("$[0].averageRating").value(4.8));
+    }
+
+    @Test
+    void search_passesTrimmedPersianQueryToService() throws Exception {
+        when(productService.searchPublic("  کباب  ")).thenReturn(List.of(
+                new ProductDiscoveryResponse(2L, 6L, 11L, "Grill", "کباب",
+                        BigDecimal.TEN, null, null, 0L)));
+
+        mockMvc.perform(get("/api/products/search").param("q", "  کباب  "))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].name").value("کباب"));
     }
 
     private Menu menu(Long id, Long businessId) {

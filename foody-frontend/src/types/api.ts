@@ -44,7 +44,6 @@ export interface Business {
   description: string | null;
   businessType: string;
   address: string | null;
-  city: string | null;
   latitude: number | null;
   longitude: number | null;
   phone: string | null;
@@ -112,6 +111,18 @@ export interface Product {
   imageUrl: string | null;
   isAvailable: boolean;
   displayOrder: number | null;
+}
+
+export interface DiscoveryProduct {
+  id: number;
+  menuId: number;
+  businessId: number;
+  businessName: string;
+  name: string;
+  price: string;
+  imageUrl: string | null;
+  averageRating: number | null;
+  reviewCount: number;
 }
 
 export type FulfillmentType = "PICKUP" | "DELIVERY" | "DINE_IN";

@@ -3,6 +3,7 @@ package com.foody.products.service;
 import com.foody.products.dto.CreateProductRequest;
 import com.foody.products.dto.UpdateProductRequest;
 import com.foody.products.entity.Product;
+import com.foody.products.dto.ProductDiscoveryResponse;
 import com.foody.common.storage.ImageReplacement;
 import java.util.List;
 import java.util.Optional;
@@ -17,6 +18,10 @@ public interface ProductService {
     List<Product> findByMenuId(Long menuId);
 
     List<Product> findMyProducts(Long ownerUserId, Long menuId);
+
+    List<ProductDiscoveryResponse> findTopRatedPublic();
+
+    List<ProductDiscoveryResponse> searchPublic(String query);
 
     // Business panel: creates/updates a product on a menu that belongs to the
     // calling owner's own business.

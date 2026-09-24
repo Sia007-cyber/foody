@@ -13,6 +13,7 @@ test("public and signed-in users share the curated discovery page and components
   assert.match(discover, /<CustomerHome/);
   assert.match(discover, /featuredBusinesses=\{featuredQuery\.data \?\? \[\]\}/);
   assert.match(discover, /topRatedBusinesses=\{topRatedQuery\.data \?\? \[\]\}/);
+  assert.match(discover, /topProducts=\{topProductsQuery\.data \?\? \[\]\}/);
   assert.doesNotMatch(discover, /user\?\.role === "CUSTOMER"/);
   assert.match(home, /enabled: hasCustomerWallet/);
 });

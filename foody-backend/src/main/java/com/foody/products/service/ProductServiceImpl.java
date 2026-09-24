@@ -8,16 +8,20 @@ import com.foody.menus.service.MenuService;
 import com.foody.products.dto.CreateProductRequest;
 import com.foody.products.dto.UpdateProductRequest;
 import com.foody.products.entity.Product;
+import com.foody.products.dto.ProductDiscoveryResponse;
 import com.foody.products.repository.ProductRepository;
 import com.foody.common.storage.ImageReplacement;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.stereotype.Service;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 class ProductServiceImpl implements ProductService {
+
+    private static final int PUBLIC_RESULT_LIMIT = 12;
 
     private final ProductRepository productRepository;
     private final MenuService menuService;
@@ -47,6 +51,20 @@ class ProductServiceImpl implements ProductService {
     public List<Product> findMyProducts(Long ownerUserId, Long menuId) {
         requireOwnedMenu(ownerUserId, menuId);
         return productRepository.findByMenuIdOrderByDisplayOrderAsc(menuId);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ProductDiscoveryResponse> findTopRatedPublic() {
+        return productRepository.findTopRatedPublic(PageRequest.of(0, PUBLIC_RESULT_LIMIT));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ProductDiscoveryResponse> searchPublic(String query) {
+        String normalized = normalizeSearch(query);
+        if (normalized == null) return List.of();
+        return productRepository.searchPublic(normalized, PageRequest.of(0, PUBLIC_RESULT_LIMIT));
     }
 
     @Override
@@ -124,5 +142,12 @@ class ProductServiceImpl implements ProductService {
             throw new AccessDeniedException("Menu does not belong to the authenticated owner's business");
         }
         return menu;
+    }
+
+    private static String normalizeSearch(String value) {
+        if (value == null) return null;
+        String normalized = value.trim().toLowerCase(java.util.Locale.ROOT)
+                .replace('ي', 'ی').replace('ك', 'ک').replaceAll("\\s+", " ");
+        return normalized.isEmpty() ? null : normalized;
     }
 }

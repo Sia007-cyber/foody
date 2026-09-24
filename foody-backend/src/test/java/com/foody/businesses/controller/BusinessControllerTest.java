@@ -106,4 +106,10 @@ class BusinessControllerTest {
                 .andExpect(status().isOk()).andExpect(jsonPath("$[0].name").value("Featured Cafe"))
                 .andExpect(jsonPath("$[0].featured").doesNotExist());
     }
+
+    @Test
+    void obsoleteCityEndpointsAreNotExposed() throws Exception {
+        mockMvc.perform(get("/api/businesses/cities")).andExpect(status().is4xxClientError());
+        mockMvc.perform(get("/api/businesses/by-city").param("city", "تهران")).andExpect(status().is4xxClientError());
+    }
 }

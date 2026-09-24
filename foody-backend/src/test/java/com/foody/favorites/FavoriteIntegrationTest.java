@@ -125,7 +125,7 @@ class FavoriteIntegrationTest extends AbstractContainerBaseTest {
     private Business business(BusinessStatus status) {
         Business business = new Business(); business.setOwnerUserId(user(UserRole.BUSINESS_OWNER).getId());
         business.setName("Favorite cafe " + UUID.randomUUID()); business.setBusinessType("CAFE");
-        business.setCity("تهران"); business.setStatus(status); return businesses.saveAndFlush(business);
+        business.setStatus(status); return businesses.saveAndFlush(business);
     }
 
     private String bearer(User user) { return "Bearer " + jwt.generateAccessToken(user); }

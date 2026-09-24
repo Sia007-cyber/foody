@@ -30,7 +30,6 @@ public interface BusinessService {
 
     List<Business> findFeatured();
 
-    List<Business> findByCity(String city);
     List<Business> findTopRated();
 
     Business updateProfile(Long ownerUserId, UpdateBusinessProfileRequest request);

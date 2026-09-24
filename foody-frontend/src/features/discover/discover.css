@@ -248,7 +248,6 @@
   flex-direction: column;
   gap: 20px;
 }
-.city-selection { display: flex; align-items: end; justify-content: space-between; gap: 16px; padding: 16px; border: 1px solid var(--line); border-radius: var(--r-md); background: var(--paper); }
 .business-card, .nearby-card { position: relative; }
 .favorite-button { position: absolute; z-index: 2; display: grid; place-items: center; width: 36px; height: 36px; border: 1px solid var(--line); border-radius: 50%; background: color-mix(in srgb, var(--paper) 92%, transparent); color: var(--ink-soft); cursor: pointer; transition: transform .15s ease, color .15s ease, background .15s ease; }
 .favorite-button:hover:not(:disabled) { transform: scale(1.06); color: var(--ember); }
@@ -256,10 +255,23 @@
 .favorite-button.is-favorite svg { fill: currentColor; }
 .favorite-button:disabled { cursor: wait; opacity: .7; }
 .business-card-favorite, .nearby-card-favorite { inset-block-start: 10px; inset-inline-start: 10px; }
-.city-selection h2 { font-size: 18px; font-weight: 800; }
-.city-select { width: min(260px, 100%); }
 .section-empty { color: var(--ink-soft); padding: 10px 0; }
-@media (max-width: 560px) { .city-selection { align-items: stretch; flex-direction: column; } }
+
+.product-discovery-scroll,
+.product-discovery-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+.product-discovery-scroll { overflow-x: auto; grid-auto-flow: column; grid-auto-columns: minmax(190px, 240px); grid-template-columns: none; padding-bottom: 6px; }
+.product-discovery-card { overflow: hidden; display: flex; flex-direction: column; min-width: 0; border: 1px solid var(--line); border-radius: var(--r-lg); background: var(--paper); transition: transform .2s ease, box-shadow .2s ease; }
+.product-discovery-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-float); }
+.product-discovery-image { display: grid; place-items: center; height: 142px; overflow: hidden; background: var(--ember-wash); font-size: 38px; }
+.product-discovery-image img { width: 100%; height: 100%; object-fit: cover; }
+.product-discovery-body { display: flex; flex-direction: column; gap: 5px; padding: 14px; }
+.product-discovery-business { color: var(--ink-soft); font-size: 13px; }
+.product-discovery-meta { display: flex; justify-content: space-between; gap: 8px; margin-top: 4px; color: var(--ember-deep); font-size: 13px; font-weight: 750; }
+.search-results-groups { display: flex; flex-direction: column; gap: 34px; }
+.search-results-groups h3 { font-size: 18px; font-weight: 800; }
+.search-result-grid { margin-top: 14px; }
+@media (max-width: 860px) { .product-discovery-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 560px) { .product-discovery-grid { grid-template-columns: 1fr; } }
 
 /* ---- Greeting hero: same gradient/orb language as the wallet page,
    plus a few of the landing hero's floating stickers — the visual bridge

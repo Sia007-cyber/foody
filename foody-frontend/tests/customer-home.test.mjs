@@ -10,23 +10,31 @@ const [source, discover, api, ownerOnboarding, ownerProfile] = await Promise.all
   readFile(new URL("../src/features/owner/OwnerProfilePage.tsx", import.meta.url), "utf8"),
 ]);
 
-test("customer home keeps city, recommended, and top-rated sections independent", () => {
-  assert.doesNotMatch(source, /بهترین کافه‌ها و فست‌فودهای بندرعباس/);
-  assert.match(source, /supportedCities\.map/);
-  assert.match(source, /cityBusinesses/);
+test("customer home removes city selection and keeps ranked discovery sections", () => {
+  assert.doesNotMatch(source, /city|شهر را انتخاب|کسب‌وکارهای شهر انتخابی/i);
   assert.match(source, /featuredBusinesses\.length > 0/);
   assert.match(source, /کسب‌وکارهای پیشنهادی/);
   assert.match(source, /topRatedBusinesses\.length > 0/);
   assert.match(source, /کسب‌وکارهای برتر/);
-  assert.doesNotMatch(source, /nearbyBusinesses/);
+  assert.match(source, /topProducts\.length > 0/);
+  assert.match(source, /محصولات برتر/);
 });
 
-test("customer discovery and owner forms share the backend city catalog", () => {
-  assert.match(api, /\/api\/businesses\/cities/);
-  assert.match(discover, /queryFn: businessApi\.cities/);
-  assert.match(ownerOnboarding, /queryFn: businessApi\.cities/);
-  assert.match(ownerProfile, /queryFn: businessApi\.cities/);
-  assert.doesNotMatch(source, /const IRAN_CITIES/);
+test("city selection and city API behavior are absent from discovery and owner forms", () => {
+  for (const file of [api, discover, ownerOnboarding, ownerProfile]) {
+    assert.doesNotMatch(file, /businesses\/cities|businesses\/by-city|businessApi\.cities|businessApi\.byCity/);
+  }
+  assert.doesNotMatch(ownerOnboarding, /label="شهر"|city:/);
+  assert.doesNotMatch(ownerProfile, /label="شهر"|city:/);
+});
+
+test("search is debounced, server-backed, grouped, and restores discovery when empty", () => {
+  assert.match(discover, /setDebouncedSearch\(search\.trim\(\)\)/);
+  assert.match(discover, /businessApi\.discover/);
+  assert.match(discover, /productApi\.search\(debouncedSearch\)/);
+  assert.match(discover, /showDiscoveryContent=\{!searchActive\}/);
+  assert.match(discover, /کسب‌وکارها/);
+  assert.match(discover, /محصولات/);
 });
 
 test("customer home links to the wallet overview and shows the real aggregate balance", () => {

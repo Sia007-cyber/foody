@@ -6,7 +6,6 @@ import com.foody.businesses.entity.Business;
 import com.foody.businesses.entity.BusinessStatus;
 import com.foody.businesses.entity.BusinessTypeCode;
 import com.foody.businesses.repository.BusinessRepository;
-import com.foody.businesses.validation.SupportedIranianCities;
 import com.foody.common.exception.DuplicateResourceException;
 import com.foody.common.exception.InvalidRequestException;
 import com.foody.common.validation.IranianNationalId;
@@ -20,6 +19,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -65,8 +65,8 @@ class BusinessServiceImpl implements BusinessService {
     @Transactional(readOnly = true)
     public List<Business> search(String type, String search) {
         String normalizedType = blankToNull(type);
-        String normalizedSearch = blankToNull(search);
-        return businessRepository.search(BusinessStatus.APPROVED, normalizedType, normalizedSearch);
+        String normalizedSearch = normalizeSearch(search);
+        return businessRepository.search(BusinessStatus.APPROVED, normalizedType, normalizedSearch, PageRequest.of(0, 60));
     }
 
     @Override
@@ -77,18 +77,18 @@ class BusinessServiceImpl implements BusinessService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<Business> findByCity(String city) {
-        return businessRepository.findPublicByCityOrderByRating(BusinessStatus.APPROVED, SupportedIranianCities.requireSupported(city));
-    }
-
-    @Override
-    @Transactional(readOnly = true)
     public List<Business> findTopRated() {
         return businessRepository.findPublicOrderByRating(BusinessStatus.APPROVED);
     }
 
     private static String blankToNull(String value) {
         return (value == null || value.isBlank()) ? null : value.trim();
+    }
+
+    private static String normalizeSearch(String value) {
+        String trimmed = blankToNull(value);
+        return trimmed == null ? null : trimmed.toLowerCase(java.util.Locale.ROOT)
+                .replace('ي', 'ی').replace('ك', 'ک').replaceAll("\\s+", " ");
     }
 
     @Override
@@ -114,7 +114,6 @@ class BusinessServiceImpl implements BusinessService {
         business.setBusinessType(request.businessType());
         business.setDescription(request.description());
         business.setAddress(request.address());
-        business.setCity(SupportedIranianCities.requireSupported(request.city()));
         business.setPhone(request.phone());
         business.setStatus(BusinessStatus.PENDING);
         // Flush so a concurrent insert is surfaced to the API exception handler as a conflict.
@@ -130,7 +129,6 @@ class BusinessServiceImpl implements BusinessService {
         if (request.name() != null) business.setName(request.name());
         if (request.description() != null) business.setDescription(request.description());
         if (request.address() != null) business.setAddress(request.address());
-        if (request.city() != null) business.setCity(SupportedIranianCities.requireSupported(request.city()));
         if (request.latitude() != null) business.setLatitude(request.latitude());
         if (request.longitude() != null) business.setLongitude(request.longitude());
         if (request.phone() != null) business.setPhone(request.phone());
