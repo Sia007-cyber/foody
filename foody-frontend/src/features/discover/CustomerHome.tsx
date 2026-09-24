@@ -6,8 +6,11 @@ import { useAuth } from "../auth/AuthContext";
 import { ChevronStartIcon, WalletIcon, CalendarCheckIcon } from "../../components/icons";
 import { formatToman } from "../../lib/format";
 import { walletApi } from "../wallet/walletApi";
+import { Segmented } from "../../components/Controls";
 import { NearbyBusinessCard } from "./NearbyBusinessCard";
 import { ProductCard } from "./ProductCard";
+
+export type TypeFilter = "" | "CAFE" | "FAST_FOOD";
 
 interface QuickAction {
   key: string;
@@ -40,9 +43,11 @@ interface CustomerHomeProps {
   onSearchChange: (value: string) => void;
   showHero?: boolean;
   showDiscoveryContent?: boolean;
+  typeFilter?: TypeFilter;
+  onTypeFilterChange?: (value: TypeFilter) => void;
 }
 
-export function CustomerHome({ featuredBusinesses, topRatedBusinesses, topProducts, search, onSearchChange, showHero = true, showDiscoveryContent = true }: CustomerHomeProps) {
+export function CustomerHome({ featuredBusinesses, topRatedBusinesses, topProducts, search, onSearchChange, showHero = true, showDiscoveryContent = true, typeFilter, onTypeFilterChange }: CustomerHomeProps) {
   const { user } = useAuth();
   const navigate = useNavigate();
   const hasCustomerWallet = user?.role === "CUSTOMER" || user?.role === "BUSINESS_OWNER";
@@ -108,27 +113,9 @@ export function CustomerHome({ featuredBusinesses, topRatedBusinesses, topProduc
         </div>
       </section>}
 
-      {showDiscoveryContent && topRatedBusinesses.length > 0 && (
-        <section className="nearby-section" aria-labelledby="top-rated-businesses-title">
-          <div className="nearby-section-head"><div><span className="section-eyebrow">بر اساس نظر مشتری‌ها</span><h2 id="top-rated-businesses-title">کسب‌وکارهای برتر</h2></div></div>
-          <div className="nearby-scroll">{topRatedBusinesses.map((b) => <NearbyBusinessCard key={b.id} business={b} />)}</div>
-        </section>
-      )}
-
-      {showDiscoveryContent && featuredBusinesses.length > 0 && (
-        <section className="nearby-section" aria-labelledby="featured-businesses-title">
-          <div className="nearby-section-head"><div><span className="section-eyebrow">انتخاب فودی</span><h2 id="featured-businesses-title">کسب‌وکارهای پیشنهادی</h2></div></div>
-          <div className="nearby-scroll">{featuredBusinesses.map((b) => <NearbyBusinessCard key={b.id} business={b} />)}</div>
-        </section>
-      )}
-
-      {showDiscoveryContent && topProducts.length > 0 && (
-        <section className="nearby-section" aria-labelledby="top-products-title">
-          <div className="nearby-section-head"><div><span className="section-eyebrow">محبوب نزد مشتری‌ها</span><h2 id="top-products-title">محصولات برتر</h2></div></div>
-          <div className="product-discovery-scroll">{topProducts.map((product) => <ProductCard key={product.id} product={product} />)}</div>
-        </section>
-      )}
-
+      {/* Wallet credit, table reservation and the business-type filter sit
+          directly under the search panel — the actions Ali actually opens
+          this page for, kept above the curated discovery rails below. */}
       {showDiscoveryContent && hasCustomerWallet && <button type="button" className="wallet-preview" onClick={() => navigate("/wallet")}>
         <span className="wallet-preview-left">
           <span className="wallet-preview-icon">
@@ -161,6 +148,41 @@ export function CustomerHome({ featuredBusinesses, topRatedBusinesses, topProduc
           </button>
         ))}
       </section>}
+
+      {showDiscoveryContent && onTypeFilterChange && (
+        <div className="home-type-filter">
+          <Segmented
+            value={typeFilter ?? ""}
+            onChange={onTypeFilterChange}
+            options={[
+              { value: "", label: "همه" },
+              { value: "CAFE", label: "کافه" },
+              { value: "FAST_FOOD", label: "فست‌فود" },
+            ]}
+          />
+        </div>
+      )}
+
+      {showDiscoveryContent && topRatedBusinesses.length > 0 && (
+        <section className="nearby-section" aria-labelledby="top-rated-businesses-title">
+          <div className="nearby-section-head"><div><span className="section-eyebrow">بر اساس نظر مشتری‌ها</span><h2 id="top-rated-businesses-title">کسب‌وکارهای برتر</h2></div></div>
+          <div className="nearby-scroll">{topRatedBusinesses.map((b) => <NearbyBusinessCard key={b.id} business={b} />)}</div>
+        </section>
+      )}
+
+      {showDiscoveryContent && featuredBusinesses.length > 0 && (
+        <section className="nearby-section" aria-labelledby="featured-businesses-title">
+          <div className="nearby-section-head"><div><span className="section-eyebrow">انتخاب فودی</span><h2 id="featured-businesses-title">کسب‌وکارهای پیشنهادی</h2></div></div>
+          <div className="nearby-scroll">{featuredBusinesses.map((b) => <NearbyBusinessCard key={b.id} business={b} />)}</div>
+        </section>
+      )}
+
+      {showDiscoveryContent && topProducts.length > 0 && (
+        <section className="nearby-section" aria-labelledby="top-products-title">
+          <div className="nearby-section-head"><div><span className="section-eyebrow">محبوب نزد مشتری‌ها</span><h2 id="top-products-title">محصولات برتر</h2></div></div>
+          <div className="product-discovery-scroll">{topProducts.map((product) => <ProductCard key={product.id} product={product} />)}</div>
+        </section>
+      )}
     </div>
   );
 }

@@ -170,7 +170,13 @@
 }
 
 .discover-section {
-  padding: 8px 0 72px;
+  /* padding-block only — this section also carries the "container" class,
+     which supplies the inline (right/left) padding via padding-inline. Using
+     the `padding` shorthand here used to reset padding-left/right to 0 and,
+     since this rule loads after .container's in the bundle, that 0 silently
+     won the cascade — gluing the heading/filter/cards to the screen edge on
+     phones (no max-width centering there to hide the gap). */
+  padding-block: 8px 72px;
 }
 .business-grid {
   display: grid;
@@ -387,6 +393,28 @@
     display: flex;
   }
 }
+
+/* Below 760px the greeting/search column can span the full card width, so a
+   left-anchored sticker at its normal (top: X%) position risks sitting under
+   the title or subtitle. There is still a guaranteed-clear strip, though: the
+   card's own bottom padding (34px), below the search input, where no text
+   ever reaches — regardless of how the column above wraps. Pin two small,
+   heavily-muted stickers there so the card doesn't read as bare on phones. */
+@media (max-width: 759px) {
+  .home-hero-sticker-1,
+  .home-hero-sticker-2 {
+    display: flex;
+    top: auto;
+    bottom: 6px;
+    width: 26px;
+    height: 26px;
+    font-size: 13px;
+    opacity: 0.5;
+    filter: blur(0.4px);
+  }
+  .home-hero-sticker-1 { inset-inline-end: 14px; }
+  .home-hero-sticker-2 { inset-inline-end: 52px; }
+}
 .home-hero-content {
   position: relative;
   z-index: 1;
@@ -526,6 +554,16 @@
 @media (max-width: 560px) {
   .quick-actions {
     grid-template-columns: repeat(2, 1fr);
+  }
+  /* With 3 actions (reserve / wallet / offers) in a 2-column grid, the 3rd
+     item drops to a new row alone and leaves the cell beside it empty. Only
+     kicks in when the count is actually odd — nth-child(odd) + last-child
+     both have to match the same item. */
+  .quick-action:nth-child(odd):last-child {
+    grid-column: 1 / -1;
+    flex-direction: row;
+    justify-content: center;
+    padding: 14px 8px;
   }
 }
 .quick-action {
@@ -715,4 +753,16 @@
 .discover-search-row .input {
   flex: 1;
   min-width: 220px;
+}
+
+/* The same filter, relocated under the hero — deliberately lighter than the
+   full discover-search-row treatment it used to sit in down at the bottom
+   (no big bottom margin, smaller pill) since up here it's a quick toggle
+   next to the wallet/quick-action cards, not its own section. */
+.home-type-filter .segmented {
+  padding: 3px;
+}
+.home-type-filter .segmented-option {
+  padding: 7px 14px;
+  font-size: 13px;
 }

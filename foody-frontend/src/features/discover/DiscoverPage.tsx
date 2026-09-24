@@ -3,16 +3,14 @@ import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { businessApi } from "../businesses/businessApi";
 import { BusinessCard } from "./BusinessCard";
-import { Segmented } from "../../components/Controls";
 import { EmptyState, ErrorState, PageSpinner } from "../../components/Controls";
 import { Button } from "../../components/Button";
 import { useAuth } from "../auth/AuthContext";
 import { CustomerHome } from "./CustomerHome";
+import type { TypeFilter } from "./CustomerHome";
 import { ProductCard } from "./ProductCard";
 import { productApi } from "../catalog/catalogApi";
 import "./discover.css";
-
-type TypeFilter = "" | "CAFE" | "FAST_FOOD";
 
 // Restored anonymous-home visual treatment. These are decorative only and use
 // the original classes/positions so the prior Foody hero remains intact.
@@ -125,6 +123,8 @@ export function DiscoverPage() {
         onSearchChange={setSearch}
         showHero={user != null}
         showDiscoveryContent={!searchActive}
+        typeFilter={type}
+        onTypeFilterChange={setType}
       />
 
       <section id="all-businesses" className="container discover-section discover-section-customer">
@@ -134,17 +134,6 @@ export function DiscoverPage() {
               {searchActive ? `نتیجه‌ی جستجو برای «${search.trim()}»` : "همه‌ی کسب‌وکارها"}
             </h2>
           </div>
-          {!searchActive && <div className="discover-search-row">
-            <Segmented
-              value={type}
-              onChange={setType}
-              options={[
-                { value: "", label: "همه" },
-                { value: "CAFE", label: "کافه" },
-                { value: "FAST_FOOD", label: "فست‌فود" },
-              ]}
-            />
-          </div>}
           {searchActive ? (
             !searchIsSettled || isLoading || productSearchQuery.isLoading ? <PageSpinner /> :
             isError || productSearchQuery.isError ? <ErrorState error={error ?? productSearchQuery.error} onRetry={() => { void refetch(); void productSearchQuery.refetch(); }} title="جستجو انجام نشد" /> : (
