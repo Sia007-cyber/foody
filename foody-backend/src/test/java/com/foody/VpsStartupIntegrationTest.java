@@ -30,7 +30,7 @@ class VpsStartupIntegrationTest extends AbstractContainerBaseTest {
 
     @Test
     void vpsProfileStartsWithLocalStorageAndConservativeRuntimeSettings() {
-        assertThat(flyway.info().current().getVersion().getVersion()).isEqualTo("30");
+        assertThat(flyway.info().current().getVersion().getVersion()).isEqualTo("31");
         assertThat(flyway.validateWithResult().validationSuccessful).isTrue();
         assertThat(uploadStorage).isInstanceOf(LocalUploadStorage.class);
         assertThat(dataSource.getMaximumPoolSize()).isEqualTo(4);

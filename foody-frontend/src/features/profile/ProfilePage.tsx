@@ -161,6 +161,16 @@ export function ProfilePage() {
         </section>
       )}
 
+      {user.role === "CUSTOMER" && (
+        <section className="profile-public-id" aria-labelledby="support-title">
+          <div>
+            <span id="support-title" className="profile-section-label">پشتیبانی</span>
+            <p>سوالی درباره سفارش، رزرو یا حساب کاربری‌ات داری؟ با پشتیبانی فودی در تماس باش.</p>
+          </div>
+          <Link to="/support" className="btn btn-secondary btn-sm">درخواست پشتیبانی</Link>
+        </section>
+      )}
+
       <form onSubmit={handleSubmit} className="profile-form">
         <Input label="نام کامل" value={fullName} onChange={(e) => setFullName(e.target.value)} required />
         <Input

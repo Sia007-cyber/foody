@@ -50,6 +50,7 @@ import { PwaLifecycle } from "./components/PwaLifecycle";
 import { FavoritesPage } from "./features/favorites/FavoritesPage";
 import { OwnerCommunicationsPage } from "./features/communications/OwnerCommunicationsPage";
 import { AdminCommunicationsPage } from "./features/communications/AdminCommunicationsPage";
+import { CustomerSupportPage } from "./features/communications/CustomerSupportPage";
 
 export default function App() {
   return (
@@ -70,6 +71,7 @@ export default function App() {
 
                   <Route element={<RequireAuth roles={["CUSTOMER"]} />}>
                     <Route path="/favorites" element={<FavoritesPage />} />
+                    <Route path="/support" element={<CustomerSupportPage />} />
                   </Route>
 
 

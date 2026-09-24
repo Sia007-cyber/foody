@@ -8,7 +8,7 @@ import { BellIcon, CloseIcon, ReceiptIcon, CalendarCheckIcon, StoreIcon, ChatIco
 import { Spinner, EmptyState } from "../../components/Controls";
 import { formatRelativeTime } from "../../lib/format";
 import type { Notification } from "../../types/api";
-import { ownerCommunicationApi } from "../communications/communicationApi";
+import { customerCommunicationApi, ownerCommunicationApi } from "../communications/communicationApi";
 
 const TYPE_ICON: Record<Notification["type"], ReactNode> = {
   ORDER_STATUS_CHANGED: <ReceiptIcon size={16} />,
@@ -29,6 +29,7 @@ function resolveLink(n: Notification, role: string | undefined): string | null {
   if (role === "CUSTOMER") {
     if (n.referenceType === "ORDER") return `/orders/${n.referenceId}`;
     if (n.referenceType === "RESERVATION") return "/reservations";
+    if (n.referenceType === "SUPPORT_TICKET") return "/support";
   }
   if (role === "BUSINESS_OWNER") {
     if (n.referenceType === "ORDER") return "/business/orders";
@@ -62,6 +63,12 @@ export function NotificationBell() {
     queryKey: ["communications", "owner", "unread-count"],
     queryFn: ownerCommunicationApi.unreadCount,
     enabled: user?.role === "BUSINESS_OWNER",
+    refetchInterval: 30_000,
+  });
+  const { data: customerCommunicationUnread } = useQuery({
+    queryKey: ["communications", "customer", "unread-count"],
+    queryFn: customerCommunicationApi.unreadCount,
+    enabled: user?.role === "CUSTOMER",
     refetchInterval: 30_000,
   });
 
@@ -124,7 +131,7 @@ export function NotificationBell() {
 
   if (!user) return null;
 
-  const unreadCount = (unread?.unreadCount ?? 0) + (communicationUnread?.unreadCount ?? 0);
+  const unreadCount = (unread?.unreadCount ?? 0) + (communicationUnread?.unreadCount ?? 0) + (customerCommunicationUnread?.unreadCount ?? 0);
 
   function handleItemClick(n: Notification) {
     if (!n.read) markAsRead.mutate(n.id);
@@ -188,6 +195,13 @@ export function NotificationBell() {
                   <button type="button" className="notif-item unread" onClick={() => { navigate("/business/communications"); setOpen(false); }}>
                     <span className="notif-item-icon"><ChatIcon size={16} /></span>
                     <span className="notif-item-body"><span className="notif-item-title">پیام‌ها و پشتیبانی</span><span className="notif-item-message">{communicationUnread?.unreadCount} پیام یا پاسخ خوانده‌نشده</span></span>
+                    <span className="notif-item-dot" />
+                  </button>
+                )}
+                {user.role === "CUSTOMER" && (customerCommunicationUnread?.unreadCount ?? 0) > 0 && (
+                  <button type="button" className="notif-item unread" onClick={() => { navigate("/support"); setOpen(false); }}>
+                    <span className="notif-item-icon"><ChatIcon size={16} /></span>
+                    <span className="notif-item-body"><span className="notif-item-title">پشتیبانی</span><span className="notif-item-message">{customerCommunicationUnread?.unreadCount} پاسخ خوانده‌نشده</span></span>
                     <span className="notif-item-dot" />
                   </button>
                 )}

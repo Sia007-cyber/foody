@@ -16,4 +16,7 @@
 .ticket-message small { display: block; color: var(--ink-soft); margin-top: 5px; }
 .communication-body { white-space: pre-wrap; line-height: 1.9; color: var(--ink-soft); }
 .communication-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.communication-source-tag { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; }
+.communication-source-tag.customer { background: var(--ember-wash); color: var(--ember); }
+.communication-source-tag.business { background: var(--mist); color: var(--ink-soft); }
 @media (max-width: 800px) { .communications-grid { grid-template-columns: 1fr; } }

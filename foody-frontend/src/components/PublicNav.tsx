@@ -37,6 +37,7 @@ export function PublicNav() {
         </NavLink>
       )}
       {user?.role === "CUSTOMER" && <NavLink to="/favorites" onClick={() => setDrawerOpen(false)} className={({ isActive }) => `nav-link ${isActive ? "active" : ""}`}>علاقه‌مندی‌ها</NavLink>}
+      {user?.role === "CUSTOMER" && <NavLink to="/support" onClick={() => setDrawerOpen(false)} className={({ isActive }) => `nav-link ${isActive ? "active" : ""}`}>پشتیبانی</NavLink>}
       {(user?.role === "CUSTOMER" || user?.role === "BUSINESS_OWNER") && (
         <>
           <NavLink

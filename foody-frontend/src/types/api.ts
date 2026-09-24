@@ -58,8 +58,9 @@ export interface AdminBusiness extends Business {
 }
 
 export type TicketStatus = "OPEN" | "ANSWERED" | "CLOSED";
-export interface TicketSummary { id: number; businessId: number; businessName: string; ownerDisplayName: string; subject: string; status: TicketStatus; unread: boolean; createdAt: string; updatedAt: string; }
-export interface TicketMessage { id: number; senderType: "BUSINESS_OWNER" | "ADMIN"; senderDisplayName: string; body: string; createdAt: string; }
+export type TicketRequesterType = "BUSINESS_OWNER" | "CUSTOMER";
+export interface TicketSummary { id: number; requesterType: TicketRequesterType; businessId: number | null; businessName: string | null; requesterDisplayName: string; requesterPublicId: string | null; subject: string; status: TicketStatus; unread: boolean; createdAt: string; updatedAt: string; }
+export interface TicketMessage { id: number; senderType: "BUSINESS_OWNER" | "ADMIN" | "CUSTOMER"; senderDisplayName: string; body: string; createdAt: string; }
 export interface TicketDetail { ticket: TicketSummary; messages: TicketMessage[]; }
 export interface BusinessMessage { id: number; targetBusinessId: number | null; targetBusinessName: string | null; type: "DIRECT" | "BROADCAST"; subject: string; body: string; read: boolean; createdAt: string; }
 export interface PageResponse<T> { items: T[]; page: number; hasMore: boolean; }

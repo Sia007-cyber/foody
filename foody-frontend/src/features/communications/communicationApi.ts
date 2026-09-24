@@ -1,5 +1,5 @@
 import { apiRequest } from "../../lib/api";
-import type { BusinessMessage, PageResponse, TicketDetail, TicketStatus, TicketSummary, UnreadCountResponse } from "../../types/api";
+import type { BusinessMessage, PageResponse, TicketDetail, TicketRequesterType, TicketStatus, TicketSummary, UnreadCountResponse } from "../../types/api";
 
 export const ownerCommunicationApi = {
   tickets: () => apiRequest<PageResponse<TicketSummary>>("/api/business/communications/tickets"),
@@ -11,8 +11,16 @@ export const ownerCommunicationApi = {
   unreadCount: () => apiRequest<UnreadCountResponse>("/api/business/communications/unread-count"),
 };
 
+export const customerCommunicationApi = {
+  tickets: () => apiRequest<PageResponse<TicketSummary>>("/api/customer/communications/tickets"),
+  ticket: (id: number) => apiRequest<TicketDetail>(`/api/customer/communications/tickets/${id}`),
+  createTicket: (subject: string, message: string) => apiRequest<TicketDetail>("/api/customer/communications/tickets", { method: "POST", body: { subject, message } }),
+  reply: (id: number, message: string) => apiRequest<TicketDetail>(`/api/customer/communications/tickets/${id}/replies`, { method: "POST", body: { message } }),
+  unreadCount: () => apiRequest<UnreadCountResponse>("/api/customer/communications/unread-count"),
+};
+
 export const adminCommunicationApi = {
-  tickets: (status?: TicketStatus) => apiRequest<PageResponse<TicketSummary>>("/api/admin/communications/tickets", { query: { status } }),
+  tickets: (status?: TicketStatus, requesterType?: TicketRequesterType) => apiRequest<PageResponse<TicketSummary>>("/api/admin/communications/tickets", { query: { status, requesterType } }),
   ticket: (id: number) => apiRequest<TicketDetail>(`/api/admin/communications/tickets/${id}`),
   reply: (id: number, message: string) => apiRequest<TicketDetail>(`/api/admin/communications/tickets/${id}/replies`, { method: "POST", body: { message } }),
   close: (id: number) => apiRequest<TicketDetail>(`/api/admin/communications/tickets/${id}/close`, { method: "PATCH" }),
