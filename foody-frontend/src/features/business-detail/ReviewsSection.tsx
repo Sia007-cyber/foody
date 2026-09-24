@@ -17,7 +17,7 @@ export function ReviewsSection({businessId,ownerUserId}:{businessId:number;owner
   const {notify}=useToast();
   const [editing,setEditing]=useState(false);
   const [visibleCount,setVisibleCount]=useState(6);
-  const reviews=useQuery({queryKey:reviewsKey(businessId),queryFn:()=>reviewApi.list(businessId)});
+  const reviews=useQuery({queryKey:reviewsKey(businessId),queryFn:()=>reviewApi.list(businessId),refetchOnMount:"always",refetchOnWindowFocus:true});
   const canWrite=user?.role==="CUSTOMER"||(user?.role==="BUSINESS_OWNER"&&user.id!==ownerUserId);
   const mine=useQuery({queryKey:mineKey(businessId),queryFn:async()=>{try{return await reviewApi.mine(businessId)}catch(error){if(error instanceof ApiError&&error.status===404)return null;throw error}},enabled:!authLoading&&canWrite});
   const refresh=async()=>{await Promise.all([queryClient.invalidateQueries({queryKey:reviewsKey(businessId)}),queryClient.invalidateQueries({queryKey:mineKey(businessId)})]);setEditing(false)};

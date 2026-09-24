@@ -69,6 +69,26 @@ class ReviewIntegrationTest extends AbstractContainerBaseTest {
     }
 
     @Test
+    void approvedReviewIsPublicToOtherCustomersWhileRejectedReviewsRemainPrivate() {
+        ReviewResponse aliceReview = service.create(approved.getId(), customer.getId(), new ReviewRequest(5, "Excellent"));
+
+        assertThat(service.list(approved.getId()).reviews()).isEmpty();
+        assertThat(service.mine(approved.getId(), customer.getId()).moderationStatus()).isEqualTo(ReviewModerationStatus.PENDING);
+
+        moderation.moderate("BUSINESS", aliceReview.id(), ReviewModerationStatus.APPROVED);
+
+        ReviewListResponse publicList = service.list(approved.getId());
+        assertThat(publicList.reviews()).extracting(ReviewResponse::id).containsExactly(aliceReview.id());
+        assertThat(service.mine(approved.getId(), customer.getId()).moderationStatus()).isEqualTo(ReviewModerationStatus.APPROVED);
+
+        ReviewResponse bobReview = service.create(approved.getId(), otherCustomer.getId(), new ReviewRequest(2, "Not for me"));
+        moderation.moderate("BUSINESS", bobReview.id(), ReviewModerationStatus.REJECTED);
+
+        assertThat(service.list(approved.getId()).reviews()).extracting(ReviewResponse::id).containsExactly(aliceReview.id());
+        assertThat(service.mine(approved.getId(), otherCustomer.getId()).moderationStatus()).isEqualTo(ReviewModerationStatus.REJECTED);
+    }
+
+    @Test
     void businessOwnerCanReviewAnotherBusinessButNotOwnBusiness() {
         assertThat(service.create(approved.getId(), otherOwner.getId(), new ReviewRequest(5, "Good")).rating())
                 .isEqualTo(5);
