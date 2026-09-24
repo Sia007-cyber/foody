@@ -4,16 +4,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.foody.AbstractContainerBaseTest;
-import com.foody.businesses.entity.BusinessStatus;
-import com.foody.businesses.repository.BusinessRepository;
-import com.foody.users.entity.User;
-import com.foody.users.entity.UserRole;
-import com.foody.users.entity.UserStatus;
-import com.foody.users.repository.UserRepository;
 import java.util.Map;
 import java.util.UUID;
+
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,15 +16,31 @@ import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.foody.AbstractContainerBaseTest;
+import com.foody.businesses.entity.BusinessStatus;
+import com.foody.businesses.repository.BusinessRepository;
+import com.foody.users.entity.User;
+import com.foody.users.entity.UserRole;
+import com.foody.users.entity.UserStatus;
+import com.foody.users.repository.UserRepository;
+
 @AutoConfigureMockMvc
 class DemoAccountBootstrapIntegrationTest extends AbstractContainerBaseTest {
-    @Autowired DemoAccountBootstrapService bootstrap;
-    @Autowired DemoAccountsProperties properties;
-    @Autowired UserRepository users;
-    @Autowired BusinessRepository businesses;
-    @Autowired PasswordEncoder passwords;
-    @Autowired MockMvc mvc;
-    @Autowired ObjectMapper json;
+    @Autowired
+    DemoAccountBootstrapService bootstrap;
+    @Autowired
+    DemoAccountsProperties properties;
+    @Autowired
+    UserRepository users;
+    @Autowired
+    BusinessRepository businesses;
+    @Autowired
+    PasswordEncoder passwords;
+    @Autowired
+    MockMvc mvc;
+    @Autowired
+    ObjectMapper json;
 
     String ownerPassword;
     String adminPassword;
@@ -109,10 +119,10 @@ class DemoAccountBootstrapIntegrationTest extends AbstractContainerBaseTest {
         String ownerToken = accessToken(DemoAccountBootstrapService.OWNER_EMAIL, ownerPassword);
         String order = "{\"businessId\":1,\"fulfillmentType\":\"PICKUP\",\"items\":[{\"productId\":1,\"quantity\":1}]}";
         mvc.perform(post("/api/orders").header("Authorization", "Bearer " + adminToken)
-                        .contentType(MediaType.APPLICATION_JSON).content(order))
+                .contentType(MediaType.APPLICATION_JSON).content(order))
                 .andExpect(status().isNotFound());
         mvc.perform(post("/api/orders").header("Authorization", "Bearer " + ownerToken)
-                        .contentType(MediaType.APPLICATION_JSON).content(order))
+                .contentType(MediaType.APPLICATION_JSON).content(order))
                 .andExpect(status().isNotFound());
     }
 
@@ -131,5 +141,13 @@ class DemoAccountBootstrapIntegrationTest extends AbstractContainerBaseTest {
         String body = login(email, password).andExpect(status().isOk()).andReturn()
                 .getResponse().getContentAsString();
         return json.readTree(body).get("accessToken").asText();
+    }
+
+    @AfterEach
+    void restoreDisabledBaseline() {
+        properties.setEnabled(false);
+        properties.setOwnerPassword(null);
+        properties.setAdminPassword(null);
+        bootstrap.apply();
     }
 }
