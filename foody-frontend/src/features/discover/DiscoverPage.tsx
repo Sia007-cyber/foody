@@ -14,7 +14,11 @@ import "./discover.css";
 
 // Restored anonymous-home visual treatment. These are decorative only and use
 // the original classes/positions so the prior Foody hero remains intact.
-const HERO_STICKERS: { emoji: string; label: string; tier: "near" | "mid" | "far" }[] = [
+const HERO_STICKERS: {
+  emoji: string;
+  label: string;
+  tier: "near" | "mid" | "far";
+}[] = [
   { emoji: "🍔", label: "hero-sticker-1", tier: "near" },
   { emoji: "☕", label: "hero-sticker-2", tier: "near" },
   { emoji: "🍕", label: "hero-sticker-3", tier: "near" },
@@ -31,7 +35,13 @@ const HERO_STICKERS: { emoji: string; label: string; tier: "near" | "mid" | "far
   { emoji: "🍬", label: "hero-sticker-14", tier: "far" },
 ];
 
-function AnonymousDiscoverHero({ search, onSearchChange }: { search: string; onSearchChange: (value: string) => void }) {
+function AnonymousDiscoverHero({
+  search,
+  onSearchChange,
+}: {
+  search: string;
+  onSearchChange: (value: string) => void;
+}) {
   const navigate = useNavigate();
 
   return (
@@ -39,7 +49,10 @@ function AnonymousDiscoverHero({ search, onSearchChange }: { search: string; onS
       <div className="hero-blobs" />
       <div className="hero-stickers" aria-hidden="true">
         {HERO_STICKERS.map((sticker) => (
-          <span key={sticker.label} className={`hero-sticker hero-sticker-${sticker.tier} ${sticker.label}`}>
+          <span
+            key={sticker.label}
+            className={`hero-sticker hero-sticker-${sticker.tier} ${sticker.label}`}
+          >
             {sticker.emoji}
           </span>
         ))}
@@ -50,14 +63,22 @@ function AnonymousDiscoverHero({ search, onSearchChange }: { search: string; onS
         <input
           className="input"
           type="search"
-          placeholder="جستجوی کسب‌وکار یا محصول..."
+          placeholder="دنبال چی میگردی؟"
           value={search}
           onChange={(event) => onSearchChange(event.target.value)}
         />
       </div>
       <div className="hero-cta">
-        <Button size="md" onClick={() => navigate("/register")}>ثبت‌نام رایگان</Button>
-        <Button variant="secondary" size="md" onClick={() => navigate("/login")}>ورود</Button>
+        <Button size="md" onClick={() => navigate("/register")}>
+          ثبت‌نام رایگان
+        </Button>
+        <Button
+          variant="secondary"
+          size="md"
+          onClick={() => navigate("/login")}
+        >
+          ورود
+        </Button>
       </div>
     </section>
   );
@@ -82,12 +103,25 @@ export function DiscoverPage() {
     refetch,
   } = useQuery({
     queryKey: ["businesses", "discover", type, debouncedSearch],
-    queryFn: () => businessApi.discover({ type: debouncedSearch ? undefined : type || undefined, search: debouncedSearch || undefined }),
+    queryFn: () =>
+      businessApi.discover({
+        type: debouncedSearch ? undefined : type || undefined,
+        search: debouncedSearch || undefined,
+      }),
   });
 
-  const featuredQuery = useQuery({ queryKey: ["businesses", "featured"], queryFn: businessApi.featured });
-  const topRatedQuery = useQuery({ queryKey: ["businesses", "top-rated"], queryFn: businessApi.topRated });
-  const topProductsQuery = useQuery({ queryKey: ["products", "top-rated"], queryFn: productApi.topRated });
+  const featuredQuery = useQuery({
+    queryKey: ["businesses", "featured"],
+    queryFn: businessApi.featured,
+  });
+  const topRatedQuery = useQuery({
+    queryKey: ["businesses", "top-rated"],
+    queryFn: businessApi.topRated,
+  });
+  const topProductsQuery = useQuery({
+    queryKey: ["products", "top-rated"],
+    queryFn: productApi.topRated,
+  });
   const productSearchQuery = useQuery({
     queryKey: ["products", "search", debouncedSearch],
     queryFn: () => productApi.search(debouncedSearch),
@@ -101,7 +135,11 @@ export function DiscoverPage() {
   const businessResults = isLoading ? (
     <PageSpinner />
   ) : isError ? (
-    <ErrorState error={error} onRetry={() => refetch()} title="کسب‌وکارها لود نشدن" />
+    <ErrorState
+      error={error}
+      onRetry={() => refetch()}
+      title="کسب‌وکارها لود نشدن"
+    />
   ) : businesses && businesses.length > 0 ? (
     <div className="business-grid">
       {businesses.map((b) => (
@@ -109,12 +147,17 @@ export function DiscoverPage() {
       ))}
     </div>
   ) : (
-    <EmptyState title="چیزی پیدا نشد" description="فیلترها رو عوض کن یا اسم دیگه‌ای رو امتحان کن." />
+    <EmptyState
+      title="چیزی پیدا نشد"
+      description="فیلترها رو عوض کن یا اسم دیگه‌ای رو امتحان کن."
+    />
   );
 
   return (
     <div>
-      {!user && <AnonymousDiscoverHero search={search} onSearchChange={setSearch} />}
+      {!user && (
+        <AnonymousDiscoverHero search={search} onSearchChange={setSearch} />
+      )}
       <CustomerHome
         featuredBusinesses={featuredQuery.data ?? []}
         topRatedBusinesses={topRatedQuery.data ?? []}
@@ -127,28 +170,61 @@ export function DiscoverPage() {
         onTypeFilterChange={setType}
       />
 
-      <section id="all-businesses" className="container discover-section discover-section-customer">
-          <div className="discover-section-head">
-            <span className="section-eyebrow">جستجو</span>
-            <h2 className="discover-section-title">
-              {searchActive ? `نتیجه‌ی جستجو برای «${search.trim()}»` : "همه‌ی کسب‌وکارها"}
-            </h2>
-          </div>
-          {searchActive ? (
-            !searchIsSettled || isLoading || productSearchQuery.isLoading ? <PageSpinner /> :
-            isError || productSearchQuery.isError ? <ErrorState error={error ?? productSearchQuery.error} onRetry={() => { void refetch(); void productSearchQuery.refetch(); }} title="جستجو انجام نشد" /> : (
-              <div className="search-results-groups" aria-live="polite">
-                <section aria-labelledby="business-search-results-title">
-                  <h3 id="business-search-results-title">کسب‌وکارها</h3>
-                  {businesses?.length ? <div className="business-grid search-result-grid">{businesses.map((b) => <BusinessCard key={b.id} business={b} />)}</div> : <p className="section-empty">کسب‌وکاری پیدا نشد.</p>}
-                </section>
-                <section aria-labelledby="product-search-results-title">
-                  <h3 id="product-search-results-title">محصولات</h3>
-                  {productSearchQuery.data?.length ? <div className="product-discovery-grid">{productSearchQuery.data.map((product) => <ProductCard key={product.id} product={product} />)}</div> : <p className="section-empty">محصولی پیدا نشد.</p>}
-                </section>
-              </div>
-            )
-          ) : businessResults}
+      <section
+        id="all-businesses"
+        className="container discover-section discover-section-customer"
+      >
+        <div className="discover-section-head">
+          <span className="section-eyebrow">جستجو</span>
+          <h2 className="discover-section-title">
+            {searchActive
+              ? `نتیجه‌ی جستجو برای «${search.trim()}»`
+              : "همه‌ی کسب‌وکارها"}
+          </h2>
+        </div>
+        {searchActive ? (
+          !searchIsSettled || isLoading || productSearchQuery.isLoading ? (
+            <PageSpinner />
+          ) : isError || productSearchQuery.isError ? (
+            <ErrorState
+              error={error ?? productSearchQuery.error}
+              onRetry={() => {
+                void refetch();
+                void productSearchQuery.refetch();
+              }}
+              title="جستجو انجام نشد"
+            />
+          ) : (
+            <div className="search-results-groups" aria-live="polite">
+              <section aria-labelledby="business-search-results-title">
+                <h3 id="business-search-results-title">کسب‌وکارها</h3>
+                {businesses?.length ? (
+                  <div className="business-grid search-result-grid">
+                    {businesses.map((b) => (
+                      <BusinessCard key={b.id} business={b} />
+                    ))}
+                  </div>
+                ) : (
+                  <p className="section-empty">کسب‌وکاری پیدا نشد.</p>
+                )}
+              </section>
+              <section aria-labelledby="product-search-results-title">
+                <h3 id="product-search-results-title">محصولات</h3>
+                {productSearchQuery.data?.length ? (
+                  <div className="product-discovery-grid">
+                    {productSearchQuery.data.map((product) => (
+                      <ProductCard key={product.id} product={product} />
+                    ))}
+                  </div>
+                ) : (
+                  <p className="section-empty">محصولی پیدا نشد.</p>
+                )}
+              </section>
+            </div>
+          )
+        ) : (
+          businessResults
+        )}
       </section>
     </div>
   );
