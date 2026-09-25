@@ -12,11 +12,11 @@ const [source, discover, api, ownerOnboarding, ownerProfile] = await Promise.all
 
 test("customer home removes city selection and keeps ranked discovery sections", () => {
   assert.doesNotMatch(source, /city|شهر را انتخاب|کسب‌وکارهای شهر انتخابی/i);
-  assert.match(source, /featuredBusinesses\.length > 0/);
+  assert.match(source, /filteredFeatured\.length > 0/);
   assert.match(source, /کسب‌وکارهای پیشنهادی/);
-  assert.match(source, /topRatedBusinesses\.length > 0/);
+  assert.match(source, /filteredTopRated\.length > 0/);
   assert.match(source, /کسب‌وکارهای برتر/);
-  assert.match(source, /topProducts\.length > 0/);
+  assert.match(source, /showTopProducts/);
   assert.match(source, /محصولات برتر/);
 });
 
